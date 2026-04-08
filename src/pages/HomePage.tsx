@@ -6,6 +6,7 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn, FramerInList } from '../components/FramerIn'
 import { motion, useSpring, useTransform } from 'framer-motion'
 import { useEffect } from 'react'
+import heroGif from '../assets/hero/heroRE.gif'
 
 function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toString() }: { 
   value: number, 
@@ -54,7 +55,7 @@ export function HomePage() {
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 0.5 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          src="/src/assets/hero/heroRE.gif" 
+          src={heroGif} 
           alt="Realm Explorer Background" 
           className="absolute inset-0 w-full h-full object-cover z-0 block"
         />

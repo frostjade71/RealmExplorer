@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy } from 'lucide-react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { NotificationDropdown } from './NotificationDropdown'
+import logo from '../assets/rerealm.webp'
 
 export function Navbar() {
   const { user, profile, signInWithDiscord, signOut } = useAuth()
@@ -47,7 +48,7 @@ export function Navbar() {
             <img 
               className="w-full h-full object-cover" 
               alt="RE logo" 
-              src="/src/assets/rerealm.webp" 
+              src={logo} 
             />
           </motion.div>
           <span className="text-xs font-pixel text-white hidden sm:block group-hover:text-realm-green transition-colors">Realm Explorer</span>

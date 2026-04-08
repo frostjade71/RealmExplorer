@@ -13,6 +13,7 @@ import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { OTMCategory, OTMWinner, OTMCompetitor } from '../types'
 import { Trophy, Plus, Trash2, Link as LinkIcon, Calendar, Edit, X } from 'lucide-react'
+import logo from '../assets/rerealm.webp'
 
 const MONTH_OPTIONS = Array.from({ length: 3 }).map((_, i) => {
   const d = new Date()
@@ -201,7 +202,7 @@ export function AdminEventsPage() {
                   <div key={w.id} className="px-6 py-4 flex items-center justify-between group">
                     <div className="flex items-center gap-4">
                       <img 
-                        src={w.winner_image_url || w.servers?.icon_url || '/src/assets/rerealm.webp'} 
+                        src={w.winner_image_url || w.servers?.icon_url || logo} 
                         alt="Winner" 
                         className="w-10 h-10 rounded-lg object-cover border border-white/10"
                       />
@@ -341,7 +342,7 @@ export function AdminEventsPage() {
                   <div key={c.id} className="px-6 py-4 flex items-center justify-between group">
                     <div className="flex items-center gap-4">
                       <img 
-                        src={c.servers?.icon_url || '/src/assets/rerealm.webp'} 
+                        src={c.servers?.icon_url || logo} 
                         alt="Comp" 
                         className="w-10 h-10 rounded-lg object-cover border border-white/10"
                       />

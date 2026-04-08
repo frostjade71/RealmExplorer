@@ -5,6 +5,8 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { Link } from 'react-router-dom'
 import { LoadingSpinner } from '../components/FeedbackStates'
+import heroGif from '../assets/hero/heroRE.gif'
+import logo from '../assets/rerealm.webp'
 
 export function LeaderboardsPage() {
   const { data: topVoted = [], isLoading: loadingVotes } = useServers({ sortBy: 'votes', limit: 13 })
@@ -31,7 +33,7 @@ export function LeaderboardsPage() {
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 0.5 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          src="/src/assets/hero/heroRE.gif" 
+          src={heroGif} 
           alt="Leaderboards Background" 
           className="absolute inset-0 w-full h-full object-cover z-0 block"
         />
@@ -60,7 +62,7 @@ export function LeaderboardsPage() {
                             <div className="relative mb-4">
                                 <div className="absolute -top-4 -left-4 w-10 h-10 bg-zinc-400 rounded-full flex items-center justify-center border-4 border-black text-black font-pixel text-sm z-30">2</div>
                                 <img 
-                                    src={podium[1].icon_url || '/src/assets/rerealm.webp'} 
+                                    src={podium[1].icon_url || logo} 
                                     className="w-16 h-16 rounded-2xl border-4 border-zinc-400 object-cover shadow-2xl group-hover:scale-110 transition-transform"
                                     alt="2nd Place"
                                 />
@@ -84,7 +86,7 @@ export function LeaderboardsPage() {
                             <div className="relative mb-6">
                                 <div className="absolute -top-6 -left-6 w-14 h-14 bg-realm-green rounded-full flex items-center justify-center border-4 border-black text-black font-pixel text-lg z-30">1</div>
                                 <img 
-                                    src={podium[0].icon_url || '/src/assets/rerealm.webp'} 
+                                    src={podium[0].icon_url || logo} 
                                     className="w-24 h-24 rounded-3xl border-4 border-realm-green object-cover shadow-[0_0_50px_rgba(78,196,78,0.3)] group-hover:scale-110 transition-transform"
                                     alt="1st Place"
                                 />
@@ -108,7 +110,7 @@ export function LeaderboardsPage() {
                             <div className="relative mb-4">
                                 <div className="absolute -top-4 -left-4 w-10 h-10 bg-orange-700 rounded-full flex items-center justify-center border-4 border-black text-white font-pixel text-sm z-30">3</div>
                                 <img 
-                                    src={podium[2].icon_url || '/src/assets/rerealm.webp'} 
+                                    src={podium[2].icon_url || logo} 
                                     className="w-14 h-14 rounded-2xl border-4 border-orange-700 object-cover shadow-2xl group-hover:scale-110 transition-transform"
                                     alt="3rd Place"
                                 />
@@ -156,7 +158,7 @@ export function LeaderboardsPage() {
                                  idx === 2 ? <Medal className="w-4 h-4 text-orange-700" /> :
                                  <span className="font-pixel text-zinc-700 text-[10px]">{idx + 1}</span>}
                             </div>
-                            <img src={server.icon_url || '/src/assets/rerealm.webp'} className="w-10 h-10 rounded-lg object-cover border border-white/10" alt={server.name} />
+                            <img src={server.icon_url || logo} className="w-10 h-10 rounded-lg object-cover border border-white/10" alt={server.name} />
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-white font-pixel text-[11px] group-hover:text-realm-green transition-colors truncate">{server.name}</h3>
                                 <p className="text-zinc-500 font-headline text-[9px] uppercase tracking-widest mt-0.5">{server.type}</p>
@@ -200,7 +202,7 @@ export function LeaderboardsPage() {
                                  idx === 2 ? <Medal className="w-4 h-4 text-orange-700" /> :
                                  <span className="font-pixel text-zinc-700 text-[10px]">{idx + 1}</span>}
                             </div>
-                            <img src={server.icon_url || '/src/assets/rerealm.webp'} className="w-10 h-10 rounded-lg object-cover border border-white/10" alt={server.name} />
+                            <img src={server.icon_url || logo} className="w-10 h-10 rounded-lg object-cover border border-white/10" alt={server.name} />
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-white font-pixel text-[11px] group-hover:text-yellow-500 transition-colors truncate">{server.name}</h3>
                                 <p className="text-zinc-500 font-headline text-[9px] uppercase tracking-widest mt-0.5">{server.type}</p>

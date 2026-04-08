@@ -3,6 +3,7 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn, FramerInList } from '../components/FramerIn'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import aboutHero from '../assets/aboutRE.png'
 
 export function AboutPage() {
   return (
@@ -13,7 +14,7 @@ export function AboutPage() {
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.5 }}
-          src="/src/assets/aboutRE.png" 
+          src={aboutHero} 
           alt="About Hero" 
           className="absolute inset-0 w-full h-full object-cover z-0"
         />

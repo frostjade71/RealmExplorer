@@ -6,6 +6,8 @@ import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useOTMWinners, useOTMCompetitors } from '../hooks/queries'
 import type { OTMCategory } from '../types'
+import heroGif from '../assets/hero/heroRE.gif'
+import logo from '../assets/rerealm.webp'
 
 const CATEGORIES: { id: OTMCategory; label: string; icon: any }[] = [
   { id: 'realm', label: 'Realm of the Month', icon: Sparkles },
@@ -47,7 +49,7 @@ export function EventsPage() {
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 0.5 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          src="/src/assets/hero/heroRE.gif" 
+          src={heroGif} 
           alt="Events Background" 
           className="absolute inset-0 w-full h-full object-cover z-0 block"
         />
@@ -94,7 +96,7 @@ export function EventsPage() {
                       className="flex flex-col md:flex-row items-center gap-6 mb-8 cursor-pointer"
                     >
                       <img 
-                        src={activeWinner.winner_image_url || activeWinner.servers?.icon_url || '/src/assets/rerealm.webp'} 
+                        src={activeWinner.winner_image_url || activeWinner.servers?.icon_url || logo} 
                         alt="Winner" 
                         className="w-16 h-16 rounded-xl object-cover border-2 border-realm-green shadow-2xl shadow-realm-green/20"
                       />
