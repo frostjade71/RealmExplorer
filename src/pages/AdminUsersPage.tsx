@@ -1,0 +1,148 @@
+import { useAdminUsers } from '../hooks/queries'
+import { useUpdateUserRoleMutation } from '../hooks/mutations'
+import type { UserRole } from '../types'
+import { LoadingSpinner } from '../components/FeedbackStates'
+import { RoleBadge } from '../components/RoleBadge'
+import { AnimatedPage } from '../components/AnimatedPage'
+import { FramerIn } from '../components/FramerIn'
+import { motion } from 'framer-motion'
+
+export function AdminUsersPage() {
+  const { data: users = [], isLoading: loading } = useAdminUsers()
+  const roleMutation = useUpdateUserRoleMutation()
+
+  const handleUpdateRole = (id: string, newRole: UserRole) => {
+    if (confirm(`Elevate/Modify user role to ${newRole.toUpperCase()}?`)) {
+      roleMutation.mutate({ id, role: newRole })
+    }
+  }
+
+  if (loading) return <LoadingSpinner />
+
+  return (
+    <AnimatedPage>
+      <div className="mb-10 flex items-end justify-between">
+        <FramerIn>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="material-symbols-outlined text-realm-green text-sm">group</span>
+            <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Community</span>
+          </div>
+          <h1 className="text-3xl font-pixel text-white mb-2">User Registry</h1>
+          <p className="text-white/40 font-headline text-sm">Manage user accounts and staff roles.</p>
+        </FramerIn>
+
+        <FramerIn delay={0.1}>
+          <div className="flex items-center gap-4 bg-white/5 border border-white/10 px-6 py-4 rounded-2xl backdrop-blur-md">
+            <div className="flex -space-x-3">
+              {users.slice(0, 5).map(user => (
+                <img 
+                  key={user.id} 
+                  src={user.discord_avatar || ''} 
+                  className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-800" 
+                  alt="" 
+                />
+              ))}
+              {users.length > 5 && (
+                <div className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-white/5 flex items-center justify-center text-[10px] font-bold text-white/40">
+                  +{users.length - 5}
+                </div>
+              )}
+            </div>
+            <div className="text-right">
+              <div className="text-white font-pixel text-lg leading-none">{users.length}</div>
+              <div className="text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest mt-1">Total Users</div>
+            </div>
+          </div>
+        </FramerIn>
+      </div>
+
+      <FramerIn delay={0.2} className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-headline text-sm border-collapse">
+            <thead>
+              <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
+                <th className="px-6 py-5">User Profile</th>
+                <th className="px-6 py-5">Role</th>
+                <th className="px-6 py-5">Joined</th>
+                <th className="px-6 py-5 text-right">Change Role</th>
+              </tr>
+            </thead>
+            <motion.tbody 
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.03
+                  }
+                }
+              }}
+              className="divide-y divide-white/[0.03]"
+            >
+              {users.map(user => (
+                <motion.tr 
+                  key={user.id} 
+                  variants={{
+                    hidden: { opacity: 0, y: 10 },
+                    visible: { opacity: 1, y: 0 }
+                  }}
+                  className="hover:bg-white/[0.02] transition-colors group"
+                >
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <motion.img 
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          src={user.discord_avatar || ''} 
+                          className="w-10 h-10 rounded-xl bg-zinc-800 shadow-xl border border-white/10" 
+                          alt="" 
+                        />
+                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-realm-green border-2 border-zinc-950 rounded-full" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-white group-hover:text-realm-green transition-colors">{user.discord_username || 'Unknown Player'}</div>
+                        <div className="text-[10px] text-white/20 font-mono tracking-tighter mt-0.5">{user.discord_id}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <RoleBadge role={user.role} />
+                  </td>
+                  <td className="px-6 py-5 text-white/40 font-medium">
+                    {new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <div className="flex justify-end opacity-40 group-hover:opacity-100 transition-opacity">
+                      <div className="relative inline-block group/select">
+                        <select 
+                          className="bg-black/60 border border-white/10 text-[10px] font-bold uppercase tracking-widest rounded-lg px-4 py-2 text-white outline-none focus:border-realm-green focus:ring-1 focus:ring-realm-green/20 transition-all cursor-pointer appearance-none pr-8 min-w-[140px]"
+                          value={user.role}
+                          onChange={(e) => handleUpdateRole(user.id, e.target.value as UserRole)}
+                        >
+                          <option value="explorer">Explorer</option>
+                          <option value="moderator">Moderator</option>
+                          <option value="admin">Administrator</option>
+                        </select>
+                        <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] pointer-events-none text-white/40 group-hover/select:text-realm-green transition-colors">
+                          unfold_more
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-white/20 italic font-headline">No user records found in the database.</td>
+                </tr>
+              )}
+            </motion.tbody>
+          </table>
+        </div>
+      </FramerIn>
+    </AnimatedPage>
+  )
+}
+

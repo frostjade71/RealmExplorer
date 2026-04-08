@@ -1,0 +1,17 @@
+export { HomePage } from './HomePage'
+export { ServerDetailPage } from './ServerDetailPage'
+export { DirectoryPage as ServersPage } from './DirectoryPage'
+export { EventsPage } from './EventsPage'
+export { LeaderboardsPage } from './LeaderboardsPage'
+export { AboutPage } from './AboutPage'
+export { SubmitPage } from './SubmitPage'
+export { DashboardPage } from './DashboardPage'
+
+export function NotFoundPage() { return <div className="p-12 text-center text-white font-pixel">404 - Not Found</div> }
+
+export { AdminServersPage } from './AdminServersPage'
+export { AdminUsersPage } from './AdminUsersPage'
+export { AdminSettingsPage } from './AdminSettingsPage'
+export { AdminOverviewPage } from './AdminOverviewPage'
+export { AdminEventsPage } from './AdminEventsPage'
+export { AuthCallbackPage } from './AuthCallbackPage'
