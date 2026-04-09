@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { convertToWebP } from '../lib/imageUtils'
 import { useAuth } from '../contexts/AuthContext'
 import { Image as ImageIcon, Upload, X, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion'
@@ -56,18 +57,23 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square' }: 
         currentUploadPath.current = null
       }
 
-      // Create a unique file path: user_id/timestamp-filename
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
+      // Convert to WebP
+      setUploadProgress(20)
+      const webpBlob = await convertToWebP(file)
+      
+      // Create a unique file path: user_id/timestamp-filename.webp
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.webp`
       const filePath = `${user.id}/${fileName}`
 
       // Upload to Supabase Storage
-      // Note: onUploadProgress is not supported in the basic upload types/method for fetch
       setUploadProgress(40)
       
       const { error: uploadError } = await supabase.storage
         .from('server-assets')
-        .upload(filePath, file)
+        .upload(filePath, webpBlob, {
+          contentType: 'image/webp',
+          upsert: true
+        })
 
       if (uploadError) throw uploadError
 

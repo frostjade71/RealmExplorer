@@ -25,6 +25,7 @@ export interface Server {
   discord_url: string | null
   banner_url: string | null
   icon_url: string | null
+  slug: string
   tags: string[]
   status: ServerStatus
   featured: boolean
@@ -74,14 +75,22 @@ export interface OTMCompetitor {
   id: string
   category: OTMCategory
   server_id: string
-  vote_url: string
   month?: string
+  total_votes?: number
   created_at: string
   servers?: {
     name: string
     description: string
     icon_url: string
+    slug: string
   }
+}
+
+export interface OTMVote {
+  id: string
+  user_id: string
+  competitor_id: string
+  created_at: string
 }
 
 export interface Notification {

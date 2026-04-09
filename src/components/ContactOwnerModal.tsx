@@ -88,6 +88,14 @@ export function ContactOwnerModal({
                 </div>
               </div>
 
+              <div className="flex items-start gap-3 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl text-orange-400">
+                <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                <p className="text-xs font-headline leading-relaxed">
+                  <span className="font-bold uppercase tracking-wider block mb-0.5 text-[10px]">Important Note</span>
+                  This server will be pulled out from the server directory until it is accepted.
+                </p>
+              </div>
+
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"

@@ -33,7 +33,10 @@ export function useServers(params?: {
         query = query.order('votes', { ascending: false })
       } else if (params?.sortBy === 'rating') {
         query = query.order('average_rating', { ascending: false })
+      } else if (params?.sortBy === 'oldest') {
+        query = query.order('created_at', { ascending: true })
       } else {
+        // Default to newest
         query = query.order('created_at', { ascending: false })
       }
 
@@ -46,21 +49,27 @@ export function useServers(params?: {
   })
 }
 
-export function useServer(id: string | undefined) {
+export function useServer(idOrSlug: string | undefined) {
   return useQuery({
-    queryKey: ['server', id],
-    enabled: !!id,
+    queryKey: ['server', idOrSlug],
+    enabled: !!idOrSlug,
     queryFn: async () => {
-      const { data: server, error } = await supabase
-        .from('servers')
-        .select('*')
-        .eq('id', id!)
-        .single()
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug!)
+      
+      let query = supabase.from('servers').select('*')
+      
+      if (isUuid) {
+        query = query.eq('id', idOrSlug!)
+      } else {
+        query = query.eq('slug', idOrSlug!)
+      }
+
+      const { data: server, error } = await query.single()
       if (error) throw error
       
       let ownerInfo: Profile | null = null
-      if (server.owner_id) {
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', server.owner_id).single()
+      if (server) {
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', server.owner_id as string).single()
         if (profile) ownerInfo = profile as Profile
       }
 
@@ -131,23 +140,25 @@ export function useUserVoteStatus(userId: string | undefined, serverId: string |
       
       if (error) throw error
       
-      if (!data) return { hasVoted: false, lastVoteTime: null, expiresAt: null }
-      
-      const expiresAt = new Date(data.expires_at).getTime()
-      const now = new Date().getTime()
-      const isCooldownActive = expiresAt > now
-      
-      // If the cooldown has expired, it's effectively like not having voted yet
-      if (!isCooldownActive) return { hasVoted: false, lastVoteTime: null, expiresAt: null }
+      if (data) {
+        const expiresAt = new Date(data.expires_at).getTime()
+        const now = new Date().getTime()
+        const isCooldownActive = expiresAt > now
+        
+        // If the cooldown has expired, it's effectively like not having voted yet
+        if (!isCooldownActive) return { hasVoted: false, lastVoteTime: null, expiresAt: null }
 
-      // We back-calculate the "last vote time" as expiresAt - 24h for the timer to work
-      const lastVoteTime = new Date(expiresAt - 24 * 60 * 60 * 1000).toISOString()
-      
-      return { 
-        hasVoted: true, 
-        lastVoteTime,
-        expiresAt: data.expires_at
+        // We back-calculate the "last vote time" as expiresAt - 24h for the timer to work
+        const lastVoteTime = new Date(expiresAt - 24 * 60 * 60 * 1000).toISOString()
+        
+        return { 
+          hasVoted: true, 
+          lastVoteTime,
+          expiresAt: data.expires_at
+        }
       }
+
+      return { hasVoted: false, lastVoteTime: null, expiresAt: null }
     }
   })
 }
@@ -206,10 +217,31 @@ export function useOTMCompetitors() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('otm_competitors')
-        .select('*, servers(*)')
+        .select('*, servers(*), otm_votes(count)')
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as OTMCompetitor[]
+      
+      // Map the nested count object to a total_votes property
+      return (data as any[]).map(c => ({
+        ...c,
+        total_votes: c.otm_votes?.[0]?.count || 0
+      })) as OTMCompetitor[]
+    }
+  })
+}
+
+export function useUserOTMVotes(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['userOTMVotes', userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('otm_votes')
+        .select('competitor_id')
+        .eq('user_id', userId!)
+      
+      if (error) throw error
+      return (data || []).map((v: any) => v.competitor_id) as string[]
     }
   })
 }

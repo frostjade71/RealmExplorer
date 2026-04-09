@@ -106,7 +106,6 @@ export type Database = {
           id?: string
           month?: string | null
           server_id?: string | null
-          vote_url: string
         }
         Update: {
           category?: string
@@ -114,7 +113,6 @@ export type Database = {
           id?: string
           month?: string | null
           server_id?: string | null
-          vote_url?: string
         }
         Relationships: [
           {
@@ -165,6 +163,42 @@ export type Database = {
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      otm_votes: {
+        Row: {
+          id: string
+          user_id: string
+          competitor_id: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          competitor_id: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          competitor_id?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "otm_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "otm_votes_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "otm_competitors"
+            referencedColumns: ["id"]
+          }
         ]
       }
       profiles: {
@@ -299,6 +333,7 @@ export type Database = {
           name: string
           owner_id: string | null
           rating_count: number | null
+          slug: string
           status: string
           tags: string[] | null
           type: string
@@ -320,6 +355,7 @@ export type Database = {
           name: string
           owner_id?: string | null
           rating_count?: number | null
+          slug: string
           status?: string
           tags?: string[] | null
           type: string
@@ -341,6 +377,7 @@ export type Database = {
           name?: string
           owner_id?: string | null
           rating_count?: number | null
+          slug?: string
           status?: string
           tags?: string[] | null
           type?: string

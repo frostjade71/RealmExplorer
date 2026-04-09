@@ -7,14 +7,15 @@ import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, Swords, Cloud, Users, Box, MoreHorizontal, Sparkles, Clock, Globe, Server } from 'lucide-react'
+import { Search, X, Swords, Cloud, Users, Box, MoreHorizontal, Sparkles, Clock, Globe, Server, History } from 'lucide-react'
+import directoryHero from '../assets/hero/directoryhero.jpg'
 
 export function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const activeType = searchParams.get('type') as ServerType | null
   const activeCategory = searchParams.get('category') as ServerCategory | null
   const initialSearch = searchParams.get('q') || ''
-  const sortBy = searchParams.get('sort') || 'votes'
+  const sortBy = searchParams.get('sort') || 'newest'
 
   const [localSearch, setLocalSearch] = useState(initialSearch)
 
@@ -70,41 +71,60 @@ export function DirectoryPage() {
   }
 
   return (
-    <AnimatedPage className="max-w-7xl mx-auto px-8 py-12">
-      <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <FramerIn>
-          <h1 className="text-4xl font-pixel text-white mb-4">
-            {activeType ? `${activeType.charAt(0).toUpperCase() + activeType.slice(1)} Explorer` : 'Realm Explorer'}
-          </h1>
-          <p className="text-zinc-400 font-headline text-lg">
-            Discover the top-rated {activeType || 'realms and servers'} from our community.
-          </p>
-        </FramerIn>
+    <AnimatedPage>
+      <header className="relative pt-32 pb-20 px-8 overflow-hidden min-h-[50vh] flex flex-col items-center justify-center">
+        {/* Cinematic Background */}
+        <motion.img 
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.5 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          src={directoryHero} 
+          alt="Directory Background" 
+          className="absolute inset-0 w-full h-full object-cover z-0 block"
+        />
+        {/* Dark Cinematic Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10 pointer-events-none"></div>
         
-        <FramerIn delay={0.1} className="flex gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 self-start md:self-end">
-          {[
-            { id: null, label: 'All', icon: Globe },
-            { id: 'server' as const, label: 'Servers', icon: Server },
-            { id: 'realm' as const, label: 'Realms', icon: Globe }
-          ].map((type) => (
-            <button
-              key={String(type.id)}
-              onClick={() => setType(type.id)}
-              className={`relative px-4 py-2 rounded-lg text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeType === type.id ? 'text-realm-green' : 'text-zinc-500 hover:text-zinc-300'}`}
-            >
-              {activeType === type.id && (
-                <motion.div 
-                  layoutId="active-type"
-                  className="absolute inset-0 bg-realm-green/10 border border-realm-green/20 rounded-lg"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-              <type.icon className="w-4 h-4" />
-              <span className="relative">{type.label}</span>
-            </button>
-          ))}
-        </FramerIn>
-      </div>
+        <div className="max-w-7xl mx-auto w-full relative z-20 flex flex-col items-center text-center">
+          <FramerIn>
+            <h1 className="text-4xl md:text-5xl font-pixel text-white mb-6 drop-shadow-2xl">
+              {activeType ? `${activeType.charAt(0).toUpperCase() + activeType.slice(1)} Explorer` : 'Realm Explorer'}
+            </h1>
+            <p className="text-white/80 font-headline text-lg max-w-2xl mx-auto mb-10 drop-shadow-lg leading-relaxed">
+              Discover the top-rated {activeType || 'realms and servers'} from our community.
+            </p>
+          </FramerIn>
+          
+          <FramerIn delay={0.2} className="flex gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 backdrop-blur-md">
+            {[
+              { id: null, label: 'All', icon: Globe },
+              { id: 'server' as const, label: 'Servers', icon: Server },
+              { id: 'realm' as const, label: 'Realms', icon: Globe }
+            ].map((type) => (
+              <button
+                key={String(type.id)}
+                onClick={() => setType(type.id)}
+                className={`relative px-4 py-2 rounded-lg text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeType === type.id ? 'text-realm-green' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                {activeType === type.id && (
+                  <motion.div 
+                    layoutId="active-type"
+                    className="absolute inset-0 bg-realm-green/10 border border-realm-green/20 rounded-lg"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <type.icon className="w-4 h-4" />
+                <span className="relative">{type.label}</span>
+              </button>
+            ))}
+          </FramerIn>
+        </div>
+        
+        {/* Cinematic Fade into next section */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent z-20 pointer-events-none"></div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-8 py-12">
 
       <FramerIn delay={0.2} className="space-y-8 mb-12">
         {/* Search and Sort Row */}
@@ -131,7 +151,8 @@ export function DirectoryPage() {
           <div className="flex items-center gap-2 bg-zinc-900 rounded-xl p-1 border border-zinc-800">
             {[
               { id: 'votes', label: 'Top Rated', icon: Sparkles },
-              { id: 'newest', label: 'Latest', icon: Clock }
+              { id: 'newest', label: 'Latest', icon: Clock },
+              { id: 'oldest', label: 'Oldest', icon: History }
             ].map(option => (
               <button
                 key={option.id}
@@ -225,7 +246,8 @@ export function DirectoryPage() {
           </motion.div>
         )}
       </AnimatePresence>
-    </AnimatedPage>
+    </div>
+  </AnimatedPage>
   )
 }
 

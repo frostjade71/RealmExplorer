@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useServer, useUserVoteStatus, useServerRatings, useServerMessages } from '../hooks/queries'
 import { useVoteMutation, useSubmitRatingMutation } from '../hooks/mutations'
@@ -11,24 +11,33 @@ import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
 import { VoteTimer } from '../components/VoteTimer'
 import { RatingModal } from '../components/RatingModal'
+import { RichText } from '../components/RichText'
 
 export function ServerDetailPage() {
-  const { id } = useParams<{ id: string }>()
+  const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
   const { user } = useAuth()
   
-  const { data, isLoading: loading, refetch: refetchServer } = useServer(id)
-  const { data: voteStatus, isLoading: checkingVote, refetch: refetchVoteStatus } = useUserVoteStatus(user?.id, id)
-  const { data: ratings } = useServerRatings(id)
-  const { data: messages = [] } = useServerMessages(id)
+  const { data, isLoading: loading, refetch: refetchServer } = useServer(slug)
+  const server = data?.server
+  const owner = data?.owner
+
+  // Canonical URL redirect: if accessed via UUID, redirect to Slug
+  useEffect(() => {
+    if (server && server.slug && slug === server.id) {
+       navigate(`/server/${server.slug}`, { replace: true })
+    }
+  }, [server, slug, navigate])
+
+  const { data: voteStatus, isLoading: checkingVote, refetch: refetchVoteStatus } = useUserVoteStatus(user?.id, server?.id)
+  const { data: ratings } = useServerRatings(server?.id)
+  const { data: messages = [] } = useServerMessages(server?.id)
   const voteMutation = useVoteMutation()
   const ratingMutation = useSubmitRatingMutation()
   
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
-
-  const server = data?.server
-  const owner = data?.owner
   // A user has voted if they have a record in the DB OR if they just successfully clicked the button
   const alreadyVoted = voteStatus?.hasVoted || voteMutation.isSuccess
   const isApproved = server?.status === 'approved'
@@ -53,6 +62,10 @@ export function ServerDetailPage() {
     voteMutation.mutate(
       { userId: user.id, serverId: server.id },
       {
+        onSuccess: () => {
+          refetchServer()
+          refetchVoteStatus()
+        },
         onError: (err: any) => {
           if (err.message === 'Already voted') {
             // This case should be mostly prevented by alreadyVoted check, but safety first
@@ -72,6 +85,7 @@ export function ServerDetailPage() {
       {
         onSuccess: () => {
           setIsRatingModalOpen(false)
+          refetchServer()
         },
         onError: () => {
           setError("Failed to submit rating. Please try again.")
@@ -263,23 +277,9 @@ export function ServerDetailPage() {
         <FramerIn delay={0.3} className="md:col-span-2 space-y-8">
           <div className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-2xl">
             <h2 className="font-pixel text-white text-xl mb-6">About</h2>
-            <div className="text-zinc-300 font-body leading-relaxed whitespace-pre-wrap">
+            <div className="text-zinc-300 font-body leading-relaxed">
               {server.description ? (
-                server.description.split(/(https?:\/\/[^\s]+)/g).map((part, i) => (
-                  part.match(/^https?:\/\/[^\s]+$/) ? (
-                    <a 
-                      key={i} 
-                      href={part} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-realm-green hover:underline break-all"
-                    >
-                      {part}
-                    </a>
-                  ) : (
-                    part
-                  )
-                ))
+                <RichText content={server.description} />
               ) : (
                 'No description provided.'
               )}

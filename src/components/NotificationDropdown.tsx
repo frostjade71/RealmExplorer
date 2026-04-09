@@ -39,7 +39,12 @@ export function NotificationDropdown() {
     if (!n.is_read) {
       markRead.mutate(n.id)
     }
-    if (n.related_id) {
+    
+    // Redirect to /events for OTM notifications
+    if (n.type === 'otm_podium' || n.type === 'otm_competitor') {
+      navigate('/events')
+      setIsOpen(false)
+    } else if (n.related_id) {
       navigate(`/server/${n.related_id}`)
       setIsOpen(false)
     }
@@ -99,7 +104,7 @@ export function NotificationDropdown() {
             <div className="max-h-[400px] overflow-y-auto scrollbar-none">
               {notifications.length > 0 ? (
                 <div className="divide-y divide-white/[0.03]">
-                  {notifications.slice(0, 5).map((n) => (
+                  {notifications.slice(0, 20).map((n) => (
                     <div 
                       key={n.id}
                       onClick={() => handleNotificationClick(n)}
@@ -131,7 +136,7 @@ export function NotificationDropdown() {
                           </p>
                           {n.related_id && (
                              <div className="mt-2 flex items-center gap-1 text-[9px] font-bold text-realm-green/60 uppercase tracking-widest group-hover:text-realm-green transition-colors">
-                               View listing <ExternalLink className="w-2.5 h-2.5" />
+                               View <ExternalLink className="w-2.5 h-2.5" />
                              </div>
                           )}
                         </div>

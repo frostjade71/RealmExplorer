@@ -1,15 +1,20 @@
 import { useLocation, Link, Outlet } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useAuth } from '../contexts/AuthContext'
+import logo from '../assets/rerealm.webp'
 
 export function AdminLayout() {
   const location = useLocation()
+  const { isAdmin } = useAuth()
 
   const navItems = [
     { to: '/admin', label: 'Overview', icon: 'dashboard' },
     { to: '/admin/servers', label: 'Manage Servers', icon: 'dns' },
-    { to: '/admin/users', label: 'Manage Users', icon: 'group' },
-    { to: '/admin/settings', label: 'Global Settings', icon: 'settings' },
-    { to: '/admin/events', label: 'Manage Events', icon: 'event' },
+    ...(isAdmin ? [
+      { to: '/admin/users', label: 'Manage Users', icon: 'group' },
+      { to: '/admin/settings', label: 'Global Settings', icon: 'settings' },
+      { to: '/admin/events', label: 'Manage Events', icon: 'event' },
+    ] : [])
   ]
 
   return (
@@ -18,12 +23,11 @@ export function AdminLayout() {
       <aside className="w-72 border-r border-white/5 bg-black/40 backdrop-blur-xl p-6 shrink-0 flex flex-col sticky top-0 h-screen z-50">
         <div className="mb-10 px-2">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 bg-realm-green rounded flex items-center justify-center shadow-[0_0_15px_rgba(133,252,126,0.3)]">
-              <span className="material-symbols-outlined text-zinc-950 text-xl font-bold">shield</span>
+            <div className="w-8 h-8 bg-white/5 border border-white/10 rounded overflow-hidden flex items-center justify-center">
+              <img src={logo} className="w-full h-full object-cover" alt="" />
             </div>
             <h2 className="text-xl font-pixel tracking-tighter text-white">ADMIN PANEL</h2>
           </div>
-          <p className="text-[10px] font-headline text-white/40 uppercase tracking-[0.2em] font-bold">Staff Dashboard v1.0</p>
         </div>
 
         <nav className="flex flex-col gap-1.5 flex-grow">
@@ -62,6 +66,10 @@ export function AdminLayout() {
             <span className="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
             <span className="font-headline text-xs font-bold uppercase tracking-widest">Back to Site</span>
           </Link>
+          <div className="mt-4 px-4 py-2 bg-white/5 border border-white/5 rounded-lg">
+            <p className="text-[10px] font-pixel text-white/20 uppercase tracking-widest">System Version</p>
+            <p className="text-xs font-headline font-bold text-realm-green">v0.1.1-beta</p>
+          </div>
         </div>
       </aside>
 

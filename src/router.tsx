@@ -50,7 +50,7 @@ export const router = createBrowserRouter([
         element: <AboutPage />,
       },
       {
-        path: '/server/:id',
+        path: '/server/:slug',
         element: <ServerDetailPage />,
       },
       {
@@ -84,7 +84,7 @@ export const router = createBrowserRouter([
   // Admin Protected Routes (No standard layout)
   {
     path: '/admin',
-    element: <ProtectedRoute requiredRole="admin" />,
+    element: <ProtectedRoute requiredRole="moderator" />,
     children: [
       {
         element: <AdminLayout />,
@@ -97,18 +97,24 @@ export const router = createBrowserRouter([
             path: 'servers',
             element: <AdminServersPage />,
           },
+          // All below require Admin role
           {
-            path: 'users',
-            element: <AdminUsersPage />,
-          },
-          {
-            path: 'settings',
-            element: <AdminSettingsPage />,
-          },
-          {
-            path: 'events',
-            element: <AdminEventsPage />,
-          },
+            element: <ProtectedRoute requiredRole="admin" />,
+            children: [
+              {
+                path: 'users',
+                element: <AdminUsersPage />,
+              },
+              {
+                path: 'settings',
+                element: <AdminSettingsPage />,
+              },
+              {
+                path: 'events',
+                element: <AdminEventsPage />,
+              },
+            ]
+          }
         ]
       }
     ],

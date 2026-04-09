@@ -12,7 +12,8 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { OTMCategory, OTMWinner, OTMCompetitor } from '../types'
-import { Trophy, Plus, Trash2, Link as LinkIcon, Calendar, Edit, X } from 'lucide-react'
+import { Trophy, Plus, Trash2, Calendar, Edit, X } from 'lucide-react'
+import { toast } from 'sonner'
 import logo from '../assets/rerealm.webp'
 
 const MONTH_OPTIONS = Array.from({ length: 3 }).map((_, i) => {
@@ -61,14 +62,21 @@ export function AdminEventsPage() {
       return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     })(),
     category: 'realm' as OTMCategory,
-    server_id: '',
-    vote_url: ''
+    server_id: ''
   })
 
   const handleUpsertWinner = (e: React.FormEvent, data: any) => {
     e.preventDefault()
     upsertWinner.mutate(data, {
-      onSuccess: () => setEditingWinner(null)
+      onSuccess: () => {
+        setEditingWinner(null)
+        toast.success('Winner Recorded', {
+          description: `Successfully updated the OTM winner for ${data.month}.`
+        })
+      },
+      onError: (err: any) => {
+        toast.error('Failed to set winner', { description: err.message })
+      }
     })
   }
 
@@ -76,13 +84,30 @@ export function AdminEventsPage() {
     e.preventDefault()
     if (!editingCompetitor) return
     updateCompetitor.mutate(editingCompetitor, {
-      onSuccess: () => setEditingCompetitor(null)
+      onSuccess: () => {
+        setEditingCompetitor(null)
+        toast.success('Competitor Updated', {
+          description: 'Poll entry details have been modified.'
+        })
+      },
+      onError: (err: any) => {
+        toast.error('Update Failed', { description: err.message })
+      }
     })
   }
 
   const handleAddCompetitor = (e: React.FormEvent) => {
     e.preventDefault()
-    addCompetitor.mutate(compForm)
+    addCompetitor.mutate(compForm, {
+      onSuccess: () => {
+        toast.success('Competitor Added', {
+          description: 'The server has been added to the upcoming monthly poll.'
+        })
+      },
+      onError: (err: any) => {
+        toast.error('Failed to add competitor', { description: err.message })
+      }
+    })
   }
 
   if (loadingServers || loadingWinners || loadingCompetitors) return <LoadingSpinner />
@@ -220,7 +245,12 @@ export function AdminEventsPage() {
                       </button>
                       <button 
                         onClick={() => {
-                          if (confirm('Delete this winner record?')) deleteWinner.mutate(w.id)
+                          if (confirm('Delete this winner record?')) {
+                            deleteWinner.mutate(w.id, {
+                              onSuccess: () => toast.success('Winner Deleted'),
+                              onError: (err: any) => toast.error('Delete Failed', { description: err.message })
+                            })
+                          }
                         }}
                         className="p-2 text-white hover:text-red-500 transition-colors"
                       >
@@ -286,22 +316,6 @@ export function AdminEventsPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5 ml-1">Vote Button URL</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-4 flex items-center text-white/20">
-                    <LinkIcon className="w-4 h-4" />
-                  </div>
-                  <input 
-                    type="url" 
-                    required
-                    placeholder="https://poll-service.com/vote/..."
-                    value={compForm.vote_url}
-                    onChange={e => setCompForm({...compForm, vote_url: e.target.value})}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50"
-                  />
-                </div>
-              </div>
 
               <button 
                 type="submit"
@@ -362,7 +376,12 @@ export function AdminEventsPage() {
                       </button>
                       <button 
                         onClick={() => {
-                          if (confirm('Remove this competitor?')) deleteCompetitor.mutate(c.id)
+                          if (confirm('Remove this competitor?')) {
+                            deleteCompetitor.mutate(c.id, {
+                              onSuccess: () => toast.success('Competitor Removed'),
+                              onError: (err: any) => toast.error('Removal Failed', { description: err.message })
+                            })
+                          }
                         }}
                         className="p-2 text-white hover:text-red-500 transition-colors"
                       >
@@ -485,16 +504,6 @@ export function AdminEventsPage() {
                       </select>
                     </div>
                   </div>
-                 <div className="relative">
-                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5 ml-1">Vote URL</label>
-                    <input 
-                      type="url" 
-                      required
-                      value={editingCompetitor.vote_url}
-                      onChange={e => setEditingCompetitor({...editingCompetitor, vote_url: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none"
-                    />
-                 </div>
                  <button 
                   type="submit" 
                   disabled={updateCompetitor.isPending}

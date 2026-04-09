@@ -3,6 +3,7 @@ import type { Server } from '../types'
 import { CategoryBadge } from './CategoryBadge'
 import { Star } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { slugify } from '../lib/urlUtils'
 
 export function ServerCard({ server, showStatus = false }: { server: Server, showStatus?: boolean }) {
   const statusInfo = {
@@ -16,7 +17,7 @@ export function ServerCard({ server, showStatus = false }: { server: Server, sho
   }[server.status as string] || { label: server.status, bg: 'bg-zinc-800', text: 'text-zinc-400' }
 
   return (
-    <Link to={`/server/${server.id}`} className="block h-full group">
+    <Link to={`/server/${server.slug || slugify(server.name)}`} className="block h-full group">
       <motion.div 
         whileHover={{ y: -8, scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
@@ -42,7 +43,7 @@ export function ServerCard({ server, showStatus = false }: { server: Server, sho
                 server.name.length > 25 ? 'text-xs' : 
                 server.name.length > 15 ? 'text-sm' : 
                 'text-base'
-              } line-clamp-2 mb-1 group-hover:text-realm-green transition-colors leading-tight`}>
+              } line-clamp-2 mb-1 transition-colors leading-tight`}>
                 {server.name}
               </h3>
               <div className="flex items-center gap-2">

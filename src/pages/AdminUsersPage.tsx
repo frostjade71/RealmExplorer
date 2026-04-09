@@ -6,14 +6,42 @@ import { RoleBadge } from '../components/RoleBadge'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
+import { useState, useMemo } from 'react'
+import { Search, X } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function AdminUsersPage() {
   const { data: users = [], isLoading: loading } = useAdminUsers()
   const roleMutation = useUpdateUserRoleMutation()
 
+  const [searchQuery, setSearchQuery] = useState('')
+  const [roleFilter, setRoleFilter] = useState<string>('all')
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const matchesSearch = user.discord_username?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (user.discord_id?.includes(searchQuery) ?? false)
+      
+      const matchesRole = roleFilter === 'all' ? true : user.role === roleFilter
+      return matchesSearch && matchesRole
+    })
+  }, [users, searchQuery, roleFilter])
+
   const handleUpdateRole = (id: string, newRole: UserRole) => {
     if (confirm(`Elevate/Modify user role to ${newRole.toUpperCase()}?`)) {
-      roleMutation.mutate({ id, role: newRole })
+      roleMutation.mutate(
+        { id, role: newRole },
+        {
+          onSuccess: () => {
+            toast.success('Role Updated', {
+              description: `User role has been successfully changed to ${newRole}.`
+            })
+          },
+          onError: (err: any) => {
+            toast.error('Role Update Failed', { description: err.message })
+          }
+        }
+      )
     }
   }
 
@@ -56,6 +84,47 @@ export function AdminUsersPage() {
         </FramerIn>
       </div>
 
+      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center">
+        <div className="flex-1 relative min-w-[200px]">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+          <input 
+            type="text"
+            placeholder="Search by username or ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none backdrop-blur-md"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
+          {[
+            { id: 'all', label: 'All' },
+            { id: 'admin', label: 'Admins' },
+            { id: 'moderator', label: 'Moderators' },
+            { id: 'explorer', label: 'Explorers' }
+          ].map(f => (
+            <button
+              key={f.id}
+              onClick={() => setRoleFilter(f.id)}
+              className={`px-4 py-2 rounded-xl text-[10px] font-headline font-bold uppercase tracking-widest transition-all ${
+                roleFilter === f.id 
+                  ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' 
+                  : f.id === 'all'
+                    ? 'bg-white/10 text-white border border-white/10 hover:bg-white/20'
+                    : 'text-white/40 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </FramerIn>
+
       <FramerIn delay={0.2} className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left font-headline text-sm border-collapse">
@@ -81,7 +150,7 @@ export function AdminUsersPage() {
               }}
               className="divide-y divide-white/[0.03]"
             >
-              {users.map(user => (
+              {filteredUsers.map(user => (
                 <motion.tr 
                   key={user.id} 
                   variants={{
@@ -133,9 +202,14 @@ export function AdminUsersPage() {
                   </td>
                 </motion.tr>
               ))}
-              {users.length === 0 && (
+              {filteredUsers.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-white/20 italic font-headline">No user records found in the database.</td>
+                  <td colSpan={4} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center gap-2 text-white/20 italic font-headline">
+                      <span className="material-symbols-outlined text-4xl">person_search</span>
+                      <span>No users found matching these criteria.</span>
+                    </div>
+                  </td>
                 </tr>
               )}
             </motion.tbody>

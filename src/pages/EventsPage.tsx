@@ -1,13 +1,18 @@
 import { Link } from 'react-router-dom'
-import { ThumbsUp, ChevronLeft, ChevronRight, Trophy, Sparkles, Star, Calendar } from 'lucide-react'
+import { ThumbsUp, ChevronLeft, ChevronRight, Trophy, Sparkles, Star, Calendar, Eye } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useOTMWinners, useOTMCompetitors } from '../hooks/queries'
+import { useOTMWinners, useOTMCompetitors, useUserServers, useUserOTMVotes } from '../hooks/queries'
+import { useOTMVoteMutation, useOTMUnvoteMutation } from '../hooks/mutations'
+import { useAuth } from '../contexts/AuthContext'
+import { toast } from 'sonner'
+import { RichText } from '../components/RichText'
 import type { OTMCategory } from '../types'
 import heroGif from '../assets/hero/heroRE.gif'
 import logo from '../assets/rerealm.webp'
+import { slugify } from '../lib/urlUtils'
 
 const CATEGORIES: { id: OTMCategory; label: string; icon: any }[] = [
   { id: 'realm', label: 'Realm of the Month', icon: Sparkles },
@@ -18,8 +23,14 @@ const CATEGORIES: { id: OTMCategory; label: string; icon: any }[] = [
 
 export function EventsPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const { user } = useAuth()
   const { data: winners } = useOTMWinners()
   const { data: competitors } = useOTMCompetitors()
+  const { data: userServers = [] } = useUserServers(user?.id)
+  const { data: userVotes = [] } = useUserOTMVotes(user?.id)
+
+  const voteMutation = useOTMVoteMutation()
+  const unvoteMutation = useOTMUnvoteMutation()
 
   const currentCategory = CATEGORIES[currentIndex]
   
@@ -87,7 +98,7 @@ export function EventsPage() {
                 <FramerIn delay={0.4} className="flex flex-col items-center">
                   {/* Clickable Winner Group */}
                   <Link 
-                    to={activeWinner.server_id ? `/server/${activeWinner.server_id}` : '#'}
+                    to={activeWinner.servers ? `/server/${activeWinner.servers.slug || slugify(activeWinner.servers.name)}` : '#'}
                     className="block group no-underline"
                   >
                     <motion.div 
@@ -108,9 +119,9 @@ export function EventsPage() {
                     </motion.div>
                   </Link>
                   {activeWinner.description && (
-                    <p className="text-white/60 font-headline text-sm md:text-base max-w-xl leading-relaxed italic drop-shadow-md mx-auto">
-                      " {activeWinner.description} "
-                    </p>
+                    <div className="text-white/60 font-headline text-sm md:text-base max-w-xl leading-relaxed italic drop-shadow-md mx-auto">
+                      <RichText content={activeWinner.description} />
+                    </div>
                   )}
                 </FramerIn>
               ) : (
@@ -170,32 +181,70 @@ export function EventsPage() {
               transition={{ delay: idx * 0.05 }}
               className="bg-zinc-900/40 border border-white/5 rounded-xl p-3 group hover:bg-zinc-900/60 transition-all hover:border-realm-green/20"
             >
-              <Link to={`/server/${competitor.server_id}`} className="block">
-                <div className="aspect-square rounded-lg overflow-hidden mb-3 relative">
+              <Link to={`/server/${competitor.servers?.slug || slugify(competitor.servers?.name || '')}`} className="block">
+                <div className="w-20 h-20 mx-auto rounded-lg overflow-hidden mb-3 relative border border-white/5">
                    <img 
                      src={competitor.servers?.icon_url || 'https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&q=80&w=800'} 
                      alt="Competitor"
                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                    />
                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Trophy className="w-5 h-5 text-white" />
+                      <Eye className="w-6 h-6 text-white" />
                    </div>
                 </div>
-                <h3 className="text-[13px] font-pixel text-white mb-1 group-hover:text-realm-green transition-colors line-clamp-1">
+                <h3 className="text-[13px] font-pixel text-white mb-1 line-clamp-1 text-center">
                   {competitor.servers?.name || 'Curated Candidate'}
                 </h3>
               </Link>
-              <p className="text-zinc-500 text-[10px] font-headline mb-3 line-clamp-1 leading-relaxed opacity-60">
+              <p className="text-zinc-500 text-[10px] font-headline mb-4 line-clamp-1 leading-relaxed opacity-60 text-center">
                 {competitor.servers?.description || 'A highly rated participant.'}
               </p>
-              <a 
-                href={competitor.vote_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full py-2 rounded-lg bg-white/5 border border-white/10 text-center font-pixel text-[9px] text-white uppercase tracking-widest hover:bg-realm-green hover:border-realm-green hover:text-zinc-950 transition-all"
+              <div className="flex items-center justify-between px-1 mb-4 relative">
+                 <span className="text-[9px] font-pixel text-white/30 uppercase tracking-[0.2em]">Votes</span>
+                 <span className="text-xl font-pixel text-realm-green font-bold leading-none">{competitor.total_votes || 0}</span>
+                 {userVotes.includes(competitor.id) && (
+                   <div className="absolute -top-3 -right-1">
+                     <span className="bg-realm-green text-zinc-950 text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-lg">Voted</span>
+                   </div>
+                 )}
+              </div>
+
+              <button 
+                disabled={voteMutation.isPending || unvoteMutation.isPending}
+                onClick={(e) => {
+                  e.preventDefault()
+                  if (!user) {
+                    toast.error('Login Required', { description: 'Please sign in to vote for OTM.' })
+                    return
+                  }
+                  
+                  if (userServers.length === 0) {
+                    toast.error('Eligibility Required', { description: 'You must own at least one approved server to vote.' })
+                    return
+                  }
+
+                  const isOwnServer = userServers.some(s => s.id === competitor.server_id)
+                  if (isOwnServer) {
+                    toast.error('Self-voting Restricted', { description: 'You cannot vote for your own server.' })
+                    return
+                  }
+
+                  if (userVotes.includes(competitor.id)) {
+                    unvoteMutation.mutate({ userId: user.id, competitorId: competitor.id })
+                  } else {
+                    voteMutation.mutate({ userId: user.id, competitorId: competitor.id })
+                  }
+                }}
+                className={`block w-full py-2 rounded-lg border font-pixel text-[9px] uppercase tracking-widest transition-all ${
+                  userVotes.includes(competitor.id)
+                    ? 'bg-realm-green border-realm-green text-zinc-950 hover:bg-red-500 hover:border-red-500 hover:text-white'
+                    : 'bg-white/5 border-white/10 text-white hover:bg-realm-green hover:border-realm-green hover:text-zinc-950'
+                }`}
               >
-                Cast Vote
-              </a>
+                {voteMutation.isPending || unvoteMutation.isPending 
+                  ? 'Processing...' 
+                  : userVotes.includes(competitor.id) ? 'Undo Vote' : 'Cast Vote'}
+              </button>
             </motion.div>
           ))}
 

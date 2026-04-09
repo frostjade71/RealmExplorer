@@ -4,10 +4,10 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 export function AdminSettingsPage() {
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
@@ -18,7 +18,6 @@ export function AdminSettingsPage() {
 
     setLoading(true)
     setError(null)
-    setSuccess(false)
 
     try {
       const { error } = await supabase.rpc('reset_all_cooldowns')
@@ -27,11 +26,13 @@ export function AdminSettingsPage() {
       // Invalidate all vote status queries globally
       await queryClient.invalidateQueries({ queryKey: ['voteStatus'] })
       
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 5000)
+      toast.success('Cooldowns Reset', {
+        description: 'All users can now vote again immediately.'
+      })
     } catch (err: any) {
       console.error('Reset failed:', err)
       setError(err.message || 'Failed to reset cooldowns.')
+      toast.error('Reset Failed', { description: err.message })
     } finally {
       setLoading(false)
     }
@@ -80,20 +81,14 @@ export function AdminSettingsPage() {
                   whileTap={{ scale: 0.98 }}
                   onClick={handleResetCooldowns}
                   disabled={loading}
-                  className={`w-full py-5 px-8 rounded-2xl font-headline font-bold flex items-center justify-center gap-3 transition-all duration-500 shadow-xl ${
-                    success 
-                      ? 'bg-realm-green text-zinc-950 shadow-green-500/20' 
-                      : 'bg-white/5 border border-white/10 text-white hover:bg-realm-green hover:text-zinc-950 hover:border-realm-green'
-                  }`}
+                  className={`w-full py-5 px-8 rounded-2xl font-headline font-bold flex items-center justify-center gap-3 transition-all duration-500 shadow-xl bg-white/5 border border-white/10 text-white hover:bg-realm-green hover:text-zinc-950 hover:border-realm-green`}
                 >
                   {loading ? (
                     <span className="material-symbols-outlined animate-spin">sync</span>
-                  ) : success ? (
-                    <span className="material-symbols-outlined">check_circle</span>
                   ) : (
                     <span className="material-symbols-outlined">restart_alt</span>
                   )}
-                  {loading ? 'Resetting cooldowns...' : success ? 'Cooldowns Reset' : 'Reset All Cooldowns'}
+                  {loading ? 'Resetting cooldowns...' : 'Reset All Cooldowns'}
                 </motion.button>
 
                 {error && (

@@ -13,9 +13,9 @@ export function useVoteMutation() {
       }
       return serverId
     },
-    onSuccess: (serverId) => {
-      // Invalidate specific server query and global server list to update vote counts
-      queryClient.invalidateQueries({ queryKey: ['server', serverId] })
+    onSuccess: () => {
+      // Invalidate all server queries and vote statuses to ensure UI sync
+      queryClient.invalidateQueries({ queryKey: ['server'] })
       queryClient.invalidateQueries({ queryKey: ['servers'] })
       queryClient.invalidateQueries({ queryKey: ['voteStatus'] })
     }
@@ -81,13 +81,13 @@ export function useUpdateServerStatusMutation() {
 
         if (server.status === 'Review Icon') {
           title = 'Icon Approved'
-          message = `The new icon for "${server.name}" has been approved!`
+          message = `Your new icon for "${server.name}" has been approved!`
         } else if (server.status === 'Review Cover') {
           title = 'Cover Approved'
-          message = `The new cover for "${server.name}" has been approved!`
+          message = `Your new cover for "${server.name}" has been approved!`
         } else if (server.status === 'Review Icon & Cover') {
           title = 'Assets Approved'
-          message = `The icon and cover for "${server.name}" have been approved!`
+          message = `Your icon and cover for "${server.name}" have been approved!`
         }
 
         await supabase.from('notifications').insert({
@@ -96,7 +96,7 @@ export function useUpdateServerStatusMutation() {
           title,
           message,
           related_id: id
-        })
+        } as any)
       }
 
       // 3. If approved, cleanup messages
@@ -105,12 +105,12 @@ export function useUpdateServerStatusMutation() {
         if (msgError) console.error('Failed to cleanup messages:', msgError)
       }
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminServers'] })
       queryClient.invalidateQueries({ queryKey: ['servers'] })
       queryClient.invalidateQueries({ queryKey: ['userServers'] })
-      queryClient.invalidateQueries({ queryKey: ['server', variables.id] })
-      queryClient.invalidateQueries({ queryKey: ['serverMessages', variables.id] })
+      queryClient.invalidateQueries({ queryKey: ['server'] })
+      queryClient.invalidateQueries({ queryKey: ['serverMessages'] })
     }
   })
 }
@@ -148,8 +148,8 @@ export function useUpdateServerMutation() {
       const { error } = await supabase.from('servers').update(formData).eq('id', id)
       if (error) throw error
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['server', variables.id] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['server'] })
       queryClient.invalidateQueries({ queryKey: ['userServers'] })
       queryClient.invalidateQueries({ queryKey: ['servers'] })
       queryClient.invalidateQueries({ queryKey: ['adminServers'] })
@@ -183,9 +183,9 @@ export function useSubmitRatingMutation() {
       if (error) throw error
       return serverId
     },
-    onSuccess: (serverId) => {
-      queryClient.invalidateQueries({ queryKey: ['server', serverId] })
-      queryClient.invalidateQueries({ queryKey: ['serverRatings', serverId] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['server'] })
+      queryClient.invalidateQueries({ queryKey: ['serverRatings'] })
       queryClient.invalidateQueries({ queryKey: ['servers'] })
     }
   })
@@ -228,7 +228,7 @@ export function useSendMessageMutation() {
 
       // 3. Create Notification
       const { data: server } = await supabase.from('servers').select('owner_id, name, status').eq('id', serverId).single()
-      if (server?.owner_id) {
+      if (server && server.owner_id) {
         let title = type === 'rejection' ? 'Listing Rejected' : 'New Staff Message'
         let messageBody = type === 'rejection' 
           ? `Your server "${server.name}" listing was rejected. Please check your messages.` 
@@ -237,13 +237,13 @@ export function useSendMessageMutation() {
         if (type === 'rejection') {
           if (server.status === 'Review Icon') {
             title = 'Icon Rejected'
-            messageBody = `The new icon for "${server.name}" was rejected. Please check your messages.`
+            messageBody = `Your new icon for "${server.name}" was rejected. Please check your messages.`
           } else if (server.status === 'Review Cover') {
             title = 'Cover Rejected'
-            messageBody = `The new cover for "${server.name}" was rejected. Please check your messages.`
+            messageBody = `Your new cover for "${server.name}" was rejected. Please check your messages.`
           } else if (server.status === 'Review Icon & Cover') {
             title = 'Assets Rejected'
-            messageBody = `The icon and cover for "${server.name}" were rejected. Please check your messages.`
+            messageBody = `Your icon and cover for "${server.name}" were rejected. Please check your messages.`
           }
         }
 
@@ -253,15 +253,15 @@ export function useSendMessageMutation() {
           title,
           message: messageBody,
           related_id: serverId
-        })
+        } as any)
       }
 
       return serverId
     },
-    onSuccess: (serverId) => {
-      queryClient.invalidateQueries({ queryKey: ['serverMessages', serverId] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['serverMessages'] })
       queryClient.invalidateQueries({ queryKey: ['adminServers'] })
-      queryClient.invalidateQueries({ queryKey: ['server', serverId] })
+      queryClient.invalidateQueries({ queryKey: ['server'] })
       queryClient.invalidateQueries({ queryKey: ['userServers'] })
     }
   })
@@ -279,14 +279,15 @@ export function useUpsertOTMWinnerMutation() {
       // Notification if podium
       if (winner.server_id) {
         const { data: server } = await supabase.from('servers').select('owner_id, name').eq('id', winner.server_id).single()
-        if (server?.owner_id) {
+        if (server && server.owner_id) {
+          const categoryDisplay = winner.category.charAt(0).toUpperCase() + winner.category.slice(1)
           await supabase.from('notifications').insert({
             user_id: server.owner_id,
             type: 'otm_podium',
-            title: 'OTM Podium!',
-            message: `Congratulations, Your ${server.name} is sitting now at the podium for ${winner.category} OTM!`,
+            title: 'OTM Winner !',
+            message: `🎉Congratulations, Your Server ${server.name} is ${winner.month} ${categoryDisplay} Of The Month !`,
             related_id: winner.server_id
-          })
+          } as any)
         }
       }
     },
@@ -316,21 +317,24 @@ export function useAddOTMCompetitorMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (competitor: any) => {
+      // Remove vote_url if it exists
+      const { vote_url, ...cleanCompetitor } = competitor
       const { error } = await supabase
         .from('otm_competitors')
-        .insert([competitor])
+        .insert([cleanCompetitor])
       if (error) throw error
 
       // Notification
-      const { data: server } = await supabase.from('servers').select('owner_id, name').eq('id', competitor.server_id).single()
-      if (server?.owner_id) {
+      const { data: server } = await supabase.from('servers').select('owner_id, name').eq('id', competitor.server_id)
+        .single()
+      if (server && server.owner_id) {
         await supabase.from('notifications').insert({
           user_id: server.owner_id,
           type: 'otm_competitor',
           title: 'OTM Competitor!',
           message: `Your ${server.name} is now a Competitor for ${competitor.category} OTM. Good Luck!`,
-          related_id: competitor.server_id
-        })
+          related_id: competitor.server_id as any
+        } as any)
       }
     },
     onSuccess: () => {
@@ -342,7 +346,7 @@ export function useAddOTMCompetitorMutation() {
 export function useUpdateOTMCompetitorMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, servers, ...data }: any) => {
+    mutationFn: async ({ id, servers, vote_url, ...data }: any) => {
       const { error } = await supabase
         .from('otm_competitors')
         .update(data)
@@ -367,6 +371,46 @@ export function useDeleteOTMCompetitorMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['otmCompetitors'] })
+    }
+  })
+}
+
+export function useOTMVoteMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ userId, competitorId }: { userId: string; competitorId: string }) => {
+      const { error } = await supabase
+        .from('otm_votes')
+        .insert({ user_id: userId, competitor_id: competitorId })
+      
+      if (error) {
+        if (error.code === '23505') throw new Error('Already voted for this competitor')
+        if (error.code === 'P0001') throw new Error(error.message)
+        throw error
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['otmCompetitors'] })
+      queryClient.invalidateQueries({ queryKey: ['userOTMVotes'] })
+    }
+  })
+}
+
+export function useOTMUnvoteMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ userId, competitorId }: { userId: string; competitorId: string }) => {
+      const { error } = await supabase
+        .from('otm_votes')
+        .delete()
+        .eq('user_id', userId)
+        .eq('competitor_id', competitorId)
+      
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['otmCompetitors'] })
+      queryClient.invalidateQueries({ queryKey: ['userOTMVotes'] })
     }
   })
 }

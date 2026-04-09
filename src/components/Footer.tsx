@@ -38,7 +38,7 @@ export function Footer() {
               <MessageSquare className="w-5 h-5" />
             </a>
           </div>
-          <p className="font-body text-xs text-white/40">© 2026 Realm Explorer. All rights reserved.</p>
+          <p className="font-body text-xs text-white/40">v0.1.1-beta | © 2026 Realm Explorer. All rights reserved.</p>
         </div>
       </div>
     </footer>

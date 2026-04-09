@@ -10,6 +10,8 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
 import { ImageUpload } from '../components/ImageUpload'
+import { slugify } from '../lib/urlUtils'
+import { toast } from 'sonner'
 
 export function SubmitPage() {
   const { id } = useParams()
@@ -94,44 +96,90 @@ export function SubmitPage() {
       return
     }
 
-    if (isEditing) {
-      const currentStatus = serverData?.server?.status || 'approved'
-      const iconChanged = formData.icon_url !== originalImageUrls.icon
-      const bannerChanged = formData.banner_url !== originalImageUrls.banner
-      
-      let newStatus: import('../types').ServerStatus = currentStatus
-      if (iconChanged && bannerChanged) newStatus = 'Review Icon & Cover'
-      else if (iconChanged) newStatus = 'Review Icon'
-      else if (bannerChanged) newStatus = 'Review Cover'
-      else if (currentStatus === 'rejected' || currentStatus === 'emailed') newStatus = 'pending'
+    const slug = slugify(formData.name)
 
-      updateMutation.mutate(
-        {
-          id,
-          ...formData,
-          status: newStatus
-        },
-        {
-          onSuccess: () => {
-            cleanupOldImages(formData.icon_url, formData.banner_url)
-            navigate('/dashboard')
+    const checkAndSubmit = async () => {
+      // Check if slug is unique
+      let query = supabase
+        .from('servers')
+        .select('id')
+        .eq('slug', slug)
+      
+      if (id) {
+        query = query.neq('id', id)
+      }
+
+      const { data: existing, error: checkError } = await query.maybeSingle()
+
+      if (checkError) {
+        setError('Error checking name availability. Please try again.')
+        return
+      }
+
+      if (existing) {
+        setError('A server with this name already exists. Please choose a unique name.')
+        return
+      }
+
+      if (isEditing) {
+        const currentStatus = serverData?.server?.status || 'approved'
+        const iconChanged = formData.icon_url !== originalImageUrls.icon
+        const bannerChanged = formData.banner_url !== originalImageUrls.banner
+        
+        let newStatus: import('../types').ServerStatus = currentStatus
+        if (iconChanged && bannerChanged) newStatus = 'Review Icon & Cover'
+        else if (iconChanged) newStatus = 'Review Icon'
+        else if (bannerChanged) newStatus = 'Review Cover'
+        else if (currentStatus === 'rejected' || currentStatus === 'emailed') newStatus = 'pending'
+
+        updateMutation.mutate(
+          {
+            id,
+            ...formData,
+            slug,
+            status: newStatus
           },
-          onError: (err: any) => setError(err.message)
-        }
-      )
-    } else {
-      submitMutation.mutate(
-        {
-          owner_id: user.id,
-          ...formData,
-          status: 'pending'
-        },
-        {
-          onSuccess: () => navigate('/dashboard'),
-          onError: (err: any) => setError(err.message)
-        }
-      )
+          {
+            onSuccess: () => {
+              cleanupOldImages(formData.icon_url, formData.banner_url)
+              toast.success('Listing Updated', {
+                description: iconChanged || bannerChanged 
+                  ? 'Your changes are saved. Visual assets are pending review.' 
+                  : 'Your server details have been updated successfully.'
+              })
+              navigate('/dashboard')
+            },
+            onError: (err: any) => {
+              setError(err.message)
+              toast.error('Failed to update listing', { description: err.message })
+            }
+          }
+        )
+      } else {
+        submitMutation.mutate(
+          {
+            owner_id: user.id,
+            ...formData,
+            slug,
+            status: 'pending'
+          },
+          {
+            onSuccess: () => {
+              toast.success('Registration Submitted', {
+                description: 'Your server is now pending review by our staff.'
+              })
+              navigate('/dashboard')
+            },
+            onError: (err: any) => {
+              setError(err.message)
+              toast.error('Submission failed', { description: err.message })
+            }
+          }
+        )
+      }
     }
+
+    checkAndSubmit()
   }
 
   const categories: ServerCategory[] = ['factions', 'kitpvp', 'skyblock', 'smp', 'modded', 'other']
@@ -253,9 +301,9 @@ export function SubmitPage() {
               <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline">Description</label>
               <textarea
                 required
-                rows={5}
+                rows={10}
                 placeholder="Tell players about your server..."
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline resize-y focus:ring-1 focus:ring-realm-green/30"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline resize-y focus:ring-1 focus:ring-realm-green/30 min-h-[200px]"
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
               ></textarea>

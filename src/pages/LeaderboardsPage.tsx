@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import { LoadingSpinner } from '../components/FeedbackStates'
 import heroGif from '../assets/hero/heroRE.gif'
 import logo from '../assets/rerealm.webp'
+import { slugify } from '../lib/urlUtils'
 
 export function LeaderboardsPage() {
   const { data: topVoted = [], isLoading: loadingVotes } = useServers({ sortBy: 'votes', limit: 13 })
@@ -58,7 +59,7 @@ export function LeaderboardsPage() {
                 {/* 2nd Place */}
                 {podium[1] && (
                     <FramerIn delay={0.4} className="order-2 md:order-1 w-full md:w-1/3 group">
-                        <Link to={`/server/${podium[1].id}`} className="flex flex-col items-center">
+                        <Link to={`/server/${podium[1].slug || slugify(podium[1].name)}`} className="flex flex-col items-center">
                             <div className="relative mb-4">
                                 <div className="absolute -top-4 -left-4 w-10 h-10 bg-zinc-400 rounded-full flex items-center justify-center border-4 border-black text-black font-pixel text-sm z-30">2</div>
                                 <img 
@@ -82,7 +83,7 @@ export function LeaderboardsPage() {
                 {/* 1st Place */}
                 {podium[0] && (
                     <FramerIn delay={0.6} className="order-1 md:order-2 w-full md:w-2/5 z-20 group -mb-4">
-                        <Link to={`/server/${podium[0].id}`} className="flex flex-col items-center">
+                        <Link to={`/server/${podium[0].slug || slugify(podium[0].name)}`} className="flex flex-col items-center">
                             <div className="relative mb-6">
                                 <div className="absolute -top-6 -left-6 w-14 h-14 bg-realm-green rounded-full flex items-center justify-center border-4 border-black text-black font-pixel text-lg z-30">1</div>
                                 <img 
@@ -106,7 +107,7 @@ export function LeaderboardsPage() {
                 {/* 3rd Place */}
                 {podium[2] && (
                     <FramerIn delay={0.5} className="order-3 md:order-3 w-full md:w-1/3 group">
-                        <Link to={`/server/${podium[2].id}`} className="flex flex-col items-center">
+                        <Link to={`/server/${podium[2].slug || slugify(podium[2].name)}`} className="flex flex-col items-center">
                             <div className="relative mb-4">
                                 <div className="absolute -top-4 -left-4 w-10 h-10 bg-orange-700 rounded-full flex items-center justify-center border-4 border-black text-white font-pixel text-sm z-30">3</div>
                                 <img 
@@ -149,7 +150,7 @@ export function LeaderboardsPage() {
                     {votesList.map((server, idx) => (
                         <Link 
                             key={server.id} 
-                            to={`/server/${server.id}`}
+                            to={`/server/${server.slug || slugify(server.name)}`}
                             className={`flex items-center gap-3 p-3 rounded-2xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-900/60 transition-all group ${idx < 3 ? 'hover:border-realm-green' : 'hover:border-realm-green/20'}`}
                         >
                             <div className="w-8 flex justify-center">
@@ -193,7 +194,7 @@ export function LeaderboardsPage() {
                     {topRated.map((server, idx) => (
                         <Link 
                             key={server.id} 
-                            to={`/server/${server.id}`}
+                            to={`/server/${server.slug || slugify(server.name)}`}
                             className={`flex items-center gap-3 p-3 rounded-2xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-900/60 transition-all group ${idx < 3 ? 'hover:border-yellow-500' : 'hover:border-yellow-500/20'}`}
                         >
                             <div className="w-8 flex justify-center">

@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export function AdminOverviewPage() {
-  const { profile } = useAuth()
+  const { profile, isAdmin } = useAuth()
   useGlobalStats()
   const { data: servers = [] } = useAdminServers()
   useAdminUsers()
@@ -141,14 +141,18 @@ export function AdminOverviewPage() {
                 <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">rule</span>
                 <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">Manage Servers</span>
               </Link>
-              <Link to="/admin/users" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
-                <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">shield_person</span>
-                <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">User Management</span>
-              </Link>
-              <Link to="/admin/settings" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
-                <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">settings_input_component</span>
-                <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">General Settings</span>
-              </Link>
+              {isAdmin && (
+                <>
+                  <Link to="/admin/users" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
+                    <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">shield_person</span>
+                    <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">User Management</span>
+                  </Link>
+                  <Link to="/admin/settings" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
+                    <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">settings_input_component</span>
+                    <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">General Settings</span>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </FramerIn>

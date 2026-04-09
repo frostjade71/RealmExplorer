@@ -7,19 +7,18 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ requiredRole }: ProtectedRouteProps) {
-  const { session, profile, loading } = useAuth()
+  const { session, loading, isAdmin, isModerator } = useAuth()
 
   if (loading) return <div>Loading...</div>
   
   if (!session) return <Navigate to="/" replace />
 
-  if (requiredRole) {
-    if (requiredRole === 'admin' && profile?.role !== 'admin') {
-      return <Navigate to="/" replace />
-    }
-    if (requiredRole === 'moderator' && profile?.role === 'explorer') {
-      return <Navigate to="/" replace />
-    }
+  if (requiredRole === 'admin' && !isAdmin) {
+    return <Navigate to="/" replace />
+  }
+
+  if (requiredRole === 'moderator' && !isModerator) {
+    return <Navigate to="/" replace />
   }
 
   return <Outlet />
