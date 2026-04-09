@@ -61,3 +61,14 @@ body {
   @apply bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container;
   min-height: 100vh;
 }
+
+/* Hide number input spinners */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}

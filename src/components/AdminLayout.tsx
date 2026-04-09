@@ -14,6 +14,7 @@ export function AdminLayout() {
       { to: '/admin/users', label: 'Manage Users', icon: 'group' },
       { to: '/admin/settings', label: 'Global Settings', icon: 'settings' },
       { to: '/admin/events', label: 'Manage Events', icon: 'event' },
+      { to: '/admin/audit-logs', label: 'Audit Logs', icon: 'history' },
     ] : [])
   ]
 
@@ -68,7 +69,7 @@ export function AdminLayout() {
           </Link>
           <div className="mt-4 px-4 py-2 bg-white/5 border border-white/5 rounded-lg">
             <p className="text-[10px] font-pixel text-white/20 uppercase tracking-widest">System Version</p>
-            <p className="text-xs font-headline font-bold text-realm-green">v0.1.1-beta</p>
+            <p className="text-xs font-headline font-bold text-realm-green">v0.2.0-beta</p>
           </div>
         </div>
       </aside>

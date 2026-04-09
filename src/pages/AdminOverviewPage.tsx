@@ -103,12 +103,20 @@ export function AdminOverviewPage() {
               {servers.slice(0, 5).map(server => (
                 <div key={server.id} className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
-                      <span className="material-symbols-outlined text-white/20 text-xl">dns</span>
+                    <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 overflow-hidden">
+                      {server.icon_url ? (
+                        <img src={server.icon_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="material-symbols-outlined text-white/20 text-xl">dns</span>
+                      )}
                     </div>
                     <div>
                       <div className="font-bold text-white text-sm">{server.name}</div>
-                      <div className="text-[10px] text-white/40 font-mono tracking-tighter">{server.ip_or_code}</div>
+                      <div className="text-[10px] text-white/40 font-mono tracking-tighter">
+                        {server.type === 'realm' && server.ip_or_code 
+                          ? (server.ip_or_code.startsWith('http') ? server.ip_or_code : `https://realms.gg/${server.ip_or_code}`) 
+                          : (server.ip_or_code || 'No IP')}
+                      </div>
                     </div>
                   </div>
                   <div className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
@@ -150,6 +158,10 @@ export function AdminOverviewPage() {
                   <Link to="/admin/settings" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
                     <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">settings_input_component</span>
                     <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">General Settings</span>
+                  </Link>
+                  <Link to="/admin/audit-logs" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
+                    <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">history</span>
+                    <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">Audit Logs</span>
                   </Link>
                 </>
               )}

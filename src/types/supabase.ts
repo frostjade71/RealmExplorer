@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          discord_username: string | null
+          id: string
+          target_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          discord_username?: string | null
+          id?: string
+          target_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          discord_username?: string | null
+          id?: string
+          target_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cooldowns: {
         Row: {
           expires_at: string
@@ -98,7 +136,8 @@ export type Database = {
           id: string
           month: string | null
           server_id: string | null
-          vote_url: string
+          user_id: string | null
+          vote_url: string | null
         }
         Insert: {
           category: string
@@ -106,6 +145,8 @@ export type Database = {
           id?: string
           month?: string | null
           server_id?: string | null
+          user_id?: string | null
+          vote_url?: string | null
         }
         Update: {
           category?: string
@@ -113,6 +154,8 @@ export type Database = {
           id?: string
           month?: string | null
           server_id?: string | null
+          user_id?: string | null
+          vote_url?: string | null
         }
         Relationships: [
           {
@@ -120,6 +163,49 @@ export type Database = {
             columns: ["server_id"]
             isOneToOne: false
             referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "otm_competitors_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      otm_votes: {
+        Row: {
+          competitor_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          competitor_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          competitor_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "otm_votes_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "otm_competitors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "otm_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -132,6 +218,7 @@ export type Database = {
           id: string
           month: string
           server_id: string | null
+          user_id: string | null
           winner_image_url: string | null
           winner_name: string | null
         }
@@ -142,6 +229,7 @@ export type Database = {
           id?: string
           month: string
           server_id?: string | null
+          user_id?: string | null
           winner_image_url?: string | null
           winner_name?: string | null
         }
@@ -152,6 +240,7 @@ export type Database = {
           id?: string
           month?: string
           server_id?: string | null
+          user_id?: string | null
           winner_image_url?: string | null
           winner_name?: string | null
         }
@@ -163,42 +252,13 @@ export type Database = {
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      otm_votes: {
-        Row: {
-          id: string
-          user_id: string
-          competitor_id: string
-          created_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          competitor_id: string
-          created_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          competitor_id?: string
-          created_at?: string | null
-        }
-        Relationships: [
           {
-            foreignKeyName: "otm_votes_user_id_fkey"
+            foreignKeyName: "otm_winners_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "otm_votes_competitor_id_fkey"
-            columns: ["competitor_id"]
-            isOneToOne: false
-            referencedRelation: "otm_competitors"
-            referencedColumns: ["id"]
-          }
         ]
       }
       profiles: {
@@ -322,6 +382,7 @@ export type Database = {
         Row: {
           average_rating: number | null
           banner_url: string | null
+          bedrock_ip: string | null
           category: string
           created_at: string | null
           description: string | null
@@ -332,8 +393,10 @@ export type Database = {
           ip_or_code: string | null
           name: string
           owner_id: string | null
+          port: number | null
           rating_count: number | null
           slug: string
+          social_links: Json | null
           status: string
           tags: string[] | null
           type: string
@@ -344,6 +407,7 @@ export type Database = {
         Insert: {
           average_rating?: number | null
           banner_url?: string | null
+          bedrock_ip?: string | null
           category: string
           created_at?: string | null
           description?: string | null
@@ -354,8 +418,10 @@ export type Database = {
           ip_or_code?: string | null
           name: string
           owner_id?: string | null
+          port?: number | null
           rating_count?: number | null
           slug: string
+          social_links?: Json | null
           status?: string
           tags?: string[] | null
           type: string
@@ -366,6 +432,7 @@ export type Database = {
         Update: {
           average_rating?: number | null
           banner_url?: string | null
+          bedrock_ip?: string | null
           category?: string
           created_at?: string | null
           description?: string | null
@@ -376,8 +443,10 @@ export type Database = {
           ip_or_code?: string | null
           name?: string
           owner_id?: string | null
+          port?: number | null
           rating_count?: number | null
           slug?: string
+          social_links?: Json | null
           status?: string
           tags?: string[] | null
           type?: string

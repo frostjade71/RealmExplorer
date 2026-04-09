@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useEffect, useState, useRef } from 'react'
-import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Star } from 'lucide-react'
+import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Star, Users, BookOpen } from 'lucide-react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { NotificationDropdown } from './NotificationDropdown'
 import logo from '../assets/rerealm.webp'
@@ -40,7 +40,15 @@ export function Navbar() {
       ]
     },
     { label: 'Servers', path: '/servers', icon: <Globe className="w-4 h-4" /> },
-    { label: 'About', path: '/about', icon: <Info className="w-4 h-4" /> },
+    { 
+      label: 'About', 
+      path: '/about', 
+      icon: <Info className="w-4 h-4" />,
+      children: [
+        { label: 'Our Team', path: '/team', icon: <Users className="w-4 h-4" /> },
+        { label: 'Blog', path: '/blog', icon: <BookOpen className="w-4 h-4" /> },
+      ]
+    },
   ]
 
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
@@ -230,7 +238,10 @@ export function Navbar() {
               </div>
             </div>
           )}
-          <button className="md:hidden text-white ml-2 p-2 rounded-lg hover:bg-white/10">
+          <button 
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden text-white ml-2 p-2 rounded-lg hover:bg-white/10"
+          >
             <Menu className="w-6 h-6" />
           </button>
         </div>

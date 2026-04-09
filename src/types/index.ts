@@ -13,6 +13,13 @@ export interface Profile {
   updated_at: string
 }
 
+export type SocialPlatform = 'website' | 'instagram' | 'youtube' | 'tiktok' | 'facebook' | 'twitch'
+
+export interface SocialLink {
+  platform: SocialPlatform
+  url: string
+}
+
 export interface Server {
   id: string
   owner_id: string | null
@@ -21,6 +28,8 @@ export interface Server {
   type: ServerType
   category: ServerCategory
   ip_or_code: string | null
+  port: number | null
+  bedrock_ip: string | null
   website_url: string | null
   discord_url: string | null
   banner_url: string | null
@@ -32,6 +41,8 @@ export interface Server {
   votes: number
   average_rating: number
   rating_count: number
+  social_links: SocialLink[] | null
+  last_edited_at: string
   created_at: string
   updated_at: string
   profiles?: Profile
@@ -64,17 +75,20 @@ export interface OTMWinner {
   month: string
   category: OTMCategory
   server_id: string | null
+  user_id?: string | null
   winner_name: string | null
   winner_image_url: string | null
   description: string | null
   created_at: string
   servers?: Server
+  profiles?: Profile
 }
 
 export interface OTMCompetitor {
   id: string
   category: OTMCategory
-  server_id: string
+  server_id: string | null
+  user_id?: string | null
   month?: string
   total_votes?: number
   created_at: string
@@ -84,6 +98,7 @@ export interface OTMCompetitor {
     icon_url: string
     slug: string
   }
+  profiles?: Profile
 }
 
 export interface OTMVote {

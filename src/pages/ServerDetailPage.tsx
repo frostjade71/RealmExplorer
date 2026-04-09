@@ -5,13 +5,20 @@ import { useServer, useUserVoteStatus, useServerRatings, useServerMessages } fro
 import { useVoteMutation, useSubmitRatingMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { CategoryBadge } from '../components/CategoryBadge'
-import { Link2, Copy, CheckCircle, ArrowUpSquare, Star } from 'lucide-react'
+import { Globe, Copy, CheckCircle, ArrowUpSquare, Star, ExternalLink, Calendar, Clock, Flag } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+import { SiDiscord, SiTiktok, SiInstagram, SiYoutube, SiFacebook, SiTwitch } from 'react-icons/si'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
 import { VoteTimer } from '../components/VoteTimer'
 import { RatingModal } from '../components/RatingModal'
 import { RichText } from '../components/RichText'
+import { toast } from 'sonner'
+
+// Type Icons
+import serverTypeIcon from '../assets/category/gif/6128-minecraft.gif'
+import realmTypeIcon from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
 
 export function ServerDetailPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -36,6 +43,7 @@ export function ServerDetailPage() {
   const ratingMutation = useSubmitRatingMutation()
   
   const [copied, setCopied] = useState(false)
+  const [bedrockCopied, setBedrockCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
   // A user has voted if they have a record in the DB OR if they just successfully clicked the button
@@ -53,6 +61,14 @@ export function ServerDetailPage() {
       navigator.clipboard.writeText(server.ip_or_code)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  const handleCopyBedrockIp = () => {
+    if (server?.bedrock_ip) {
+      navigator.clipboard.writeText(server.bedrock_ip)
+      setBedrockCopied(true)
+      setTimeout(() => setBedrockCopied(false), 2000)
     }
   }
 
@@ -137,6 +153,10 @@ export function ServerDetailPage() {
                     {statusInfo.label}
                   </span>
                 )}
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-headline font-bold uppercase tracking-wider w-fit bg-zinc-800/50 text-zinc-400 border border-zinc-700/50">
+                  <img src={server.type === 'server' ? serverTypeIcon : realmTypeIcon} alt="" className="w-3.5 h-3.5 object-contain rounded-sm" />
+                  <span>{server.type === 'server' ? 'Server' : 'Realm'}</span>
+                </div>
                 <CategoryBadge category={server.category} />
               </div>
             </div>
@@ -148,7 +168,7 @@ export function ServerDetailPage() {
                       whileTap={isApproved ? { scale: 0.95 } : {}}
                       onClick={handleVote}
                       disabled={alreadyVoted || voteMutation.isPending || checkingVote || !isApproved}
-                      className={`flex items-center gap-2 px-6 py-3 rounded-xl font-headline font-bold transition-colors shadow-lg ${
+                      className={`flex items-center gap-2 px-6 py-3 rounded-l-xl rounded-r-md font-headline font-bold transition-colors shadow-lg ${
                         !isApproved ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-800 opacity-50' :
                         alreadyVoted ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' : 
                         'bg-[#4EC44E] text-zinc-950 hover:bg-[#85fc7e] shadow-green-500/20'
@@ -162,7 +182,7 @@ export function ServerDetailPage() {
                       whileTap={isApproved ? { scale: 0.9 } : {}}
                       onClick={() => isApproved && setIsRatingModalOpen(true)}
                       disabled={!isApproved}
-                      className={`p-3 rounded-xl border transition-colors shadow-lg ${
+                      className={`p-3 rounded-r-xl rounded-l-md border transition-colors shadow-lg ${
                         !isApproved ? 'bg-zinc-900 border-zinc-800 text-zinc-600 cursor-not-allowed opacity-50' : 
                         'bg-zinc-900 border-zinc-800 text-yellow-400 hover:bg-zinc-800'
                       }`}
@@ -255,21 +275,97 @@ export function ServerDetailPage() {
             </motion.div>
           )}
           
-          <div className="flex flex-wrap gap-4 mt-6">
-            <motion.button 
-              whileTap={{ scale: 0.98 }}
-              onClick={handleCopyIp}
-              className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-headline text-sm transition-colors border border-zinc-800"
-            >
-              {copied ? <CheckCircle className="w-4 h-4 text-realm-green" /> : <Copy className="w-4 h-4" />}
-              {server.ip_or_code || 'Hidden IP'}
-            </motion.button>
-            {server.website_url && (
-              <a href={server.website_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 text-zinc-400 hover:text-white transition-colors font-headline text-sm">
-                <Link2 className="w-4 h-4" /> Website
-              </a>
-            )}
-          </div>
+            <div className="flex flex-wrap items-end gap-3 mt-6">
+              {/* Java IP / Realm Button */}
+              {server.type === 'server' ? (
+                <div className="flex flex-col gap-1.5">
+                   <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Java IP</div>
+                   <motion.button 
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleCopyIp}
+                    className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-headline text-sm transition-all border border-zinc-800"
+                  >
+                    {copied ? <CheckCircle className="w-4 h-4 text-realm-green" /> : <Copy className="w-4 h-4" />}
+                    {server.ip_or_code || 'Hidden IP'}
+                    {server.port && server.port !== 25565 && <span className="text-zinc-500">:{server.port}</span>}
+                  </motion.button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1.5">
+                   <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Join Realm</div>
+                    <motion.a 
+                    href={server.ip_or_code?.startsWith('http') ? server.ip_or_code : `https://realms.gg/${server.ip_or_code}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    whileTap={{ scale: 0.98 }}
+                    className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 py-2 rounded-lg font-headline text-sm transition-all border border-zinc-800"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Connect
+                  </motion.a>
+                </div>
+              )}
+
+              {/* Bedrock IP (Additional for Hybrid Servers) */}
+              {server.type === 'server' && server.bedrock_ip && (
+                <div className="flex flex-col gap-1.5">
+                   <div className="text-[9px] font-bold text-realm-green/60 uppercase tracking-widest ml-1">Bedrock IP</div>
+                   <motion.button 
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleCopyBedrockIp}
+                    className="flex items-center gap-2 bg-realm-green/5 hover:bg-realm-green/10 text-realm-green px-4 py-2 rounded-lg font-headline text-sm transition-all border border-realm-green/20"
+                  >
+                    {bedrockCopied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {server.bedrock_ip}
+                  </motion.button>
+                </div>
+              )}
+              
+              {/* Discord Link (Repurposed website_url) */}
+              {server.website_url && (
+                <a 
+                  href={server.website_url} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-[#5865F2] hover:border-[#5865F2]/30 transition-all shadow-sm"
+                  title="Discord Invite"
+                >
+                  <SiDiscord className="w-5 h-5" />
+                </a>
+              )}
+
+              {/* Curated Social Links */}
+              {server.social_links && server.social_links.map((link, idx) => {
+                const icons = {
+                  website: <Globe className="w-5 h-5" />,
+                  instagram: <SiInstagram className="w-5 h-5" />,
+                  youtube: <SiYoutube className="w-5 h-5" />,
+                  tiktok: <SiTiktok className="w-5 h-5" />,
+                  facebook: <SiFacebook className="w-5 h-5" />,
+                  twitch: <SiTwitch className="w-5 h-5" />,
+                }
+                const hoverColors = {
+                  website: 'hover:text-white',
+                  instagram: 'hover:text-pink-500',
+                  youtube: 'hover:text-red-600',
+                  tiktok: 'hover:text-cyan-400',
+                  facebook: 'hover:text-blue-600',
+                  twitch: 'hover:text-purple-500',
+                }
+                return (
+                  <a 
+                    key={idx}
+                    href={link.url} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className={`p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 ${hoverColors[link.platform] || 'hover:text-white'} transition-all shadow-sm`}
+                    title={link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}
+                  >
+                    {icons[link.platform] || <Globe className="w-5 h-5" />}
+                  </a>
+                )
+              })}
+            </div>
         </div>
       </FramerIn>
 
@@ -305,6 +401,17 @@ export function ServerDetailPage() {
                 <span className="text-zinc-400 text-sm">Total Votes</span>
                 <span className="text-white font-bold">{server.votes}</span>
               </div>
+              
+              <div className="pt-4 mt-4 border-t border-zinc-800/50 space-y-3">
+                <div className="flex items-center gap-2 text-[10px] font-headline uppercase tracking-widest text-zinc-500">
+                  <Calendar className="w-3 h-3" />
+                  <span>Published {formatDistanceToNow(new Date(server.created_at))} ago</span>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] font-headline uppercase tracking-widest text-zinc-500">
+                  <Clock className="w-3 h-3" />
+                  <span>Updated {formatDistanceToNow(new Date(server.last_edited_at))} ago</span>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -317,6 +424,19 @@ export function ServerDetailPage() {
               </div>
             </div>
           )}
+
+          <motion.button 
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={() => toast.info('Coming Soon', { 
+              description: 'The reporting system is currently under development and will be available soon.',
+              icon: <Flag className="w-4 h-4 text-blue-400" />
+            })}
+            className="w-full bg-zinc-900/50 border border-zinc-800 p-4 rounded-2xl flex items-center justify-center gap-3 text-zinc-500 hover:text-red-400 hover:border-red-500/20 hover:bg-red-500/5 transition-all group"
+          >
+            <Flag className="w-4 h-4 transition-transform group-hover:scale-110" />
+            <span className="font-headline font-bold uppercase tracking-widest text-[10px]">Report Listing</span>
+          </motion.button>
         </FramerIn>
       </div>
 

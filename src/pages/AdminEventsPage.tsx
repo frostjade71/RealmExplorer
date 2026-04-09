@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useAdminServers, useOTMWinners, useOTMCompetitors } from '../hooks/queries'
+import { useState, useMemo } from 'react'
+import { useAdminServers, useOTMWinners, useOTMCompetitors, useAdminUsers } from '../hooks/queries'
 import { 
   useUpsertOTMWinnerMutation, 
   useAddOTMCompetitorMutation, 
@@ -12,9 +12,10 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { OTMCategory, OTMWinner, OTMCompetitor } from '../types'
-import { Trophy, Plus, Trash2, Calendar, Edit, X } from 'lucide-react'
+import { Trophy, Plus, Trash2, Calendar, Edit, X, User } from 'lucide-react'
 import { toast } from 'sonner'
 import logo from '../assets/rerealm.webp'
+import { useAuth } from '../contexts/AuthContext'
 
 const MONTH_OPTIONS = Array.from({ length: 3 }).map((_, i) => {
   const d = new Date()
@@ -23,9 +24,12 @@ const MONTH_OPTIONS = Array.from({ length: 3 }).map((_, i) => {
 })
 
 export function AdminEventsPage() {
+  const { profile } = useAuth()
   const { data: servers = [], isLoading: loadingServers } = useAdminServers()
   const { data: winners = [], isLoading: loadingWinners } = useOTMWinners()
   const { data: competitors = [], isLoading: loadingCompetitors } = useOTMCompetitors()
+  const { data: users = [], isLoading: loadingUsers } = useAdminUsers()
+  
   const [compFilter, setCompFilter] = useState<OTMCategory | 'all'>('all')
 
   const upsertWinner = useUpsertOTMWinnerMutation()
@@ -34,14 +38,20 @@ export function AdminEventsPage() {
   const updateCompetitor = useUpdateOTMCompetitorMutation()
   const deleteCompetitor = useDeleteOTMCompetitorMutation()
 
-  const approvedServers = servers.filter(s => s.status === 'approved')
+  const approvedServers = useMemo(() => servers.filter(s => s.status === 'approved'), [servers])
 
   // Modals and Editing State
   const [editingWinner, setEditingWinner] = useState<OTMWinner | null>(null)
   const [editingCompetitor, setEditingCompetitor] = useState<OTMCompetitor | null>(null)
 
   // Winner Form State (Add)
-  const [winnerForm, setWinnerForm] = useState({
+  const [winnerForm, setWinnerForm] = useState<{
+    month: string
+    category: OTMCategory
+    server_id: string | null
+    user_id: string | null
+    description: string
+  }>({
     month: (() => {
       const d = new Date()
       d.setMonth(d.getMonth() - 1)
@@ -49,25 +59,49 @@ export function AdminEventsPage() {
     })(),
     category: 'realm' as OTMCategory,
     server_id: '',
-    winner_name: '',
-    winner_image_url: '',
+    user_id: '',
     description: ''
   })
 
   // Competitor Form State (Add)
-  const [compForm, setCompForm] = useState({
+  const [compForm, setCompForm] = useState<{
+    month: string
+    category: OTMCategory
+    server_id: string | null
+    user_id: string | null
+  }>({
     month: (() => {
       const d = new Date()
       d.setMonth(d.getMonth() - 1)
       return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     })(),
     category: 'realm' as OTMCategory,
-    server_id: ''
+    server_id: '',
+    user_id: ''
   })
+
+  const isPersonCategory = (cat: OTMCategory) => cat === 'developer' || cat === 'builder'
 
   const handleUpsertWinner = (e: React.FormEvent, data: any) => {
     e.preventDefault()
-    upsertWinner.mutate(data, {
+    
+    let payload = { ...data }
+    
+    // If it's a person category and a user is selected, map their details
+    if (isPersonCategory(data.category) && data.user_id) {
+      const selectedUser = users.find(u => u.id === data.user_id)
+      if (selectedUser) {
+        payload.winner_name = selectedUser.discord_username
+        payload.winner_image_url = selectedUser.discord_avatar
+      }
+      payload.server_id = null
+    } else if (!isPersonCategory(data.category) && data.server_id) {
+      payload.winner_name = null
+      payload.winner_image_url = null
+      payload.user_id = null
+    }
+
+    upsertWinner.mutate({ ...payload, adminId: profile?.id, adminName: profile?.discord_username }, {
       onSuccess: () => {
         setEditingWinner(null)
         toast.success('Winner Recorded', {
@@ -83,7 +117,15 @@ export function AdminEventsPage() {
   const handleUpdateCompetitor = (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingCompetitor) return
-    updateCompetitor.mutate(editingCompetitor, {
+    
+    const payload = { ...editingCompetitor }
+    if (isPersonCategory(payload.category)) {
+      payload.server_id = null
+    } else {
+      payload.user_id = null
+    }
+
+    updateCompetitor.mutate(payload, {
       onSuccess: () => {
         setEditingCompetitor(null)
         toast.success('Competitor Updated', {
@@ -98,11 +140,20 @@ export function AdminEventsPage() {
 
   const handleAddCompetitor = (e: React.FormEvent) => {
     e.preventDefault()
-    addCompetitor.mutate(compForm, {
+    
+    const payload = { ...compForm }
+    if (isPersonCategory(payload.category)) {
+      payload.server_id = null
+    } else {
+      payload.user_id = null
+    }
+
+    addCompetitor.mutate({ ...payload, adminId: profile?.id, adminName: profile?.discord_username }, {
       onSuccess: () => {
         toast.success('Competitor Added', {
-          description: 'The server has been added to the upcoming monthly poll.'
+          description: isPersonCategory(payload.category) ? 'The user has been added to the poll.' : 'The server has been added to the poll.'
         })
+        setCompForm({ ...compForm, server_id: '', user_id: '' })
       },
       onError: (err: any) => {
         toast.error('Failed to add competitor', { description: err.message })
@@ -110,7 +161,7 @@ export function AdminEventsPage() {
     })
   }
 
-  if (loadingServers || loadingWinners || loadingCompetitors) return <LoadingSpinner />
+  if (loadingServers || loadingWinners || loadingCompetitors || loadingUsers) return <LoadingSpinner />
 
   return (
     <AnimatedPage>
@@ -150,7 +201,7 @@ export function AdminEventsPage() {
                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5 ml-1">Category</label>
                     <select 
                      value={winnerForm.category}
-                     onChange={e => setWinnerForm({...winnerForm, category: e.target.value as OTMCategory})}
+                     onChange={e => setWinnerForm({...winnerForm, category: e.target.value as OTMCategory, server_id: '', user_id: ''})}
                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50 appearance-none"
                     >
                       <option value="realm" className="bg-zinc-900 text-white">Realm</option>
@@ -162,41 +213,35 @@ export function AdminEventsPage() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5 ml-1">Linked Server (Optional)</label>
-                <select 
-                  value={winnerForm.server_id}
-                  onChange={e => setWinnerForm({...winnerForm, server_id: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50 appearance-none"
-                >
-                  <option value="" className="bg-zinc-900 text-white">None (Manual Entry)</option>
-                  {approvedServers.map(s => (
-                    <option key={s.id} value={s.id} className="bg-zinc-900 text-white">{s.name}</option>
-                  ))}
-                </select>
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5 ml-1">
+                  {isPersonCategory(winnerForm.category) ? 'Select User' : 'Linked Server'}
+                </label>
+                {isPersonCategory(winnerForm.category) ? (
+                  <select 
+                    value={winnerForm.user_id ?? ''}
+                    required
+                    onChange={e => setWinnerForm({...winnerForm, user_id: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50 appearance-none"
+                  >
+                    <option value="" className="bg-zinc-900 text-white">Select a user...</option>
+                    {users.map(u => (
+                      <option key={u.id} value={u.id} className="bg-zinc-900 text-white">{u.discord_username || u.id}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <select 
+                    value={winnerForm.server_id ?? ''}
+                    required
+                    onChange={e => setWinnerForm({...winnerForm, server_id: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50 appearance-none"
+                  >
+                    <option value="" className="bg-zinc-900 text-white">Select an approved server...</option>
+                    {approvedServers.map(s => (
+                      <option key={s.id} value={s.id} className="bg-zinc-900 text-white">{s.name}</option>
+                    ))}
+                  </select>
+                )}
               </div>
-
-              {!winnerForm.server_id && (
-                <>
-                  <div>
-                    <input 
-                      type="text" 
-                      placeholder="Winner Name"
-                      value={winnerForm.winner_name}
-                      onChange={e => setWinnerForm({...winnerForm, winner_name: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50"
-                    />
-                  </div>
-                  <div>
-                    <input 
-                      type="text" 
-                      placeholder="Image URL"
-                      value={winnerForm.winner_image_url}
-                      onChange={e => setWinnerForm({...winnerForm, winner_image_url: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50"
-                    />
-                  </div>
-                </>
-              )}
 
               <div>
                 <textarea 
@@ -226,11 +271,19 @@ export function AdminEventsPage() {
                 {winners.map(w => (
                   <div key={w.id} className="px-6 py-4 flex items-center justify-between group">
                     <div className="flex items-center gap-4">
-                      <img 
-                        src={w.winner_image_url || w.servers?.icon_url || logo} 
-                        alt="Winner" 
-                        className="w-10 h-10 rounded-lg object-cover border border-white/10"
-                      />
+                      {isPersonCategory(w.category) ? (
+                        <img 
+                          src={w.winner_image_url || logo} 
+                          alt="Winner" 
+                          className="w-10 h-10 rounded-full object-cover border border-white/10"
+                        />
+                      ) : (
+                        <img 
+                          src={w.servers?.icon_url || logo} 
+                          alt="Winner" 
+                          className="w-10 h-10 rounded-lg object-cover border border-white/10"
+                        />
+                      )}
                       <div>
                         <div className="text-white font-bold text-sm">{w.winner_name || w.servers?.name}</div>
                         <div className="text-[10px] text-white/40 uppercase tracking-widest">{w.month} • {w.category}</div>
@@ -290,7 +343,7 @@ export function AdminEventsPage() {
                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5 ml-1">Category</label>
                    <select 
                     value={compForm.category}
-                    onChange={e => setCompForm({...compForm, category: e.target.value as OTMCategory})}
+                    onChange={e => setCompForm({...compForm, category: e.target.value as OTMCategory, server_id: '', user_id: ''})}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50 appearance-none"
                    >
                      <option value="realm" className="bg-zinc-900 text-white">Realm</option>
@@ -302,18 +355,34 @@ export function AdminEventsPage() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5 ml-1">Select Server</label>
-                <select 
-                  value={compForm.server_id}
-                  required
-                  onChange={e => setCompForm({...compForm, server_id: e.target.value})}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50 appearance-none"
-                >
-                  <option value="" className="bg-zinc-900 text-white">Select an approved server...</option>
-                  {approvedServers.map(s => (
-                    <option key={s.id} value={s.id} className="bg-zinc-900 text-white">{s.name}</option>
-                  ))}
-                </select>
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5 ml-1">
+                   {isPersonCategory(compForm.category) ? 'Select User' : 'Select Server'}
+                </label>
+                {isPersonCategory(compForm.category) ? (
+                   <select 
+                    value={compForm.user_id ?? ''}
+                    required
+                    onChange={e => setCompForm({...compForm, user_id: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50 appearance-none"
+                  >
+                    <option value="" className="bg-zinc-900 text-white">Select a user...</option>
+                    {users.map(u => (
+                      <option key={u.id} value={u.id} className="bg-zinc-900 text-white">{u.discord_username || u.id}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <select 
+                    value={compForm.server_id ?? ''}
+                    required
+                    onChange={e => setCompForm({...compForm, server_id: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50 appearance-none"
+                  >
+                    <option value="" className="bg-zinc-900 text-white">Select an approved server...</option>
+                    {approvedServers.map(s => (
+                      <option key={s.id} value={s.id} className="bg-zinc-900 text-white">{s.name}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
 
@@ -355,17 +424,36 @@ export function AdminEventsPage() {
                   .map(c => (
                   <div key={c.id} className="px-6 py-4 flex items-center justify-between group">
                     <div className="flex items-center gap-4">
-                      <img 
-                        src={c.servers?.icon_url || logo} 
-                        alt="Comp" 
-                        className="w-10 h-10 rounded-lg object-cover border border-white/10"
-                      />
-                      <div>
-                        <div className="text-white font-bold text-sm">{c.servers?.name}</div>
-                        <div className="text-[10px] text-white/40 uppercase tracking-widest">
-                          {c.month || 'Current Cycle'} • {c.category.charAt(0).toUpperCase() + c.category.slice(1)} OTM Competitor
+                      {isPersonCategory(c.category) ? (
+                        <div className="flex items-center gap-4">
+                           <img 
+                            src={c.profiles?.discord_avatar || logo} 
+                            alt="Comp" 
+                            className="w-10 h-10 rounded-full object-cover border border-white/10"
+                          />
+                          <div>
+                            <div className="text-white font-bold text-sm">{c.profiles?.discord_username || 'Unknown Specialist'}</div>
+                            <div className="text-[10px] text-white/40 uppercase tracking-widest leading-none mt-0.5 flex items-center gap-1">
+                               <User className="w-2.5 h-2.5" />
+                               {c.category} • {c.month || 'Current Cycle'}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="flex items-center gap-4">
+                          <img 
+                            src={c.servers?.icon_url || logo} 
+                            alt="Comp" 
+                            className="w-10 h-10 rounded-lg object-cover border border-white/10"
+                          />
+                          <div>
+                            <div className="text-white font-bold text-sm">{c.servers?.name}</div>
+                            <div className="text-[10px] text-white/40 uppercase tracking-widest">
+                              {c.month || 'Current Cycle'} • {c.category.charAt(0).toUpperCase() + c.category.slice(1)} OTM
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-1 opacity-10 group-hover:opacity-100 transition-opacity">
                       <button 
@@ -425,29 +513,16 @@ export function AdminEventsPage() {
                       <div className="text-realm-green text-sm font-pixel">{editingWinner.category.charAt(0).toUpperCase() + editingWinner.category.slice(1)}</div>
                     </div>
                   </div>
-                 {!editingWinner.server_id ? (
-                   <>
-                    <input 
-                      type="text" 
-                      placeholder="Winner Name"
-                      value={editingWinner.winner_name || ''}
-                      onChange={e => setEditingWinner({...editingWinner, winner_name: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none"
-                    />
-                    <input 
-                      type="text" 
-                      placeholder="Image URL"
-                      value={editingWinner.winner_image_url || ''}
-                      onChange={e => setEditingWinner({...editingWinner, winner_image_url: e.target.value})}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none"
-                    />
-                   </>
-                 ) : (
-                    <div className="p-4 bg-white/5 border border-white/10 rounded-xl text-center">
-                       <p className="text-zinc-500 text-xs font-headline uppercase tracking-widest">Linked Server Selected</p>
-                       <p className="text-white font-pixel mt-1">{editingWinner.servers?.name}</p>
-                    </div>
-                 )}
+                 
+                 <div className="p-4 bg-white/5 border border-white/10 rounded-xl text-center">
+                    <p className="text-zinc-500 text-xs font-headline uppercase tracking-widest">
+                      Linked {isPersonCategory(editingWinner.category) ? 'User' : 'Server'}
+                    </p>
+                    <p className="text-white font-pixel mt-1">
+                      {isPersonCategory(editingWinner.category) ? editingWinner.winner_name : editingWinner.servers?.name}
+                    </p>
+                 </div>
+
                  <textarea 
                     placeholder="Description"
                     value={editingWinner.description || ''}
@@ -492,18 +567,21 @@ export function AdminEventsPage() {
                     </div>
                     <div className="flex-1">
                       <label className="block text-[8px] font-bold text-white/40 uppercase tracking-widest mb-1">Category</label>
-                      <select 
-                        value={editingCompetitor.category}
-                        onChange={e => setEditingCompetitor({...editingCompetitor, category: e.target.value as any})}
-                        className="w-full bg-transparent text-realm-green text-sm font-pixel focus:outline-none appearance-none cursor-pointer"
-                      >
-                        <option value="realm" className="bg-zinc-900 text-white">Realm</option>
-                        <option value="server" className="bg-zinc-900 text-white">Server</option>
-                        <option value="developer" className="bg-zinc-900 text-white">Developer</option>
-                        <option value="builder" className="bg-zinc-900 text-white">Builder</option>
-                      </select>
+                      <div className="text-realm-green text-sm font-pixel">{editingCompetitor.category.charAt(0).toUpperCase() + editingCompetitor.category.slice(1)}</div>
                     </div>
                   </div>
+                  
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-xl text-center">
+                    <p className="text-zinc-500 text-xs font-headline uppercase tracking-widest">
+                      Linked {isPersonCategory(editingCompetitor.category) ? 'User' : 'Server'}
+                    </p>
+                    <p className="text-white font-pixel mt-1">
+                      {isPersonCategory(editingCompetitor.category) 
+                        ? (editingCompetitor.profiles?.discord_username || 'Selected User') 
+                        : (editingCompetitor.servers?.name || 'Selected Server')}
+                    </p>
+                 </div>
+
                  <button 
                   type="submit" 
                   disabled={updateCompetitor.isPending}

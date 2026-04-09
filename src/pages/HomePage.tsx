@@ -7,6 +7,8 @@ import { FramerIn, FramerInList } from '../components/FramerIn'
 import { motion, useSpring, useTransform } from 'framer-motion'
 import { useEffect } from 'react'
 import heroGif from '../assets/hero/heroRE.gif'
+import ctaBg from '../assets/homepage/Minecraft Buddies.jpg'
+import mcGif from '../assets/category/gif/6128-minecraft.gif'
 
 function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toString() }: { 
   value: number, 
@@ -64,8 +66,8 @@ export function HomePage() {
         
         <div className="max-w-7xl mx-auto relative z-20 flex flex-col items-center text-center">
           <FramerIn delay={0.2}>
-            <div className="inline-flex items-center gap-1.5 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] backdrop-blur-md">
-              <span className="material-symbols-outlined text-[#85fc7e] text-[10px] animate-pulse">auto_awesome</span>
+            <div className="inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] backdrop-blur-md">
+              <img src={mcGif} alt="Minecraft Icon" className="w-5 h-5 object-contain" />
               <span className="font-pixel text-[9px] tracking-widest uppercase">The Website is now in BETA Phase</span>
             </div>
           </FramerIn>
@@ -172,8 +174,17 @@ export function HomePage() {
       )}
 
       <section className="px-8 pb-24">
-        <FramerIn className="max-w-7xl mx-auto bg-gradient-to-br from-[#006e15] to-[#1A3D1A] rounded-3xl p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
-          <div className="relative z-10">
+        <FramerIn className="max-w-7xl mx-auto bg-zinc-900 rounded-3xl p-12 md:p-20 text-center relative overflow-hidden shadow-2xl border border-white/5">
+          {/* Cinematic Background Image */}
+          <img 
+            src={ctaBg} 
+            alt="CTA Background" 
+            className="absolute inset-0 w-full h-full object-cover opacity-40 z-0"
+          />
+          {/* Gradient Overlay for Legibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent z-10" />
+          
+          <div className="relative z-20">
             <h2 className="font-pixel text-white text-3xl md:text-5xl mb-8">Ready to Explore?</h2>
             <p className="text-white/80 font-headline text-lg max-w-2xl mx-auto mb-12">
               Join thousands of players and creators in the most sophisticated Minecraft ecosystem ever built.

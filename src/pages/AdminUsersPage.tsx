@@ -9,8 +9,10 @@ import { motion } from 'framer-motion'
 import { useState, useMemo } from 'react'
 import { Search, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAuth } from '../contexts/AuthContext'
 
 export function AdminUsersPage() {
+  const { profile } = useAuth()
   const { data: users = [], isLoading: loading } = useAdminUsers()
   const roleMutation = useUpdateUserRoleMutation()
 
@@ -30,7 +32,7 @@ export function AdminUsersPage() {
   const handleUpdateRole = (id: string, newRole: UserRole) => {
     if (confirm(`Elevate/Modify user role to ${newRole.toUpperCase()}?`)) {
       roleMutation.mutate(
-        { id, role: newRole },
+        { id, role: newRole, adminId: profile?.id, adminName: profile?.discord_username },
         {
           onSuccess: () => {
             toast.success('Role Updated', {
@@ -168,7 +170,7 @@ export function AdminUsersPage() {
                           className="w-10 h-10 rounded-xl bg-zinc-800 shadow-xl border border-white/10" 
                           alt="" 
                         />
-                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-realm-green border-2 border-zinc-950 rounded-full" />
+
                       </div>
                       <div>
                         <div className="font-bold text-white group-hover:text-realm-green transition-colors">{user.discord_username || 'Unknown Player'}</div>

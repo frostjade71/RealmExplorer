@@ -7,8 +7,12 @@ import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, Swords, Cloud, Users, Box, MoreHorizontal, Sparkles, Clock, Globe, Server, History } from 'lucide-react'
+import { Search, X, Swords, Cloud, Users, Box, MoreHorizontal, Sparkles, Clock, Globe, History } from 'lucide-react'
 import directoryHero from '../assets/hero/directoryhero.jpg'
+
+// Type Icons
+import serverGif from '../assets/category/gif/6128-minecraft.gif'
+import realmGif from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
 
 export function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -97,9 +101,9 @@ export function DirectoryPage() {
           
           <FramerIn delay={0.2} className="flex gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 backdrop-blur-md">
             {[
-              { id: null, label: 'All', icon: Globe },
-              { id: 'server' as const, label: 'Servers', icon: Server },
-              { id: 'realm' as const, label: 'Realms', icon: Globe }
+              { id: null, label: 'All', icon: <Globe className="w-4 h-4" /> },
+              { id: 'server' as const, label: 'Servers', icon: <img src={serverGif} alt="" className="w-4 h-4 object-contain rounded-sm" /> },
+              { id: 'realm' as const, label: 'Realms', icon: <img src={realmGif} alt="" className="w-4 h-4 object-contain rounded-sm" /> }
             ].map((type) => (
               <button
                 key={String(type.id)}
@@ -113,7 +117,7 @@ export function DirectoryPage() {
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                <type.icon className="w-4 h-4" />
+                {type.icon}
                 <span className="relative">{type.label}</span>
               </button>
             ))}

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { Mail, MessageSquare } from 'lucide-react'
+import { Github } from 'lucide-react'
+import { SiDiscord } from 'react-icons/si'
 
 export function Footer() {
   return (
@@ -31,14 +32,26 @@ export function Footer() {
         
         <div className="flex flex-col items-center md:items-end gap-4">
           <div className="flex gap-4">
-            <a href="#" className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-white hover:bg-[#4EC44E] hover:text-white transition-colors">
-              <Mail className="w-5 h-5" />
+            <a 
+              href="https://discord.com/invite/realmexplorer" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-white hover:bg-[#5865F2] hover:text-white transition-all hover:scale-110"
+              title="Join our Discord"
+            >
+              <SiDiscord className="w-5 h-5" />
             </a>
-            <a href="#" className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-white hover:bg-[#4EC44E] hover:text-white transition-colors">
-              <MessageSquare className="w-5 h-5" />
+            <a 
+              href="https://github.com/frostjade71" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-white hover:bg-zinc-800 hover:text-white transition-all hover:scale-110"
+              title="View GitHub"
+            >
+              <Github className="w-5 h-5" />
             </a>
           </div>
-          <p className="font-body text-xs text-white/40">v0.1.1-beta | © 2026 Realm Explorer. All rights reserved.</p>
+          <p className="font-body text-xs text-white/40">v0.2.0-beta | © 2026 Realm Explorer. All rights reserved.</p>
         </div>
       </div>
     </footer>

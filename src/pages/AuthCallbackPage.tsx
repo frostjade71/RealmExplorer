@@ -7,8 +7,15 @@ export function AuthCallbackPage() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const { error } = await supabase.auth.getSession()
-      if (error) console.error('Error logging in:', error.message)
+      const { data: { session }, error } = await supabase.auth.getSession()
+      if (error) {
+        console.error('Error logging in:', error.message)
+      } else if (session?.user) {
+        // Log successful login once here on the callback
+        import('../lib/audit').then(({ logAction }) => {
+          logAction('LOGIN', { method: 'oauth' }, session.user.id, null).catch(() => {})
+        }).catch(() => {})
+      }
       navigate('/', { replace: true })
     }
     

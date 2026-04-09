@@ -4,11 +4,11 @@ import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 // Asset Imports
-import smpIcon from '../assets/category/10421-grass.png'
 import factionsIcon from '../assets/category/7587-netherite-sword.png'
 import kitpvpIcon from '../assets/category/95615-mace.png'
-import skyblockIcon from '../assets/category/16469-diamond.png'
+import skyblockIcon from '../assets/category/41601-minecraftoaktree.png'
 import moddedIcon from '../assets/category/437888-bedrock.png'
+import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
 
 const categoryStyles: Record<ServerCategory, { bg: string, text: string, icon: React.ReactNode }> = {
   factions: { 

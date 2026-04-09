@@ -44,7 +44,7 @@ export function useServers(params?: {
 
       const { data, error } = await query
       if (error) throw error
-      return data as Server[]
+      return data as unknown as Server[]
     }
   })
 }
@@ -73,7 +73,7 @@ export function useServer(idOrSlug: string | undefined) {
         if (profile) ownerInfo = profile as Profile
       }
 
-      return { server: server as Server, owner: ownerInfo }
+      return { server: server as unknown as Server, owner: ownerInfo }
     }
   })
 }
@@ -89,7 +89,7 @@ export function useUserServers(userId: string | undefined) {
         .eq('owner_id', userId!)
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as Server[]
+      return data as unknown as Server[]
     }
   })
 }
@@ -111,7 +111,7 @@ export function useAdminServers() {
     queryFn: async () => {
       const { data, error } = await supabase.from('servers').select('*').order('created_at', { ascending: false })
       if (error) throw error
-      return data as Server[]
+      return data as unknown as Server[]
     }
   })
 }
@@ -203,10 +203,10 @@ export function useOTMWinners() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('otm_winners')
-        .select('*, servers(*)')
+        .select('*, servers(*), profiles(*)')
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as OTMWinner[]
+      return data as unknown as OTMWinner[]
     }
   })
 }
@@ -217,7 +217,7 @@ export function useOTMCompetitors() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('otm_competitors')
-        .select('*, servers(*), otm_votes(count)')
+        .select('*, servers(*), profiles(*), otm_votes(count)')
         .order('created_at', { ascending: false })
       if (error) throw error
       
@@ -225,7 +225,7 @@ export function useOTMCompetitors() {
       return (data as any[]).map(c => ({
         ...c,
         total_votes: c.otm_votes?.[0]?.count || 0
-      })) as OTMCompetitor[]
+      })) as unknown as OTMCompetitor[]
     }
   })
 }
@@ -258,6 +258,20 @@ export function useNotifications(userId: string | undefined) {
         .order('created_at', { ascending: false })
       if (error) throw error
       return data as Notification[]
+    }
+  })
+}
+
+export function useAuditLogs() {
+  return useQuery({
+    queryKey: ['auditLogs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data
     }
   })
 }

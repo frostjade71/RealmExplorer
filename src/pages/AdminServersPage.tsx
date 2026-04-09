@@ -49,7 +49,7 @@ export function AdminServersPage() {
 
   const handleUpdateStatus = (id: string, newStatus: ServerStatus) => {
     updateMutation.mutate(
-      { id, status: newStatus },
+      { id, status: newStatus, adminId: profile?.id, adminName: profile?.discord_username },
       {
         onSuccess: () => {
           toast.success(`Server ${newStatus}`, {
@@ -81,7 +81,9 @@ export function AdminServersPage() {
         senderId: profile.id,
         subject,
         message,
-        type: modalConfig.type
+        type: modalConfig.type,
+        adminId: profile.id,
+        adminName: profile.discord_username
       })
 
       // 2. If it's a rejection, update the status
@@ -215,8 +217,35 @@ export function AdminServersPage() {
                   onClick={() => navigate(`/server/${server.slug}`)}
                 >
                   <td className="px-6 py-5">
-                    <div className="font-bold text-white group-hover:text-realm-green transition-colors">{server.name}</div>
-                    <div className="text-xs text-white/40 font-mono mt-0.5">{server.ip_or_code}</div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 overflow-hidden flex-shrink-0">
+                        {server.icon_url ? (
+                          <img src={server.icon_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="material-symbols-outlined text-white/20 text-xl">dns</span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-bold text-white group-hover:text-realm-green transition-colors">{server.name}</div>
+                        <div className="text-xs text-white/40 font-mono mt-0.5 flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5 opacity-80">
+                            <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-tighter">Java</span>
+                            <span>
+                              {server.type === 'realm' && server.ip_or_code 
+                                ? (server.ip_or_code.startsWith('http') ? server.ip_or_code : `https://realms.gg/${server.ip_or_code}`) 
+                                : (server.ip_or_code || 'No IP')}
+                              {server.port && server.port !== 25565 && <span className="opacity-40">:{server.port}</span>}
+                            </span>
+                          </div>
+                          {server.bedrock_ip && (
+                            <div className="flex items-center gap-1.5">
+                               <span className="text-[10px] text-realm-green/40 font-bold uppercase tracking-tighter">Bedrock</span>
+                               <span className="text-realm-green/60">{server.bedrock_ip}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-6 py-5">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 border border-white/10 px-2 py-0.5 rounded-md bg-white/5">
@@ -283,7 +312,11 @@ export function AdminServersPage() {
                   <td colSpan={5} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-2 text-white/20 italic font-headline">
                       <span className="material-symbols-outlined text-4xl">inventory_2</span>
-                      <span>No servers found matching these criteria.</span>
+                      <span>
+                        {statusFilter === 'review' 
+                          ? 'No servers that needs to review' 
+                          : 'No servers found matching these criteria.'}
+                      </span>
                     </div>
                   </td>
                 </tr>

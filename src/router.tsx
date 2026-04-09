@@ -22,7 +22,10 @@ import {
   AdminSettingsPage,
   AdminOverviewPage,
   AdminEventsPage,
-  LeaderboardsPage
+  LeaderboardsPage,
+  AdminAuditLogsPage,
+  TeamPage,
+  BlogPage
 } from './pages/Pages'
 
 export const router = createBrowserRouter([
@@ -48,6 +51,14 @@ export const router = createBrowserRouter([
       {
         path: '/about',
         element: <AboutPage />,
+      },
+      {
+        path: '/team',
+        element: <TeamPage />,
+      },
+      {
+        path: '/blog',
+        element: <BlogPage />,
       },
       {
         path: '/server/:slug',
@@ -112,6 +123,10 @@ export const router = createBrowserRouter([
               {
                 path: 'events',
                 element: <AdminEventsPage />,
+              },
+              {
+                path: 'audit-logs',
+                element: <AdminAuditLogsPage />,
               },
             ]
           }

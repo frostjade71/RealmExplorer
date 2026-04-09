@@ -21,30 +21,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Effect 1: Listen for auth state changes — ONLY set session synchronously.
+  // NEVER call supabase.from() inside this callback. It runs within Supabase's
+  // internal navigator lock, and PostgREST needs that same lock to attach the
+  // auth header — causing a deadlock on page refresh.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session?.user) fetchProfile(session.user.id)
-      setLoading(false)
-    })
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      if (session?.user) fetchProfile(session.user.id)
-      else setProfile(null)
+
+      // fire-and-forget session sync
+      if (!session) {
+        setProfile(null)
+      }
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
-  async function fetchProfile(userId: string) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    if (data) setProfile(data as Profile)
-  }
+  // Effect 2: When the user ID changes (login, logout, refresh), fetch profile.
+  // This runs OUTSIDE the onAuthStateChange lock, so supabase.from() works fine.
+  useEffect(() => {
+    const userId = session?.user?.id
+
+    if (!userId) {
+      // No user — clear profile and mark as done loading
+      setProfile(null)
+      setLoading(false)
+      return
+    }
+
+    let cancelled = false
+
+    const loadProfile = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single()
+
+        if (error) {
+          console.error('Profile fetch error:', error.message)
+        }
+
+        if (!cancelled && data) {
+          setProfile(data as Profile)
+        }
+      } catch (e) {
+        console.error('Profile fetch failed:', e)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    loadProfile()
+
+    return () => { cancelled = true }
+  }, [session?.user?.id])
 
   async function signInWithDiscord() {
     await supabase.auth.signInWithOAuth({
@@ -57,8 +90,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signOut() {
-    await supabase.auth.signOut()
+    // Save ref before clearing
+    const currentProfile = profile
+
+    // Clear UI immediately so user sees logged-out state
     setProfile(null)
+    setSession(null)
+
+    // Sign out from Supabase (clears localStorage token)
+    try {
+      await supabase.auth.signOut()
+    } catch (e) {
+      console.error('Sign out error:', e)
+    }
+
+    // Fire-and-forget logout audit log
+    if (currentProfile) {
+      import('../lib/audit').then(({ logAction }) => {
+        logAction('LOGOUT', {}, currentProfile.id, currentProfile.discord_username).catch(() => {})
+      }).catch(() => {})
+    }
   }
 
   return (

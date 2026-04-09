@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { ServerStatus, UserRole } from '../types'
+import { logAction } from '../lib/audit'
 
 export function useVoteMutation() {
   const queryClient = useQueryClient()
@@ -66,7 +67,7 @@ export function useDeleteServerMutation() {
 export function useUpdateServerStatusMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string, status: ServerStatus }) => {
+    mutationFn: async ({ id, status, adminId, adminName }: { id: string, status: ServerStatus, adminId?: string | null, adminName?: string | null }) => {
       // 0. Get current server state before update
       const { data: server } = await supabase.from('servers').select('owner_id, name, status').eq('id', id).single()
 
@@ -99,6 +100,15 @@ export function useUpdateServerStatusMutation() {
         } as any)
       }
 
+      // 3. Log action
+      await logAction(
+        status === 'approved' ? 'SERVER_APPROVED' : 'SERVER_STATUS_CHANGED', 
+        { serverName: server?.name, newStatus: status },
+        adminId,
+        adminName,
+        id
+      )
+
       // 3. If approved, cleanup messages
       if (status === 'approved') {
         const { error: msgError } = await supabase.from('server_messages').delete().eq('server_id', id)
@@ -118,9 +128,20 @@ export function useUpdateServerStatusMutation() {
 export function useUpdateUserRoleMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, role }: { id: string, role: UserRole }) => {
+    mutationFn: async ({ id, role, adminId, adminName }: { id: string, role: UserRole, adminId?: string | null, adminName?: string | null }) => {
+      // Get target user name
+      const { data: targetProfile } = await supabase.from('profiles').select('discord_username').eq('id', id).single()
+
       const { error } = await supabase.from('profiles').update({ role }).eq('id', id)
       if (error) throw error
+
+      await logAction(
+        'ROLE_CHANGED',
+        { targetUser: targetProfile?.discord_username, newRole: role },
+        adminId,
+        adminName,
+        id
+      )
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
@@ -132,7 +153,7 @@ export function useSubmitServerMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (formData: any) => {
-      const { error } = await supabase.from('servers').insert([formData])
+      const { error } = await supabase.from('servers').insert([{ ...formData, last_edited_at: new Date().toISOString() }])
       if (error) throw error
     },
     onSuccess: () => {
@@ -145,7 +166,7 @@ export function useUpdateServerMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, ...formData }: any) => {
-      const { error } = await supabase.from('servers').update(formData).eq('id', id)
+      const { error } = await supabase.from('servers').update({ ...formData, last_edited_at: new Date().toISOString() }).eq('id', id)
       if (error) throw error
     },
     onSuccess: () => {
@@ -199,13 +220,17 @@ export function useSendMessageMutation() {
       senderId, 
       subject, 
       message, 
-      type 
+      type,
+      adminId,
+      adminName 
     }: { 
       serverId: string; 
       senderId: string; 
       subject: string; 
       message: string; 
-      type: 'contact' | 'rejection' 
+      type: 'contact' | 'rejection';
+      adminId?: string | null;
+      adminName?: string | null;
     }) => {
       // 1. Upsert the message (one per server)
       const { error: msgError } = await supabase
@@ -256,6 +281,15 @@ export function useSendMessageMutation() {
         } as any)
       }
 
+      // 4. Log Action
+      await logAction(
+        type === 'rejection' ? 'SERVER_REJECTED' : 'SERVER_CONTACTED',
+        { serverName: server?.name, subject },
+        adminId,
+        adminName,
+        serverId
+      )
+
       return serverId
     },
     onSuccess: () => {
@@ -270,17 +304,27 @@ export function useSendMessageMutation() {
 export function useUpsertOTMWinnerMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, servers, profiles, ...winner }: any) => {
+    mutationFn: async ({ id, servers, profiles, adminId, adminName, ...winner }: any) => {
       const { error } = await supabase
         .from('otm_winners')
         .upsert(winner, { onConflict: 'month,category' })
       if (error) throw error
 
+      // Log Action
+      await logAction(
+        'OTM_WINNER_SET',
+        { month: winner.month, category: winner.category, winner: winner.winner_name },
+        adminId,
+        adminName,
+        winner.server_id
+      )
+
       // Notification if podium
+      const categoryDisplay = winner.category.charAt(0).toUpperCase() + winner.category.slice(1)
+      
       if (winner.server_id) {
         const { data: server } = await supabase.from('servers').select('owner_id, name').eq('id', winner.server_id).single()
         if (server && server.owner_id) {
-          const categoryDisplay = winner.category.charAt(0).toUpperCase() + winner.category.slice(1)
           await supabase.from('notifications').insert({
             user_id: server.owner_id,
             type: 'otm_podium',
@@ -289,6 +333,14 @@ export function useUpsertOTMWinnerMutation() {
             related_id: winner.server_id
           } as any)
         }
+      } else if (winner.user_id) {
+        await supabase.from('notifications').insert({
+          user_id: winner.user_id,
+          type: 'otm_podium',
+          title: 'OTM Winner !',
+          message: `🎉Congratulations! You have been selected as the ${winner.month} ${categoryDisplay} Of The Month !`,
+          related_id: null
+        } as any)
       }
     },
     onSuccess: () => {
@@ -316,13 +368,22 @@ export function useDeleteOTMWinnerMutation() {
 export function useAddOTMCompetitorMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (competitor: any) => {
-      // Remove vote_url if it exists
-      const { vote_url, ...cleanCompetitor } = competitor
+    mutationFn: async ({ adminId, adminName, ...competitor }: any) => {
+      // Clean up for DB
+      const { vote_url, profiles, ...cleanCompetitor } = competitor
       const { error } = await supabase
         .from('otm_competitors')
         .insert([cleanCompetitor])
       if (error) throw error
+
+      // Log Action
+      await logAction(
+        'OTM_COMPETITOR_ADDED',
+        { month: cleanCompetitor.month, category: cleanCompetitor.category },
+        adminId,
+        adminName,
+        cleanCompetitor.server_id
+      )
 
       // Notification
       const { data: server } = await supabase.from('servers').select('owner_id, name').eq('id', competitor.server_id)
@@ -346,7 +407,7 @@ export function useAddOTMCompetitorMutation() {
 export function useUpdateOTMCompetitorMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, servers, vote_url, ...data }: any) => {
+    mutationFn: async ({ id, servers, profiles, vote_url, ...data }: any) => {
       const { error } = await supabase
         .from('otm_competitors')
         .update(data)
@@ -450,6 +511,22 @@ export function useClearAllNotificationsMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    }
+  })
+}
+
+export function useClearAuditLogsMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ adminId, adminName }: { adminId: string; adminName: string }) => {
+      const { error } = await supabase.from('audit_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000') // Delete all
+      if (error) throw error
+
+      // Log the clearing action itself
+      await logAction('AUDIT_LOGS_CLEARED', {}, adminId, adminName)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
     }
   })
 }

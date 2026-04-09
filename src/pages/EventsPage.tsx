@@ -173,80 +173,104 @@ export function EventsPage() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {categoryCompetitors?.map((competitor, idx) => (
-            <motion.div 
-              key={competitor.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              className="bg-zinc-900/40 border border-white/5 rounded-xl p-3 group hover:bg-zinc-900/60 transition-all hover:border-realm-green/20"
-            >
-              <Link to={`/server/${competitor.servers?.slug || slugify(competitor.servers?.name || '')}`} className="block">
-                <div className="w-20 h-20 mx-auto rounded-lg overflow-hidden mb-3 relative border border-white/5">
-                   <img 
-                     src={competitor.servers?.icon_url || 'https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&q=80&w=800'} 
-                     alt="Competitor"
-                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                   />
-                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Eye className="w-6 h-6 text-white" />
-                   </div>
-                </div>
-                <h3 className="text-[13px] font-pixel text-white mb-1 line-clamp-1 text-center">
-                  {competitor.servers?.name || 'Curated Candidate'}
-                </h3>
-              </Link>
-              <p className="text-zinc-500 text-[10px] font-headline mb-4 line-clamp-1 leading-relaxed opacity-60 text-center">
-                {competitor.servers?.description || 'A highly rated participant.'}
-              </p>
-              <div className="flex items-center justify-between px-1 mb-4 relative">
-                 <span className="text-[9px] font-pixel text-white/30 uppercase tracking-[0.2em]">Votes</span>
-                 <span className="text-xl font-pixel text-realm-green font-bold leading-none">{competitor.total_votes || 0}</span>
-                 {userVotes.includes(competitor.id) && (
-                   <div className="absolute -top-3 -right-1">
-                     <span className="bg-realm-green text-zinc-950 text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-lg">Voted</span>
-                   </div>
-                 )}
-              </div>
+          {categoryCompetitors?.map((competitor, idx) => {
+            const isPerson = competitor.category === 'developer' || competitor.category === 'builder'
+            const displayName = isPerson 
+              ? competitor.profiles?.discord_username 
+              : competitor.servers?.name
+            const displayImage = isPerson 
+              ? competitor.profiles?.discord_avatar 
+              : competitor.servers?.icon_url
+            const displayDesc = isPerson
+              ? (competitor.category === 'developer' ? 'A talented developer.' : 'A master builder.')
+              : competitor.servers?.description
 
-              <button 
-                disabled={voteMutation.isPending || unvoteMutation.isPending}
-                onClick={(e) => {
-                  e.preventDefault()
-                  if (!user) {
-                    toast.error('Login Required', { description: 'Please sign in to vote for OTM.' })
-                    return
-                  }
-                  
-                  if (userServers.length === 0) {
-                    toast.error('Eligibility Required', { description: 'You must own at least one approved server to vote.' })
-                    return
-                  }
-
-                  const isOwnServer = userServers.some(s => s.id === competitor.server_id)
-                  if (isOwnServer) {
-                    toast.error('Self-voting Restricted', { description: 'You cannot vote for your own server.' })
-                    return
-                  }
-
-                  if (userVotes.includes(competitor.id)) {
-                    unvoteMutation.mutate({ userId: user.id, competitorId: competitor.id })
-                  } else {
-                    voteMutation.mutate({ userId: user.id, competitorId: competitor.id })
-                  }
-                }}
-                className={`block w-full py-2 rounded-lg border font-pixel text-[9px] uppercase tracking-widest transition-all ${
-                  userVotes.includes(competitor.id)
-                    ? 'bg-realm-green border-realm-green text-zinc-950 hover:bg-red-500 hover:border-red-500 hover:text-white'
-                    : 'bg-white/5 border-white/10 text-white hover:bg-realm-green hover:border-realm-green hover:text-zinc-950'
-                }`}
+            return (
+              <motion.div 
+                key={competitor.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className="bg-zinc-900/40 border border-white/5 rounded-xl p-3 group hover:bg-zinc-900/60 transition-all hover:border-realm-green/20"
               >
-                {voteMutation.isPending || unvoteMutation.isPending 
-                  ? 'Processing...' 
-                  : userVotes.includes(competitor.id) ? 'Undo Vote' : 'Cast Vote'}
-              </button>
-            </motion.div>
-          ))}
+                <div className="block">
+                  <div className={`w-20 h-20 mx-auto overflow-hidden mb-3 relative border border-white/5 ${isPerson ? 'rounded-full' : 'rounded-lg'}`}>
+                     <img 
+                       src={displayImage || (isPerson ? logo : 'https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&q=80&w=800')} 
+                       alt="Competitor"
+                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                     />
+                     {!isPerson && (
+                       <Link 
+                        to={`/server/${competitor.servers?.slug || slugify(competitor.servers?.name || '')}`}
+                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                       >
+                          <Eye className="w-6 h-6 text-white" />
+                       </Link>
+                     )}
+                  </div>
+                  <h3 className="text-[13px] font-pixel text-white mb-1 line-clamp-1 text-center">
+                    {displayName || 'Curated Candidate'}
+                  </h3>
+                </div>
+                <p className="text-zinc-500 text-[10px] font-headline mb-4 line-clamp-1 leading-relaxed opacity-60 text-center">
+                  {displayDesc || 'A highly rated participant.'}
+                </p>
+                <div className="flex items-center justify-between px-1 mb-4 relative">
+                   <span className="text-[9px] font-pixel text-white/30 uppercase tracking-[0.2em]">Votes</span>
+                   <span className="text-xl font-pixel text-realm-green font-bold leading-none">{competitor.total_votes || 0}</span>
+                   {userVotes.includes(competitor.id) && (
+                     <div className="absolute -top-3 -right-1">
+                       <span className="bg-realm-green text-zinc-950 text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-lg">Voted</span>
+                     </div>
+                   )}
+                </div>
+
+                <button 
+                  disabled={voteMutation.isPending || unvoteMutation.isPending}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    if (!user) {
+                      toast.error('Login Required', { description: 'Please sign in to vote for OTM.' })
+                      return
+                    }
+                    
+                    if (userServers.length === 0) {
+                      toast.error('Eligibility Required', { description: 'You must own at least one approved server to vote.' })
+                      return
+                    }
+                    
+                    // Self-voting check
+                    if (!isPerson && competitor.server_id) {
+                      const isOwnServer = userServers.some(s => s.id === competitor.server_id)
+                      if (isOwnServer) {
+                        toast.error('Self-voting Restricted', { description: 'You cannot vote for your own server.' })
+                        return
+                      }
+                    } else if (isPerson && competitor.user_id === user.id) {
+                      toast.error('Self-voting Restricted', { description: 'You cannot vote for yourself.' })
+                      return
+                    }
+
+                    if (userVotes.includes(competitor.id)) {
+                      unvoteMutation.mutate({ userId: user.id, competitorId: competitor.id })
+                    } else {
+                      voteMutation.mutate({ userId: user.id, competitorId: competitor.id })
+                    }
+                  }}
+                  className={`block w-full py-2 rounded-lg border font-pixel text-[9px] uppercase tracking-widest transition-all ${
+                    userVotes.includes(competitor.id)
+                      ? 'bg-realm-green border-realm-green text-zinc-950 hover:bg-red-500 hover:border-red-500 hover:text-white'
+                      : 'bg-white/5 border-white/10 text-white hover:bg-realm-green hover:border-realm-green hover:text-zinc-950'
+                  }`}
+                >
+                  {voteMutation.isPending || unvoteMutation.isPending 
+                    ? 'Processing...' 
+                    : userVotes.includes(competitor.id) ? 'Undo Vote' : 'Cast Vote'}
+                </button>
+              </motion.div>
+            )
+          })}
 
           {(!categoryCompetitors || categoryCompetitors.length === 0) && (
             <div className="col-span-full py-16 bg-zinc-900/20 border border-dashed border-white/10 rounded-[2rem] flex flex-col items-center justify-center text-center">
