@@ -22,7 +22,7 @@ export function AdminAuditLogsPage() {
     if (!profile) return
 
     clearLogsMutation.mutate(
-      { adminId: profile.id, adminName: profile.discord_username },
+      { adminId: profile.id, adminName: profile.discord_username || 'Unknown' },
       {
         onSuccess: () => {
           toast.success('Audit logs cleared successfully')

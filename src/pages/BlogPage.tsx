@@ -1,5 +1,4 @@
-import { Hammer, BookOpen, ArrowLeft } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { BookOpen, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AnimatedPage } from '../components/AnimatedPage'
 
