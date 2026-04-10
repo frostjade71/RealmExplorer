@@ -1,25 +1,55 @@
-import { useLocation, Link, Outlet } from 'react-router-dom'
+import { useLocation, Link, Outlet, ScrollRestoration } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
+import { useAdminServers, useCategoryRequests, useReports } from '../hooks/queries'
 import logo from '../assets/rerealm.webp'
 
 export function AdminLayout() {
   const location = useLocation()
   const { isAdmin } = useAuth()
+  const { data: servers = [] } = useAdminServers()
+  const { data: catRequests = [] } = useCategoryRequests()
+
+  const needsReviewCount = servers.filter(s => 
+    ['pending', 'Review Icon', 'Review Cover', 'Review Icon & Cover'].includes(s.status)
+  ).length
+
+  const pendingCatRequestsCount = catRequests.filter(r => r.status === 'pending').length
+  const { data: reports = [] } = useReports()
+  const pendingReportsCount = reports.filter(r => r.status === 'pending' || r.status === 'reviewing').length
 
   const navItems = [
     { to: '/admin', label: 'Overview', icon: 'dashboard' },
-    { to: '/admin/servers', label: 'Manage Servers', icon: 'dns' },
+    { 
+      to: '/admin/servers', 
+      label: 'Manage Servers', 
+      icon: 'dns',
+      indicatorCount: needsReviewCount 
+    },
+    { 
+      to: '/admin/reports', 
+      label: 'Manage Reports', 
+      icon: 'flag',
+      indicatorCount: pendingReportsCount 
+    },
     ...(isAdmin ? [
       { to: '/admin/users', label: 'Manage Users', icon: 'group' },
-      { to: '/admin/settings', label: 'Global Settings', icon: 'settings' },
       { to: '/admin/events', label: 'Manage Events', icon: 'event' },
+      { 
+        to: '/admin/category-requests', 
+        label: 'Category Requests', 
+        icon: 'add_circle',
+        indicatorCount: pendingCatRequestsCount
+      },
+      { to: '/admin/about', label: 'Edit About', icon: 'edit_note' },
+      { to: '/admin/settings', label: 'Global Settings', icon: 'settings' },
       { to: '/admin/audit-logs', label: 'Audit Logs', icon: 'history' },
     ] : [])
   ]
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-white selection:bg-realm-green selection:text-zinc-950">
+      <ScrollRestoration />
       {/* Premium Glass Sidebar */}
       <aside className="w-72 border-r border-white/5 bg-black/40 backdrop-blur-xl p-6 shrink-0 flex flex-col sticky top-0 h-screen z-50">
         <div className="mb-10 px-2">
@@ -48,7 +78,12 @@ export function AdminLayout() {
                   {item.icon}
                 </span>
                 <span className="font-headline text-sm font-bold tracking-tight">{item.label}</span>
-                {isActive && (
+                {item.indicatorCount && item.indicatorCount > 0 ? (
+                  <span className="ml-auto bg-orange-500 text-zinc-950 text-[10px] font-pixel px-1.5 py-0.5 rounded-md animate-pulse shadow-lg shadow-orange-500/20">
+                    {item.indicatorCount}
+                  </span>
+                ) : null}
+                {isActive && (!item.indicatorCount || item.indicatorCount === 0) && (
                   <motion.div 
                     layoutId="active-indicator"
                     className="ml-auto w-1 h-1 rounded-full bg-realm-green shadow-[0_0_8px_#85fc7e]" 
@@ -69,7 +104,7 @@ export function AdminLayout() {
           </Link>
           <div className="mt-4 px-4 py-2 bg-white/5 border border-white/5 rounded-lg">
             <p className="text-[10px] font-pixel text-white/20 uppercase tracking-widest">System Version</p>
-            <p className="text-xs font-headline font-bold text-realm-green">v0.2.0-beta</p>
+            <p className="text-xs font-headline font-bold text-realm-green">v0.5.0-beta</p>
           </div>
         </div>
       </aside>

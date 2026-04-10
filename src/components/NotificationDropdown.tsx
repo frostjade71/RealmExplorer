@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Bell, CheckCheck, Inbox, ExternalLink, Trash2 } from 'lucide-react'
+import { Bell, CheckCheck, Inbox, ExternalLink, Trash2, X, Info } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNotifications } from '../hooks/queries'
 import { 
@@ -21,6 +21,7 @@ export function NotificationDropdown() {
   const clearAll = useClearAllNotificationsMutation()
   const [isOpen, setIsOpen] = useState(false)
   const [isClearModalOpen, setIsClearModalOpen] = useState(false)
+  const [resultModal, setResultModal] = useState<{ isOpen: boolean, title: string, message: string } | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const unreadCount = notifications.filter(n => n.is_read === false).length
@@ -43,6 +44,16 @@ export function NotificationDropdown() {
     // Redirect to /events for OTM notifications
     if (n.type === 'otm_podium' || n.type === 'otm_competitor') {
       navigate('/events')
+      setIsOpen(false)
+    } else if (n.type === 'category_request_result') {
+      const isAccepted = n.message.toLowerCase().includes('accepted')
+      setResultModal({
+        isOpen: true,
+        title: n.title,
+        message: isAccepted 
+          ? "Your Request is Accepted and will be added soon in the next Patch Update"
+          : n.message
+      })
       setIsOpen(false)
     } else if (n.related_id) {
       navigate(`/server/${n.related_id}`)
@@ -75,7 +86,7 @@ export function NotificationDropdown() {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute right-0 mt-3 w-80 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[60]"
+            className="fixed inset-x-4 top-24 md:absolute md:inset-x-auto md:right-0 md:top-full md:mt-3 md:w-80 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[60]"
           >
             <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/20">
               <h3 className="text-white font-bold text-sm font-headline">Notifications</h3>
@@ -114,12 +125,38 @@ export function NotificationDropdown() {
                         <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-realm-green" />
                       )}
                       <div className="flex gap-3">
-                        <div className={`mt-1 p-1.5 rounded-lg h-fit self-start ${
-                          n.type === 'approval' ? 'bg-realm-green/10 text-realm-green' :
-                          n.type === 'rejection' ? 'bg-red-500/10 text-red-500' :
-                          n.type === 'staff_outreach' ? 'bg-blue-500/10 text-blue-400' :
-                          'bg-orange-500/10 text-orange-400'
-                        }`}>
+                        <div className={`mt-1 p-1.5 rounded-lg h-fit self-start ${(() => {
+                          const type = n.type
+                          const msg = n.message.toLowerCase()
+                          
+                          // Positive / Congratulations / Approved / OTM
+                          if (
+                            type === 'approval' || 
+                            type === 'otm_podium' || 
+                            type === 'otm_competitor' ||
+                            (type === 'category_request_result' && msg.includes('accepted')) ||
+                            (type === 'report_update' && msg.includes('resolved'))
+                          ) {
+                            return 'bg-realm-green/10 text-realm-green'
+                          }
+
+                          // Negative / Rejected / Declined
+                          if (
+                            type === 'rejection' ||
+                            (type === 'category_request_result' && msg.includes('rejected')) ||
+                            (type === 'report_update' && msg.includes('rejected'))
+                          ) {
+                            return 'bg-red-500/10 text-red-500'
+                          }
+
+                          // Staff Outreach / Information
+                          if (type === 'staff_outreach') {
+                            return 'bg-blue-500/10 text-blue-400'
+                          }
+
+                          // Default / Neutral (e.g. reviewing)
+                          return 'bg-orange-500/10 text-orange-400'
+                        })()}`}>
                           <Bell className="w-3.5 h-3.5" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -166,6 +203,7 @@ export function NotificationDropdown() {
       {createPortal(
         <AnimatePresence>
           {isClearModalOpen && (
+            // ... clear modal content ...
             <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
               <motion.div 
                 initial={{ opacity: 0 }}
@@ -209,6 +247,47 @@ export function NotificationDropdown() {
                     {clearAll.isPending ? 'Clearing...' : 'Clear All'}
                   </button>
                 </div>
+              </motion.div>
+            </div>
+          )}
+
+          {resultModal?.isOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setResultModal(null)}
+                className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative w-full max-w-sm bg-zinc-950 border border-white/10 p-8 rounded-3xl shadow-2xl"
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-realm-green/10 text-realm-green">
+                      <Info className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-sm font-pixel text-white uppercase tracking-wider">{resultModal.title}</h3>
+                  </div>
+                  <button onClick={() => setResultModal(null)} className="text-white/20 hover:text-white transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <p className="text-zinc-400 font-headline text-sm leading-relaxed mb-8">
+                  {resultModal.message}
+                </p>
+
+                <button 
+                  onClick={() => setResultModal(null)}
+                  className="w-full py-4 rounded-2xl bg-realm-green text-zinc-950 font-headline font-bold hover:bg-[#85fc7e] transition-all shadow-lg shadow-green-500/10 text-xs uppercase tracking-[0.2em]"
+                >
+                  Understood
+                </button>
               </motion.div>
             </div>
           )}

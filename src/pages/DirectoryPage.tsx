@@ -76,7 +76,7 @@ export function DirectoryPage() {
 
   return (
     <AnimatedPage>
-      <header className="relative pt-32 pb-20 px-8 overflow-hidden min-h-[50vh] flex flex-col items-center justify-center">
+      <header className="relative pt-32 pb-16 md:pb-20 px-8 overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center">
         {/* Cinematic Background */}
         <motion.img 
           initial={{ scale: 1.1, opacity: 0 }}
@@ -91,24 +91,24 @@ export function DirectoryPage() {
         
         <div className="max-w-7xl mx-auto w-full relative z-20 flex flex-col items-center text-center">
           <FramerIn>
-            <h1 className="text-4xl md:text-5xl font-pixel text-white mb-6 drop-shadow-2xl">
+            <h1 className="text-3xl md:text-5xl font-pixel text-white mb-4 md:mb-6 drop-shadow-2xl">
               {activeType ? `${activeType.charAt(0).toUpperCase() + activeType.slice(1)} Explorer` : 'Realm Explorer'}
             </h1>
-            <p className="text-white/80 font-headline text-lg max-w-2xl mx-auto mb-10 drop-shadow-lg leading-relaxed">
+            <p className="text-white/80 font-headline text-sm md:text-lg max-w-2xl mx-auto mb-8 md:mb-10 drop-shadow-lg leading-relaxed px-4">
               Discover the top-rated {activeType || 'realms and servers'} from our community.
             </p>
           </FramerIn>
           
-          <FramerIn delay={0.2} className="flex gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 backdrop-blur-md">
+          <FramerIn delay={0.2} className="flex gap-1.5 md:gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 backdrop-blur-md">
             {[
-              { id: null, label: 'All', icon: <Globe className="w-4 h-4" /> },
-              { id: 'server' as const, label: 'Servers', icon: <img src={serverGif} alt="" className="w-4 h-4 object-contain rounded-sm" /> },
-              { id: 'realm' as const, label: 'Realms', icon: <img src={realmGif} alt="" className="w-4 h-4 object-contain rounded-sm" /> }
+              { id: null, label: 'All', icon: <Globe className="w-3.5 h-3.5 md:w-4 h-4" /> },
+              { id: 'server' as const, label: 'Servers', icon: <img src={serverGif} alt="" className="w-3.5 h-3.5 md:w-4 h-4 object-contain rounded-sm" /> },
+              { id: 'realm' as const, label: 'Realms', icon: <img src={realmGif} alt="" className="w-3.5 h-3.5 md:w-4 h-4 object-contain rounded-sm" /> }
             ].map((type) => (
               <button
                 key={String(type.id)}
                 onClick={() => setType(type.id)}
-                className={`relative px-4 py-2 rounded-lg text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeType === type.id ? 'text-realm-green' : 'text-zinc-500 hover:text-zinc-300'}`}
+                className={`relative px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-headline font-bold flex items-center gap-1.5 md:gap-2 transition-colors ${activeType === type.id ? 'text-realm-green' : 'text-zinc-500 hover:text-zinc-300'}`}
               >
                 {activeType === type.id && (
                   <motion.div 
@@ -128,9 +128,9 @@ export function DirectoryPage() {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent z-20 pointer-events-none"></div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-8 py-12">
+      <div className="max-w-7xl mx-auto px-8 py-8 md:py-12">
 
-      <FramerIn delay={0.2} className="space-y-8 mb-12">
+      <FramerIn delay={0.2} className="space-y-6 md:space-y-8 mb-10 md:mb-12">
         {/* Search and Sort Row */}
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full max-w-md group">
@@ -138,7 +138,7 @@ export function DirectoryPage() {
             <input 
               type="text" 
               placeholder="Search by name..." 
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-11 pr-10 py-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/50 shadow-xl"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-11 pr-10 py-2.5 md:py-3 text-[13px] md:text-sm text-white placeholder-zinc-500 outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/50 shadow-xl"
               value={localSearch}
               onChange={(e) => setLocalSearch(e.target.value)}
             />
@@ -152,7 +152,7 @@ export function DirectoryPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-2 bg-zinc-900 rounded-xl p-1 border border-zinc-800">
+          <div className="flex items-center gap-1.5 bg-zinc-900 rounded-xl p-1 border border-zinc-800 w-full md:w-auto overflow-x-auto no-scrollbar">
             {[
               { id: 'votes', label: 'Top Rated', icon: Sparkles },
               { id: 'newest', label: 'Latest', icon: Clock },
@@ -164,9 +164,9 @@ export function DirectoryPage() {
                   searchParams.set('sort', option.id)
                   setSearchParams(searchParams)
                 }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-headline font-bold transition-all ${sortBy === option.id ? 'bg-zinc-800 text-realm-green shadow-inner' : 'text-zinc-500 hover:text-zinc-300'}`}
+                className={`flex items-center justify-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-headline font-bold transition-all whitespace-nowrap flex-1 md:flex-initial ${sortBy === option.id ? 'bg-zinc-800 text-realm-green shadow-inner' : 'text-zinc-500 hover:text-zinc-300'}`}
               >
-                <option.icon className="w-3.5 h-3.5" />
+                <option.icon className="w-3 h-3 md:w-3.5 md:h-3.5" />
                 {option.label}
               </button>
             ))}
@@ -174,10 +174,10 @@ export function DirectoryPage() {
         </div>
 
         {/* Categories Chips */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 md:gap-2">
           <button
             onClick={() => setCategory(null)}
-            className={`px-4 py-2 rounded-full text-xs font-headline font-bold transition-all border ${!activeCategory ? 'bg-realm-green text-[#002202] border-realm-green shadow-lg shadow-green-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${!activeCategory ? 'bg-realm-green text-[#002202] border-realm-green shadow-lg shadow-green-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
           >
             All Categories
           </button>
@@ -185,9 +185,9 @@ export function DirectoryPage() {
             <button
               key={cat.id}
               onClick={() => setCategory(cat.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-realm-green text-[#002202] border-realm-green shadow-lg shadow-green-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+              className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-realm-green text-[#002202] border-realm-green shadow-lg shadow-green-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
             >
-              <cat.icon className="w-3.5 h-3.5" />
+              <cat.icon className="w-3 h-3 md:w-3.5 md:h-3.5" />
               {cat.label}
             </button>
           ))}
@@ -201,7 +201,7 @@ export function DirectoryPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="py-20"
+            className="py-12 md:py-20"
           >
             <LoadingSpinner />
           </motion.div>
@@ -211,7 +211,7 @@ export function DirectoryPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="py-20"
+            className="py-12 md:py-20"
           >
             <EmptyState 
               title={`No results found`} 
@@ -233,7 +233,7 @@ export function DirectoryPage() {
                 }
               }
             }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
           >
             {servers.map(server => (
               <motion.div

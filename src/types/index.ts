@@ -7,8 +7,10 @@ export interface Profile {
   id: string
   discord_username: string | null
   discord_avatar: string | null
+  discord_banner: string | null
   discord_id: string | null
   role: UserRole
+  social_links: SocialLink[] | null
   created_at: string
   updated_at: string
 }
@@ -117,4 +119,46 @@ export interface Notification {
   is_read: boolean | null
   related_id: string | null
   created_at: string | null
+}
+
+export interface CategoryRequest {
+  id: string
+  requester_id: string
+  subject: string
+  description: string
+  status: 'pending' | 'accepted' | 'rejected'
+  created_at: string
+  profiles?: Profile
+}
+
+export interface TeamMember {
+  id: string
+  user_id: string
+  role_title: string
+  display_order: number
+  created_at: string
+  updated_at: string
+  profiles?: Profile
+}
+
+export interface SiteSetting {
+  key: string
+  value: any
+  updated_at: string
+}
+
+export interface Report {
+  id: string
+  reporter_id: string
+  server_id: string
+  subject: string
+  message: string
+  status: 'pending' | 'reviewing' | 'resolved' | 'rejected'
+  created_at: string
+  updated_at: string
+  profiles?: Profile
+  servers?: {
+    name: string
+    slug: string
+  }
 }

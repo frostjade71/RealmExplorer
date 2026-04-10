@@ -1,4 +1,4 @@
-import { useGlobalStats, useAdminServers, useAdminUsers } from '../hooks/queries'
+import { useGlobalStats, useAdminServers, useAdminUsers, useCategoryRequests } from '../hooks/queries'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn, FramerInList } from '../components/FramerIn'
 import { Link } from 'react-router-dom'
@@ -10,12 +10,14 @@ export function AdminOverviewPage() {
   const { profile, isAdmin } = useAuth()
   useGlobalStats()
   const { data: servers = [] } = useAdminServers()
+  const { data: catRequests = [] } = useCategoryRequests()
   useAdminUsers()
   
   const [latency, setLatency] = useState<number | null>(null)
   const [dbStatus, setDbStatus] = useState<'online' | 'offline' | 'checking'>('checking')
 
   const pendingServers = servers.filter(s => ['pending', 'Review Icon', 'Review Cover', 'Review Icon & Cover'].includes(s.status)).length
+  const pendingCatRequests = catRequests.filter(r => r.status === 'pending').length
   const totalVotes = servers.reduce((acc, s) => acc + (s.votes || 0), 0)
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export function AdminOverviewPage() {
 
   const quickStats = [
     { label: 'Pending Approvals', value: pendingServers, icon: 'pending_actions', color: 'text-orange-500', bg: 'bg-orange-500/10' },
-    { label: 'Emailed Owners', value: servers.filter(s => s.status === 'emailed').length, icon: 'mail', color: 'text-blue-400', bg: 'bg-blue-400/10' },
+    { label: 'Category Sug.', value: pendingCatRequests, icon: 'add_circle', color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
     { label: 'Active Listings', value: servers.filter(s => s.status === 'approved').length, icon: 'dns', color: 'text-realm-green', bg: 'bg-realm-green/10' },
     { label: 'Total Influence', value: totalVotes, icon: 'stars', color: 'text-purple-500', bg: 'bg-purple-500/10' },
   ]
@@ -66,7 +68,7 @@ export function AdminOverviewPage() {
             )}
             <div className="text-white/20">|</div>
             <p>
-              You have <span className="text-orange-500 font-bold">{pendingServers} new submissions</span> to review.
+              You have <span className="text-orange-500 font-bold">{pendingServers + pendingCatRequests} tasks</span> to review.
             </p>
           </div>
         </FramerIn>
@@ -145,9 +147,14 @@ export function AdminOverviewPage() {
               Quick Actions
             </h3>
             <div className="space-y-3">
-              <Link to="/admin/servers" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
+              <Link to="/admin/servers" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group relative">
                 <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">rule</span>
                 <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">Manage Servers</span>
+                {pendingServers > 0 && (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-orange-500 text-zinc-950 text-[10px] font-pixel px-1.5 py-0.5 rounded-md animate-pulse">
+                    {pendingServers}
+                  </span>
+                )}
               </Link>
               {isAdmin && (
                 <>
@@ -158,6 +165,15 @@ export function AdminOverviewPage() {
                   <Link to="/admin/settings" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
                     <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">settings_input_component</span>
                     <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">General Settings</span>
+                  </Link>
+                  <Link to="/admin/category-requests" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group relative">
+                    <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">add_circle</span>
+                    <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">Category Requests</span>
+                    {pendingCatRequests > 0 && (
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-orange-500 text-zinc-950 text-[10px] font-pixel px-1.5 py-0.5 rounded-md animate-pulse">
+                        {pendingCatRequests}
+                      </span>
+                    )}
                   </Link>
                   <Link to="/admin/audit-logs" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
                     <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">history</span>

@@ -1,31 +1,38 @@
-import { useAuditLogs } from '../hooks/queries'
+import { useAuditLogs, useVoteLogs } from '../hooks/queries'
 import { LoadingSpinner } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useMemo } from 'react'
-import { Search, X, History, User, Info, Calendar, Trash2 } from 'lucide-react'
-import { useClearAuditLogsMutation } from '../hooks/mutations'
+import { Search, X, History, User, Info, Calendar, Trash2, ThumbsUp } from 'lucide-react'
+import { useClearAuditLogsMutation, useClearVoteLogsMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { toast } from 'sonner'
 
+type LogTab = 'audit' | 'vote'
+
 export function AdminAuditLogsPage() {
   const { profile } = useAuth()
-  const { data: logs = [], isLoading: loading } = useAuditLogs()
+  const [activeTab, setActiveTab] = useState<LogTab>('audit')
+  const { data: logs = [], isLoading: loadingLogs } = useAuditLogs()
+  const { data: voteLogs = [], isLoading: loadingVotes } = useVoteLogs()
   const [searchQuery, setSearchQuery] = useState('')
   const [isClearModalOpen, setIsClearModalOpen] = useState(false)
   
   const clearLogsMutation = useClearAuditLogsMutation()
+  const clearVotesMutation = useClearVoteLogsMutation()
 
-  const handleClearLogs = () => {
+  const handleClear = () => {
     if (!profile) return
 
-    clearLogsMutation.mutate(
+    const mutation = activeTab === 'audit' ? clearLogsMutation : clearVotesMutation
+    
+    mutation.mutate(
       { adminId: profile.id, adminName: profile.discord_username || 'Unknown' },
       {
         onSuccess: () => {
-          toast.success('Audit logs cleared successfully')
+          toast.success(`${activeTab === 'audit' ? 'Audit' : 'Vote'} logs cleared successfully`)
           setIsClearModalOpen(false)
         },
         onError: (err: any) => {
@@ -41,6 +48,16 @@ export function AdminAuditLogsPage() {
       return content.includes(searchQuery.toLowerCase())
     })
   }, [logs, searchQuery])
+
+  const filteredVoteLogs = useMemo(() => {
+    return voteLogs.filter((vote: any) => {
+      const username = vote.profiles?.discord_username || 'Unknown'
+      const discordId = vote.profiles?.discord_id || ''
+      const serverName = vote.servers?.name || 'Unknown'
+      const content = `${username} ${discordId} ${serverName}`.toLowerCase()
+      return content.includes(searchQuery.toLowerCase())
+    })
+  }, [voteLogs, searchQuery])
 
   const getActionColor = (action: string) => {
     if (action.includes('APPROVED')) return 'text-realm-green bg-realm-green/10 border-realm-green/20'
@@ -60,7 +77,10 @@ export function AdminAuditLogsPage() {
     ))
   }
 
-  if (loading) return <LoadingSpinner />
+  const isLoading = activeTab === 'audit' ? loadingLogs : loadingVotes
+  const currentCount = activeTab === 'audit' ? logs.length : voteLogs.length
+
+  if (isLoading) return <LoadingSpinner />
 
   return (
     <AnimatedPage>
@@ -70,26 +90,26 @@ export function AdminAuditLogsPage() {
             <History className="text-realm-green w-4 h-4" />
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold">System Integrity</span>
           </div>
-          <h1 className="text-3xl font-pixel text-white mb-2">Audit Logs</h1>
-          <p className="text-white/40 font-headline text-sm">Review staff actions and security events.</p>
+          <h1 className="text-3xl font-pixel text-white mb-2">Logs & Activity</h1>
+          <p className="text-white/40 font-headline text-sm">Review staff actions and community voting records.</p>
         </FramerIn>
 
         <div className="flex items-center gap-4">
           <FramerIn delay={0.1}>
             <button
               onClick={() => setIsClearModalOpen(true)}
-              disabled={logs.length === 0}
+              disabled={currentCount === 0}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all font-headline text-[10px] uppercase font-bold tracking-widest disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-              Clear Logs
+              Clear {activeTab === 'audit' ? 'Audit' : 'Vote'} Logs
             </button>
           </FramerIn>
 
           <FramerIn delay={0.15}>
             <div className="bg-white/5 border border-white/10 px-6 py-4 rounded-2xl backdrop-blur-md">
               <div className="text-right">
-                <div className="text-white font-pixel text-lg leading-none">{logs.length}</div>
+                <div className="text-white font-pixel text-lg leading-none">{currentCount}</div>
                 <div className="text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest mt-1">Stored Events</div>
               </div>
             </div>
@@ -97,22 +117,43 @@ export function AdminAuditLogsPage() {
         </div>
       </div>
 
+      <div className="flex items-center gap-2 mb-8 bg-white/5 p-1 rounded-2xl w-fit border border-white/10">
+        <button
+          onClick={() => { setActiveTab('audit'); setSearchQuery(''); }}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
+            activeTab === 'audit' ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' : 'text-white/40 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <History className="w-3.5 h-3.5" />
+          Audit Logs
+        </button>
+        <button
+          onClick={() => { setActiveTab('vote'); setSearchQuery(''); }}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
+            activeTab === 'vote' ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' : 'text-white/40 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <ThumbsUp className="w-3.5 h-3.5" />
+          Vote Logs
+        </button>
+      </div>
+
       <ConfirmationModal
         isOpen={isClearModalOpen}
         onClose={() => setIsClearModalOpen(false)}
-        onConfirm={handleClearLogs}
-        title="Clear Audit Logs?"
-        message="This action is permanent and will remove all recorded staff activity from the database. A final log entry will record this purge."
+        onConfirm={handleClear}
+        title={`Clear ${activeTab === 'audit' ? 'Audit' : 'Vote'} Logs?`}
+        message={`This action is permanent and will remove all recorded ${activeTab === 'audit' ? 'staff activity' : 'community votes'} from the database. ${activeTab === 'audit' ? 'A final log entry will record this purge.' : ''}`}
         confirmLabel="Wipe Everything"
         isDangerous={true}
-        isLoading={clearLogsMutation.isPending}
+        isLoading={clearLogsMutation.isPending || clearVotesMutation.isPending}
       />
 
       <FramerIn delay={0.2} className="mb-6 relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
         <input 
           type="text"
-          placeholder="Filter logs by username, action, or details..."
+          placeholder={activeTab === 'audit' ? "Filter logs by username, action, or details..." : "Search by voter, Discord ID, or server..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none backdrop-blur-md"
@@ -130,78 +171,100 @@ export function AdminAuditLogsPage() {
             <thead>
               <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
                 <th className="px-6 py-5">Timestamp</th>
-                <th className="px-6 py-5">Staff Member</th>
-                <th className="px-6 py-5">Action</th>
-                <th className="px-6 py-5">Details</th>
+                <th className="px-6 py-5">{activeTab === 'audit' ? 'Staff Member' : 'Voter'}</th>
+                <th className="px-6 py-5">{activeTab === 'audit' ? 'Action' : 'Server Name'}</th>
+                <th className="px-6 py-5">{activeTab === 'audit' ? 'Details' : 'Discord ID'}</th>
               </tr>
             </thead>
-            <motion.tbody 
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0 },
-                visible: {
-                  opacity: 1,
-                  transition: { staggerChildren: 0.02 }
-                }
-              }}
-              className="divide-y divide-white/[0.03]"
-            >
-              {filteredLogs.map((log: any) => (
-                <motion.tr 
-                  key={log.id} 
-                  variants={{
-                    hidden: { opacity: 0, y: 5 },
-                    visible: { opacity: 1, y: 0 }
-                  }}
-                  className="hover:bg-white/[0.02] transition-colors group"
-                >
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <div className="flex items-center gap-2 text-white/40">
-                      <Calendar className="w-3 h-3" />
-                      <span className="text-[11px] font-mono">
-                        {new Date(log.created_at).toLocaleString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                       <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-realm-green/30 transition-colors">
-                          <User className="w-3 h-3 text-white/20 group-hover:text-realm-green/60 transition-colors" />
-                       </div>
-                       <span className="font-bold text-white group-hover:text-realm-green transition-colors">
-                        {log.discord_username || 'System'}
-                       </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <span className={`px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider border ${getActionColor(log.action)}`}>
-                      {log.action.replace(/_/g, ' ')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="space-y-1">
-                      {formatDetails(log.details)}
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-              {filteredLogs.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center gap-2 text-white/20 italic font-headline">
-                      <Info className="w-8 h-8 opacity-20" />
-                      <span>No audit logs found matching your criteria.</span>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </motion.tbody>
+            <AnimatePresence mode="wait">
+              <motion.tbody 
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="divide-y divide-white/[0.03]"
+              >
+                {activeTab === 'audit' ? (
+                  filteredLogs.map((log: any) => (
+                    <motion.tr key={log.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex items-center gap-2 text-white/40">
+                          <Calendar className="w-3 h-3" />
+                          <span className="text-[11px] font-mono">
+                            {new Date(log.created_at).toLocaleString('en-US', {
+                              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                           <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-realm-green/30 transition-colors">
+                              <User className="w-3 h-3 text-white/20 group-hover:text-realm-green/60 transition-colors" />
+                           </div>
+                           <span className="font-bold text-white group-hover:text-realm-green transition-colors">
+                            {log.discord_username || 'System'}
+                           </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <span className={`px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider border ${getActionColor(log.action)}`}>
+                          {log.action.replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="space-y-1">
+                          {formatDetails(log.details)}
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))
+                ) : (
+                  filteredVoteLogs.map((vote: any) => (
+                    <motion.tr key={vote.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex items-center gap-2 text-white/40">
+                          <Calendar className="w-3 h-3" />
+                          <span className="text-[11px] font-mono">
+                            {new Date(vote.created_at).toLocaleString('en-US', {
+                              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                           <div className="w-6 h-6 rounded-full bg-realm-green/10 flex items-center justify-center border border-realm-green/20 group-hover:bg-realm-green/20 transition-colors">
+                              <User className="w-3 h-3 text-realm-green/60" />
+                           </div>
+                           <span className="font-bold text-white">
+                            {vote.profiles?.discord_username || 'Anonymous'}
+                           </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <span className="text-white/60 font-medium">{vote.servers?.name || 'Unknown Server'}</span>
+                      </td>
+                      <td className="px-6 py-5">
+                         <code className="text-[10px] text-white/20 font-mono bg-white/5 px-2 py-1 rounded border border-white/5">
+                            {vote.profiles?.discord_id || 'N/A'}
+                         </code>
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
+                {(activeTab === 'audit' ? filteredLogs.length : filteredVoteLogs.length) === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center gap-2 text-white/20 italic font-headline">
+                        <Info className="w-8 h-8 opacity-20" />
+                        <span>No {activeTab} logs found matching your criteria.</span>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </motion.tbody>
+            </AnimatePresence>
           </table>
         </div>
       </FramerIn>

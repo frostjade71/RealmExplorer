@@ -4,11 +4,16 @@ import type {
   Server, 
   ServerCategory, 
   ServerType, 
+  ServerStatus,
   Profile, 
   ServerRating, 
   OTMWinner, 
   OTMCompetitor,
-  Notification
+  Notification,
+  TeamMember,
+  SiteSetting,
+  CategoryRequest,
+  Report
 } from '../types'
 
 export function useServers(params?: {
@@ -70,7 +75,7 @@ export function useServer(idOrSlug: string | undefined) {
       let ownerInfo: Profile | null = null
       if (server) {
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', server.owner_id as string).single()
-        if (profile) ownerInfo = profile as Profile
+        if (profile) ownerInfo = profile as unknown as Profile
       }
 
       return { server: server as unknown as Server, owner: ownerInfo }
@@ -78,18 +83,56 @@ export function useServer(idOrSlug: string | undefined) {
   })
 }
 
-export function useUserServers(userId: string | undefined) {
+export function useUserServers(userId: string | undefined, status?: ServerStatus) {
   return useQuery({
-    queryKey: ['userServers', userId],
+    queryKey: ['userServers', userId, status],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('servers')
         .select('*')
         .eq('owner_id', userId!)
         .order('created_at', { ascending: false })
+      
+      if (status) {
+        query = query.eq('status', status)
+      }
+
+      const { data, error } = await query
       if (error) throw error
       return data as unknown as Server[]
+    }
+  })
+}
+
+export function useProfileByUsername(username: string | undefined) {
+  return useQuery({
+    queryKey: ['profile', username],
+    enabled: !!username,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .ilike('discord_username', username!)
+        .single()
+      if (error) throw error
+      return data as unknown as Profile
+    }
+  })
+}
+
+export function useUserProfile(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['profile', userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId!)
+        .single()
+      if (error) throw error
+      return data as unknown as Profile
     }
   })
 }
@@ -122,7 +165,7 @@ export function useAdminUsers() {
     queryFn: async () => {
       const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
       if (error) throw error
-      return data as Profile[]
+      return data as unknown as Profile[]
     }
   })
 }
@@ -175,7 +218,7 @@ export function useServerRatings(serverId: string | undefined) {
         .order('created_at', { ascending: false })
       
       if (error) throw error
-      return data as (ServerRating & { profiles: Profile })[]
+      return data as unknown as (ServerRating & { profiles: Profile })[]
     }
   })
 }
@@ -272,6 +315,90 @@ export function useAuditLogs() {
         .order('created_at', { ascending: false })
       if (error) throw error
       return data
+    }
+  })
+}
+
+export function useVoteLogs() {
+  return useQuery({
+    queryKey: ['voteLogs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('votes')
+        .select(`
+          *,
+          profiles (discord_username, discord_id),
+          servers (name)
+        `)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data
+    }
+  })
+}
+
+export function useCategoryRequests(userId?: string) {
+  return useQuery({
+    queryKey: ['categoryRequests', userId],
+    queryFn: async () => {
+      let query = supabase
+        .from('category_requests')
+        .select('*, profiles(*)')
+        .order('created_at', { ascending: false })
+      
+      if (userId) {
+        query = query.eq('requester_id', userId)
+      }
+
+      const { data, error } = await query
+      if (error) throw error
+      return data as unknown as CategoryRequest[]
+    }
+  })
+}
+
+export function useTeamMembers() {
+  return useQuery({
+    queryKey: ['teamMembers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('*, profiles(*)')
+        .order('display_order', { ascending: true })
+      
+      if (error) throw error
+      return data as unknown as TeamMember[]
+    }
+  })
+}
+
+export function useSiteSetting(key: string) {
+  return useQuery({
+    queryKey: ['siteSetting', key],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('key', key)
+        .single()
+      
+      if (error || !data) return null
+      return data as unknown as SiteSetting
+    }
+  })
+}
+
+export function useReports() {
+  return useQuery({
+    queryKey: ['reports'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('reports')
+        .select('*, profiles(*), servers(name, slug)')
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      return data as unknown as Report[]
     }
   })
 }

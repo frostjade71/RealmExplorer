@@ -52,6 +52,41 @@ export type Database = {
           },
         ]
       }
+      category_requests: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          requester_id: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          requester_id: string
+          status?: string
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          requester_id?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cooldowns: {
         Row: {
           expires_at: string
@@ -265,31 +300,85 @@ export type Database = {
         Row: {
           created_at: string | null
           discord_avatar: string | null
+          discord_banner: string | null
           discord_id: string | null
           discord_username: string | null
           id: string
           role: string
+          social_links: Json | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           discord_avatar?: string | null
+          discord_banner?: string | null
           discord_id?: string | null
           discord_username?: string | null
           id: string
           role?: string
+          social_links?: Json | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           discord_avatar?: string | null
+          discord_banner?: string | null
           discord_id?: string | null
           discord_username?: string | null
           id?: string
           role?: string
+          social_links?: Json | null
           updated_at?: string | null
         }
         Relationships: []
+      }
+      reports: {
+        Row: {
+          id: string
+          reporter_id: string
+          server_id: string
+          subject: string
+          message: string
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          reporter_id: string
+          server_id: string
+          subject: string
+          message: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          reporter_id?: string
+          server_id?: string
+          subject?: string
+          message?: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       server_messages: {
         Row: {
@@ -391,6 +480,7 @@ export type Database = {
           icon_url: string | null
           id: string
           ip_or_code: string | null
+          last_edited_at: string | null
           name: string
           owner_id: string | null
           port: number | null
@@ -416,6 +506,7 @@ export type Database = {
           icon_url?: string | null
           id?: string
           ip_or_code?: string | null
+          last_edited_at?: string | null
           name: string
           owner_id?: string | null
           port?: number | null
@@ -441,6 +532,7 @@ export type Database = {
           icon_url?: string | null
           id?: string
           ip_or_code?: string | null
+          last_edited_at?: string | null
           name?: string
           owner_id?: string | null
           port?: number | null
@@ -458,6 +550,59 @@ export type Database = {
           {
             foreignKeyName: "servers_owner_id_fkey"
             columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_settings: {
+        Row: {
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          created_at: string | null
+          display_order: number
+          id: string
+          role_title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          role_title?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          role_title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

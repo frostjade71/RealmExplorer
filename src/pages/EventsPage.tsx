@@ -97,8 +97,15 @@ export function EventsPage() {
               {activeWinner ? (
                 <FramerIn delay={0.4} className="flex flex-col items-center">
                   {/* Clickable Winner Group */}
+                  {/* Clickable Winner Group */}
                   <Link 
-                    to={activeWinner.servers ? `/server/${activeWinner.servers.slug || slugify(activeWinner.servers.name)}` : '#'}
+                    to={(() => {
+                      const isPerson = activeWinner.category === 'developer' || activeWinner.category === 'builder'
+                      if (isPerson) {
+                        return activeWinner.profiles?.discord_username ? `/profile/${activeWinner.profiles.discord_username}` : '#'
+                      }
+                      return activeWinner.servers ? `/server/${activeWinner.servers.slug || slugify(activeWinner.servers.name)}` : '#'
+                    })()}
                     className="block group no-underline"
                   >
                     <motion.div 
@@ -109,10 +116,10 @@ export function EventsPage() {
                       <img 
                         src={activeWinner.winner_image_url || activeWinner.servers?.icon_url || logo} 
                         alt="Winner" 
-                        className="w-16 h-16 rounded-xl object-cover border-2 border-realm-green shadow-2xl shadow-realm-green/20"
+                        className="w-16 h-16 rounded-xl object-cover border-2 border-realm-green shadow-2xl shadow-realm-green/20 group-hover:border-white transition-colors"
                       />
                       <div className="text-center md:text-left">
-                        <h2 className="text-xl md:text-2xl font-pixel text-white drop-shadow-lg transition-colors">
+                        <h2 className="text-xl md:text-2xl font-pixel text-white drop-shadow-lg group-hover:text-realm-green transition-colors">
                           {activeWinner.winner_name || activeWinner.servers?.name}
                         </h2>
                       </div>
@@ -194,24 +201,27 @@ export function EventsPage() {
                 className="bg-zinc-900/40 border border-white/5 rounded-xl p-3 group hover:bg-zinc-900/60 transition-all hover:border-realm-green/20"
               >
                 <div className="block">
-                  <div className={`w-20 h-20 mx-auto overflow-hidden mb-3 relative border border-white/5 ${isPerson ? 'rounded-full' : 'rounded-lg'}`}>
-                     <img 
-                       src={displayImage || (isPerson ? logo : 'https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&q=80&w=800')} 
-                       alt="Competitor"
-                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                     />
-                     {!isPerson && (
-                       <Link 
-                        to={`/server/${competitor.servers?.slug || slugify(competitor.servers?.name || '')}`}
-                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-                       >
+                  <Link 
+                    to={isPerson 
+                      ? (competitor.profiles?.discord_username ? `/profile/${competitor.profiles.discord_username}` : '#')
+                      : `/server/${competitor.servers?.slug || slugify(competitor.servers?.name || '')}`
+                    }
+                    className="block group/link"
+                  >
+                    <div className={`w-20 h-20 mx-auto overflow-hidden mb-3 relative border border-white/5 group-hover:border-realm-green/50 transition-colors ${isPerson ? 'rounded-full' : 'rounded-lg'}`}>
+                       <img 
+                         src={displayImage || (isPerson ? logo : 'https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&q=80&w=800')} 
+                         alt="Competitor"
+                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                       />
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
                           <Eye className="w-6 h-6 text-white" />
-                       </Link>
-                     )}
-                  </div>
-                  <h3 className="text-[13px] font-pixel text-white mb-1 line-clamp-1 text-center">
-                    {displayName || 'Curated Candidate'}
-                  </h3>
+                       </div>
+                    </div>
+                    <h3 className="text-[13px] font-pixel text-white mb-1 line-clamp-1 text-center group-hover:text-realm-green transition-colors">
+                      {displayName || 'Curated Candidate'}
+                    </h3>
+                  </Link>
                 </div>
                 <p className="text-zinc-500 text-[10px] font-headline mb-4 line-clamp-1 leading-relaxed opacity-60 text-center">
                   {displayDesc || 'A highly rated participant.'}
@@ -273,12 +283,12 @@ export function EventsPage() {
           })}
 
           {(!categoryCompetitors || categoryCompetitors.length === 0) && (
-            <div className="col-span-full py-16 bg-zinc-900/20 border border-dashed border-white/10 rounded-[2rem] flex flex-col items-center justify-center text-center">
-              <div className="w-14 h-14 bg-white/5 rounded-full flex items-center justify-center mb-4">
-                <ThumbsUp className="w-6 h-6 text-zinc-700" />
+            <div className="col-span-full py-8 md:py-16 bg-zinc-900/20 border border-dashed border-white/10 rounded-[1.5rem] md:rounded-[2rem] flex flex-col items-center justify-center text-center">
+              <div className="w-10 h-10 md:w-14 md:h-14 bg-white/5 rounded-full flex items-center justify-center mb-3 md:mb-4">
+                <ThumbsUp className="w-4 h-4 md:w-6 md:h-6 text-zinc-700" />
               </div>
-              <h3 className="text-lg font-pixel text-zinc-600">No Participants Yet</h3>
-              <p className="text-zinc-600 font-headline text-xs mt-2 max-w-sm">Nominations are still open for this category. Check back soon!</p>
+              <h3 className="text-sm md:text-lg font-pixel text-zinc-600">No Participants Yet</h3>
+              <p className="text-zinc-600 font-headline text-[10px] md:text-xs mt-1.5 md:mt-2 max-w-[200px] md:max-w-sm">Nominations are still open for this category. Check back soon!</p>
             </div>
           )}
         </div>

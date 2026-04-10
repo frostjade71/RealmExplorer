@@ -26,9 +26,9 @@ export function useVoteMutation() {
 export function useDeleteServerMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (id: string) => {
-      // 0. Get server data for asset cleanup
-      const { data: server } = await supabase.from('servers').select('icon_url, banner_url').eq('id', id).single()
+    mutationFn: async ({ id, adminId, adminName }: { id: string, adminId?: string | null, adminName?: string | null }) => {
+      // 0. Get server data for asset cleanup and logging
+      const { data: server } = await supabase.from('servers').select('icon_url, banner_url, name').eq('id', id).single()
 
       if (server) {
         const filesToDelete: string[] = []
@@ -55,6 +55,11 @@ export function useDeleteServerMutation() {
       // 3. Delete DB record (Postgres CASCADE handles votes, ratings, etc.)
       const { error } = await supabase.from('servers').delete().eq('id', id)
       if (error) throw error
+
+      // 4. Log Action
+      if (server) {
+        await logAction('SERVER_DELETED', { serverName: server.name }, adminId, adminName, id)
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userServers'] })
@@ -145,6 +150,19 @@ export function useUpdateUserRoleMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
+    }
+  })
+}
+
+export function useUpdateProfileMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, social_links }: { id: string, social_links: any[] }) => {
+      const { error } = await supabase.from('profiles').update({ social_links }).eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
     }
   })
 }
@@ -526,6 +544,317 @@ export function useClearAuditLogsMutation() {
       await logAction('AUDIT_LOGS_CLEARED', {}, adminId, adminName)
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
+    }
+  })
+}
+
+export function useClearVoteLogsMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ adminId, adminName }: { adminId: string; adminName: string }) => {
+      const { error } = await supabase.from('votes').delete().neq('id', '00000000-0000-0000-0000-000000000000') // Delete all
+      if (error) throw error
+
+      // Log the clearing action
+      await logAction('VOTE_LOGS_CLEARED', {}, adminId, adminName)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['voteLogs'] })
+      queryClient.invalidateQueries({ queryKey: ['servers'] })
+      queryClient.invalidateQueries({ queryKey: ['server'] })
+    }
+  })
+}
+
+export function useCreateCategoryRequestMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (data: { requester_id: string; subject: string; description: string }) => {
+      const { error } = await supabase.from('category_requests').insert([data])
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categoryRequests'] })
+    }
+  })
+}
+
+export function useUpdateCategoryRequestStatusMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ 
+      id, 
+      status, 
+      adminId, 
+      adminName 
+    }: { 
+      id: string; 
+      status: 'accepted' | 'rejected'; 
+      adminId?: string | null; 
+      adminName?: string | null; 
+    }) => {
+      // 1. Get request details
+      const { data: request } = await supabase
+        .from('category_requests')
+        .select('*')
+        .eq('id', id)
+        .single()
+      
+      if (!request) throw new Error('Request not found')
+
+      // 2. Update status
+      const { error: updateError } = await supabase
+        .from('category_requests')
+        .update({ status })
+        .eq('id', id)
+      
+      if (updateError) throw updateError
+
+      // 3. Create Notification for user
+      await supabase.from('notifications').insert({
+        user_id: request.requester_id,
+        type: 'category_request_result',
+        title: `Category Request ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+        message: `Your Request ${request.subject} has been ${status}.`,
+        related_id: id
+      } as any)
+
+      // 4. Log Action
+      await logAction(
+        status === 'accepted' ? 'CATEGORY_REQUEST_ACCEPTED' : 'CATEGORY_REQUEST_REJECTED',
+        { subject: request.subject, description: request.description },
+        adminId,
+        adminName,
+        id
+      )
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categoryRequests'] })
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
+    }
+  })
+}
+export function useDeleteCategoryRequestMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, adminId, adminName }: { id: string; adminId?: string | null; adminName?: string | null }) => {
+      // 1. Get details for the log before deleting
+      const { data: request } = await supabase
+        .from('category_requests')
+        .select('*')
+        .eq('id', id)
+        .single()
+      
+      const { error } = await supabase.from('category_requests').delete().eq('id', id)
+      if (error) throw error
+
+      // 2. Log Action if request was found
+      if (request) {
+        await logAction(
+          'CATEGORY_REQUEST_DELETED',
+          { subject: request.subject, description: request.description },
+          adminId,
+          adminName,
+          id
+        )
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categoryRequests'] })
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
+    }
+  })
+}
+
+export function useAddTeamMemberMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ userId, roleTitle, adminId, adminName }: { userId: string, roleTitle: string, adminId?: string | null, adminName?: string | null }) => {
+      // Get next display order
+      const { data: currentMembers } = await supabase.from('team_members').select('display_order').order('display_order', { ascending: false }).limit(1)
+      const nextOrder = currentMembers && currentMembers.length > 0 ? currentMembers[0].display_order + 1 : 0
+
+      const { error } = await supabase.from('team_members').insert({
+        user_id: userId,
+        role_title: roleTitle,
+        display_order: nextOrder
+      })
+      if (error) throw error
+
+      const { data: profile } = await supabase.from('profiles').select('discord_username').eq('id', userId).single()
+      
+      await logAction('TEAM_MEMBER_ADDED', { username: profile?.discord_username, roleTitle }, adminId, adminName, userId)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teamMembers'] })
+    }
+  })
+}
+
+export function useRemoveTeamMemberMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, adminId, adminName }: { id: string, adminId?: string | null, adminName?: string | null }) => {
+      // Get details before delete
+      const { data: member } = await supabase.from('team_members').select('*, profiles(discord_username)').eq('id', id).single()
+      
+      const { error } = await supabase.from('team_members').delete().eq('id', id)
+      if (error) throw error
+
+      await logAction('TEAM_MEMBER_REMOVED', { username: (member as any)?.profiles?.discord_username }, adminId, adminName, (member as any)?.user_id)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teamMembers'] })
+    }
+  })
+}
+
+export function useUpdateTeamMembersOrderMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ members, adminId, adminName }: { members: { id: string, user_id: string, display_order: number }[], adminId?: string | null, adminName?: string | null }) => {
+      const { error } = await supabase.from('team_members').upsert(members)
+      if (error) throw error
+      
+      await logAction('TEAM_ORDER_UPDATED', { count: members.length }, adminId, adminName)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teamMembers'] })
+    }
+  })
+}
+
+export function useUpdateTeamMemberRoleMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, roleTitle, adminId, adminName }: { id: string, roleTitle: string, adminId?: string | null, adminName?: string | null }) => {
+      const { error } = await supabase.from('team_members').update({ role_title: roleTitle }).eq('id', id)
+      if (error) throw error
+      
+      const { data: member } = await supabase.from('team_members').select('profiles(discord_username)').eq('id', id).single()
+      await logAction('TEAM_MEMBER_ROLE_UPDATED', { username: (member as any)?.profiles?.discord_username, newRole: roleTitle }, adminId, adminName)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teamMembers'] })
+    }
+  })
+}
+
+export function useUpdateSiteSettingMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ key, value, adminId, adminName }: { key: string, value: any, adminId?: string | null, adminName?: string | null }) => {
+      const { error } = await supabase.from('site_settings').upsert({ key, value }, { onConflict: 'key' })
+      if (error) throw error
+      
+      await logAction('SITE_SETTING_UPDATED', { key }, adminId, adminName)
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['siteSetting', variables.key] })
+    }
+  })
+}
+
+export function useSubmitReportMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (data: { reporter_id: string; server_id: string; subject: string; message: string }) => {
+      const { error } = await supabase.from('reports').insert([data])
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reports'] })
+    }
+  })
+}
+
+export function useUpdateReportStatusMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ 
+      id, 
+      status, 
+      adminId, 
+      adminName 
+    }: { 
+      id: string; 
+      status: 'reviewing' | 'resolved' | 'rejected'; 
+      adminId?: string | null; 
+      adminName?: string | null; 
+    }) => {
+      // 1. Get report details before update
+      const { data: report } = await supabase
+        .from('reports')
+        .select('*, servers(name, slug)')
+        .eq('id', id)
+        .single()
+      
+      if (!report) throw new Error('Report not found')
+
+      const serverName = (report as any).servers?.name || 'Unknown Server'
+
+      // 2. Update status
+      const { error: updateError } = await supabase
+        .from('reports')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id)
+      
+      if (updateError) throw updateError
+
+      // 3. Create Notification for reporter
+      let notificationMessage = ''
+      if (status === 'reviewing') {
+        notificationMessage = `Your Report to ${serverName} is now being reviewed`
+      } else if (status === 'resolved') {
+        notificationMessage = `Your Report to ${serverName} has been Resolved`
+      } else if (status === 'rejected') {
+        notificationMessage = `Your Report to ${serverName} has been rejected`
+      }
+
+      await supabase.from('notifications').insert({
+        user_id: report.reporter_id,
+        type: 'report_update',
+        title: 'Report Update',
+        message: notificationMessage,
+        related_id: report.server_id
+      } as any)
+
+      // 4. Log Action
+      const actionName = status === 'reviewing' ? 'REPORT_REVIEWED' : 
+                        status === 'resolved' ? 'REPORT_RESOLVED' : 
+                        'REPORT_REJECTED'
+
+      await logAction(
+        actionName,
+        { serverName, subject: report.subject },
+        adminId,
+        adminName,
+        id
+      )
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reports'] })
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
+    }
+  })
+}
+
+export function useDeleteReportMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, adminId, adminName }: { id: string; adminId?: string | null; adminName?: string | null }) => {
+      const { data: report } = await supabase.from('reports').select('subject').eq('id', id).single()
+      
+      const { error } = await supabase.from('reports').delete().eq('id', id)
+      if (error) throw error
+
+      if (report) {
+        await logAction('REPORT_DELETED', { subject: report.subject }, adminId, adminName, id)
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reports'] })
       queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
     }
   })

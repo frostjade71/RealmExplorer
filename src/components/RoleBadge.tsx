@@ -3,15 +3,22 @@ import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 const roleStyles: Record<UserRole, string> = {
-  explorer: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
-  moderator: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  admin: 'bg-realm-green/10 text-realm-green border-realm-green/20'
+  explorer: 'text-zinc-400',
+  moderator: 'text-blue-400',
+  admin: 'text-realm-green'
 }
 
 export function RoleBadge({ role, className }: { role: UserRole, className?: string }) {
   return (
-    <span className={twMerge(clsx("px-2 py-0.5 rounded-md border text-[10px] font-pixel uppercase tracking-widest", roleStyles[role], className))}>
-      {role}
+    <span className={twMerge(
+      clsx(
+        "inline-flex items-center px-2 py-0.5 font-pixel text-[8px] uppercase tracking-widest backdrop-blur-md",
+        "bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 shadow-[2px_2px_0px_rgba(0,0,0,0.4)]",
+        roleStyles[role], 
+        className
+      )
+    )}>
+      {role === 'admin' ? 'Administrator' : role}
     </span>
   )
 }

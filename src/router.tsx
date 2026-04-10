@@ -24,8 +24,12 @@ import {
   AdminEventsPage,
   LeaderboardsPage,
   AdminAuditLogsPage,
+  AdminCategoryRequestsPage,
+  AdminEditAboutPage,
+  AdminReportsPage,
   TeamPage,
-  BlogPage
+  BlogPage,
+  ProfilePage
 } from './pages/Pages'
 
 export const router = createBrowserRouter([
@@ -59,6 +63,10 @@ export const router = createBrowserRouter([
       {
         path: '/blog',
         element: <BlogPage />,
+      },
+      {
+        path: '/profile/:username',
+        element: <ProfilePage />,
       },
       {
         path: '/server/:slug',
@@ -108,6 +116,10 @@ export const router = createBrowserRouter([
             path: 'servers',
             element: <AdminServersPage />,
           },
+          {
+            path: 'reports',
+            element: <AdminReportsPage />,
+          },
           // All below require Admin role
           {
             element: <ProtectedRoute requiredRole="admin" />,
@@ -127,6 +139,14 @@ export const router = createBrowserRouter([
               {
                 path: 'audit-logs',
                 element: <AdminAuditLogsPage />,
+              },
+              {
+                path: 'category-requests',
+                element: <AdminCategoryRequestsPage />,
+              },
+              {
+                path: 'about',
+                element: <AdminEditAboutPage />,
               },
             ]
           }

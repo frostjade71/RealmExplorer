@@ -16,7 +16,7 @@ export function AuthCallbackPage() {
           logAction('LOGIN', { method: 'oauth' }, session.user.id, null).catch(() => {})
         }).catch(() => {})
       }
-      navigate('/', { replace: true })
+      navigate('/dashboard', { replace: true })
     }
     
     handleCallback()

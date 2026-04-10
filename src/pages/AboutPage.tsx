@@ -2,7 +2,6 @@ import { Users, Code, Globe, Swords, Cloud, Box, ShieldAlert, Cpu, MessageSquare
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn, FramerInList } from '../components/FramerIn'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
 import aboutHero from '../assets/aboutRE.png'
 
 export function AboutPage() {
@@ -137,9 +136,14 @@ export function AboutPage() {
         {/* CTA */}
         <FramerIn className="text-center pb-20">
           <h2 className="text-3xl font-pixel text-white mb-8">So what are you waiting for?</h2>
-          <Link to="/auth/callback" className="inline-flex items-center gap-3 bg-[#4EC44E] text-[#002202] px-12 py-5 rounded-2xl font-headline font-bold text-lg hover:bg-[#85fc7e] hover:shadow-2xl hover:shadow-green-500/20 active:scale-95 transition-all">
+          <a 
+            href="https://discord.com/invite/realmexplorer" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="inline-flex items-center gap-3 bg-[#4EC44E] text-[#002202] px-12 py-5 rounded-2xl font-headline font-bold text-lg hover:bg-[#85fc7e] hover:shadow-2xl hover:shadow-green-500/20 active:scale-95 transition-all"
+          >
             Join us Today!
-          </Link>
+          </a>
         </FramerIn>
 
       </div>

@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (!cancelled && data) {
-          setProfile(data as Profile)
+          setProfile(data as unknown as Profile)
         }
       } catch (e) {
         console.error('Profile fetch failed:', e)
@@ -80,10 +80,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session?.user?.id])
 
   async function signInWithDiscord() {
+    // Determine the base site URL for redirects. Use env var if set (for production),
+    // otherwise fallback to current origin (useful for local dev and preview deployments).
+    const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin
+    
     await supabase.auth.signInWithOAuth({
       provider: 'discord',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${siteUrl}/auth/callback`,
         scopes: 'identify email guilds'
       }
     })

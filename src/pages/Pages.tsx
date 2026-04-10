@@ -8,6 +8,7 @@ export { SubmitPage } from './SubmitPage'
 export { DashboardPage } from './DashboardPage'
 export { TeamPage } from './TeamPage'
 export { BlogPage } from './BlogPage'
+export { ProfilePage } from './ProfilePage'
 
 export function NotFoundPage() { return <div className="p-12 text-center text-white font-pixel">404 - Not Found</div> }
 
@@ -17,4 +18,7 @@ export { AdminSettingsPage } from './AdminSettingsPage'
 export { AdminOverviewPage } from './AdminOverviewPage'
 export { AdminEventsPage } from './AdminEventsPage'
 export { AdminAuditLogsPage } from './AdminAuditLogsPage'
+export { AdminCategoryRequestsPage } from './AdminCategoryRequestsPage'
+export { AdminEditAboutPage } from './AdminEditAboutPage'
+export { AdminReportsPage } from './AdminReportsPage'
 export { AuthCallbackPage } from './AuthCallbackPage'

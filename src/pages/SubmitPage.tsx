@@ -285,9 +285,9 @@ export function SubmitPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2 col-span-2 md:col-span-1">
               <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
-                <Layers className="w-3 h-3" /> Entity Type
+                <Layers className="w-3 h-3" /> Type
               </label>
-              <div className="flex gap-4">
+              <div className="flex flex-col md:flex-row gap-3 md:gap-4">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -304,7 +304,7 @@ export function SubmitPage() {
                   onClick={() => setFormData({ ...formData, type: 'realm' })}
                   className={`flex-1 py-3 px-4 rounded-xl border flex items-center justify-center gap-2 font-headline font-bold transition-all whitespace-nowrap ${formData.type === 'realm' ? 'bg-realm-green/10 border-realm-green text-realm-green' : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
                 >
-                  <Globe className="w-4 h-4" /> Bedrock
+                  <Globe className="w-4 h-4" /> Bedrock (Realm)
                 </motion.button>
               </div>
             </div>
@@ -455,7 +455,7 @@ export function SubmitPage() {
                         setFormData({ ...formData, social_links: newLinks })
                       }}
                       options={socialOptions}
-                      className="w-40 flex-shrink-0"
+                      className="w-[52px] md:w-40 flex-shrink-0"
                     />
                     <input
                       type="url"
@@ -474,7 +474,7 @@ export function SubmitPage() {
                         const newLinks = (formData.social_links || []).filter((_, i) => i !== index)
                         setFormData({ ...formData, social_links: newLinks })
                       }}
-                      className="p-2 text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-2 text-zinc-600 hover:text-red-400 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

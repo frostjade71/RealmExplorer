@@ -1,5 +1,5 @@
 import { useAdminServers } from '../hooks/queries'
-import { useUpdateServerStatusMutation, useSendMessageMutation } from '../hooks/mutations'
+import { useUpdateServerStatusMutation, useSendMessageMutation, useDeleteServerMutation } from '../hooks/mutations'
 import type { ServerStatus, Server } from '../types'
 import { LoadingSpinner } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
@@ -7,6 +7,7 @@ import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
 import { useState, useMemo } from 'react'
 import { ContactOwnerModal } from '../components/ContactOwnerModal'
+import { ConfirmationModal } from '../components/ConfirmationModal'
 import { useAuth } from '../contexts/AuthContext'
 import { Search, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -18,9 +19,12 @@ export function AdminServersPage() {
   const { data: servers = [], isLoading: loading } = useAdminServers()
   const updateMutation = useUpdateServerStatusMutation()
   const sendMessageMutation = useSendMessageMutation()
+  const deleteMutation = useDeleteServerMutation()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('review')
+
+  const [serverToDelete, setServerToDelete] = useState<Server | null>(null)
 
   const filteredServers = useMemo(() => {
     return servers.filter(server => {
@@ -100,6 +104,25 @@ export function AdminServersPage() {
       console.error('Failed to process admin action:', error)
       toast.error('Action Failed', { description: error.message || 'An error occurred.' })
     }
+  }
+
+  const handleDeleteConfirm = () => {
+    if (!serverToDelete || !profile) return
+
+    deleteMutation.mutate(
+      { id: serverToDelete.id, adminId: profile.id, adminName: profile.discord_username },
+      {
+        onSuccess: () => {
+          toast.success('Server Deleted', {
+            description: `${serverToDelete.name} has been permanently removed.`
+          })
+          setServerToDelete(null)
+        },
+        onError: (err: any) => {
+          toast.error('Deletion Failed', { description: err.message })
+        }
+      }
+    )
   }
 
   if (loading) return <LoadingSpinner />
@@ -303,6 +326,16 @@ export function AdminServersPage() {
                       >
                         <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">mail</span>
                       </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setServerToDelete(server)
+                        }}
+                        className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-red-500/20 group/btn"
+                        title="Delete Server"
+                      >
+                        <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">delete</span>
+                      </button>
                     </div>
                   </td>
                 </motion.tr>
@@ -334,6 +367,17 @@ export function AdminServersPage() {
         title={modalConfig.type === 'rejection' ? 'Reject Server Listing' : 'Contact Owner'}
         submitLabel={modalConfig.type === 'rejection' ? 'Reject & Send' : 'Send Message'}
         type={modalConfig.type}
+      />
+
+      <ConfirmationModal
+        isOpen={!!serverToDelete}
+        onClose={() => setServerToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Server listing"
+        message={`Are you sure you want to permanently delete "${serverToDelete?.name}"? This action will remove all associated votes, ratings, and media. This cannot be undone.`}
+        confirmLabel="Delete Permanently"
+        isDangerous
+        isLoading={deleteMutation.isPending}
       />
     </AnimatedPage>
   )

@@ -5,7 +5,17 @@ import { Star } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { slugify } from '../lib/urlUtils'
 
-export function ServerCard({ server, showStatus = false }: { server: Server, showStatus?: boolean }) {
+export function ServerCard({ 
+  server, 
+  showStatus = false,
+  actions,
+  hideVotes = false
+}: { 
+  server: Server, 
+  showStatus?: boolean,
+  actions?: React.ReactNode,
+  hideVotes?: boolean
+}) {
   const statusInfo = {
     approved: { label: 'Active', bg: 'bg-realm-green/10', text: 'text-realm-green' },
     pending: { label: 'Pending', bg: 'bg-yellow-500/10', text: 'text-yellow-500' },
@@ -23,32 +33,32 @@ export function ServerCard({ server, showStatus = false }: { server: Server, sho
         whileTap={{ scale: 0.98 }}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-surface border border-outline-variant/30 p-6 rounded-xl hover:shadow-2xl hover:shadow-green-950/20 hover:border-t-realm-green transition-all duration-300 flex flex-col h-full overflow-hidden relative cursor-pointer"
+        className="bg-surface border border-outline-variant/30 p-4 md:p-6 rounded-xl hover:shadow-2xl hover:shadow-green-950/20 hover:border-t-realm-green transition-all duration-300 flex flex-col h-full overflow-hidden relative cursor-pointer"
       >
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-4 w-full">
+        <div className="flex items-start justify-between mb-3 md:mb-4">
+          <div className="flex items-center gap-3 md:gap-4 w-full">
             <div 
-              className="w-14 h-14 bg-zinc-900 rounded-lg overflow-hidden flex-shrink-0 border border-zinc-800"
+              className="w-12 h-12 md:w-14 md:h-14 bg-zinc-900 rounded-lg overflow-hidden flex-shrink-0 border border-zinc-800"
             >
               {server.icon_url ? (
                 <img src={server.icon_url} alt={server.name} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-zinc-600 font-pixel text-xs">
+                <div className="w-full h-full flex items-center justify-center text-zinc-600 font-pixel text-[10px] md:text-xs">
                   {server.name.substring(0, 2).toUpperCase()}
                 </div>
               )}
             </div>
-            <div className="min-w-0 flex-grow pr-6">
+            <div className="min-w-0 flex-grow pr-4 md:pr-6">
               <h3 className={`font-pixel ${
-                server.name.length > 25 ? 'text-xs' : 
-                server.name.length > 15 ? 'text-sm' : 
-                'text-base'
+                server.name.length > 25 ? 'text-[11px] md:text-xs' : 
+                server.name.length > 15 ? 'text-xs md:text-sm' : 
+                'text-sm md:text-base'
               } line-clamp-2 mb-1 transition-colors leading-tight`}>
                 {server.name}
               </h3>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
                 {(showStatus || server.status !== 'approved') && (
-                  <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border border-current/10 ${statusInfo.bg} ${statusInfo.text}`}>
+                  <span className={`px-1.5 md:px-2 py-0.5 text-[8px] md:text-[10px] font-bold uppercase tracking-wider rounded border border-current/10 ${statusInfo.bg} ${statusInfo.text}`}>
                     {statusInfo.label}
                   </span>
                 )}
@@ -58,26 +68,33 @@ export function ServerCard({ server, showStatus = false }: { server: Server, sho
           </div>
         </div>
         
-        <p className="text-on-surface-variant text-sm flex-grow line-clamp-2 leading-relaxed mb-6 group-hover:text-zinc-300 transition-colors">
+        <p className="text-on-surface-variant text-[13px] md:text-sm flex-grow line-clamp-2 leading-relaxed mb-4 md:mb-6 group-hover:text-zinc-300 transition-colors">
           {server.description || "No description provided."}
         </p>
         
-        <div className="flex items-center justify-between pt-4 border-t border-outline-variant/20 mt-auto">
+        <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-outline-variant/20 mt-auto">
           <div className="flex flex-col">
-            <span className="text-xs text-zinc-500 uppercase tracking-widest font-headline mb-0.5">Ratings</span>
+            <span className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest font-headline mb-0.5">Ratings</span>
             <div className="flex items-center gap-1.5">
-              <Star className={`w-3.5 h-3.5 ${server.average_rating > 0 ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-600'}`} />
-              <span className="text-sm font-bold text-white/90">
+              <Star className={`w-3 md:w-3.5 h-3 md:h-3.5 ${server.average_rating > 0 ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-600'}`} />
+              <span className="text-xs md:text-sm font-bold text-white/90">
                 {server.average_rating > 0 ? server.average_rating.toFixed(1) : 'No ratings'}
               </span>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col items-end">
-              <span className="text-xs text-zinc-500 uppercase tracking-widest font-headline mb-0.5">Votes</span>
-              <span className="text-sm font-bold text-realm-green">{server.votes.toLocaleString()}</span>
-            </div>
+          <div className="flex items-center">
+            {actions && (
+              <div onClick={(e) => e.stopPropagation()} className="flex">
+                {actions}
+              </div>
+            )}
+            {!hideVotes && (
+              <div className="flex flex-col items-end ml-3 md:ml-4">
+                <span className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest font-headline mb-0.5">Votes</span>
+                <span className="text-xs md:text-sm font-bold text-realm-green">{server.votes.toLocaleString()}</span>
+              </div>
+            )}
           </div>
         </div>
 

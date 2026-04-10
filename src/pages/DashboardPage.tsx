@@ -1,17 +1,18 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useUserServers } from '../hooks/queries'
 import { useDeleteServerMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { ServerCard } from '../components/ServerCard'
-import { PlusCircle } from 'lucide-react'
+import { PlusCircle, Pencil, Trash2 } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function DashboardPage() {
   const { user, profile } = useAuth()
+  const navigate = useNavigate()
   
   const { data: servers = [], isLoading: loading } = useUserServers(user?.id)
   const deleteMutation = useDeleteServerMutation()
@@ -26,7 +27,7 @@ export function DashboardPage() {
 
   const confirmDelete = () => {
     if (deleteId) {
-      deleteMutation.mutate(deleteId, {
+      deleteMutation.mutate({ id: deleteId }, {
         onSuccess: () => setDeleteId(null)
       })
     }
@@ -82,29 +83,29 @@ export function DashboardPage() {
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
-        <FramerIn className="flex items-center gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-4 md:gap-6">
+        <FramerIn className="flex items-center gap-4 md:gap-6">
           <motion.div 
             whileHover={{ scale: 1.05, rotate: 5 }}
-            className="w-16 h-16 bg-zinc-800 rounded-2xl overflow-hidden border border-zinc-700 shadow-xl"
+            className="w-12 h-12 md:w-16 md:h-16 bg-zinc-800 rounded-xl md:rounded-2xl overflow-hidden border border-zinc-700 shadow-xl"
           >
              <img src={profile?.discord_avatar || ''} alt="avatar" className="w-full h-full object-cover" />
           </motion.div>
           <div>
-            <h1 className="text-3xl font-pixel text-white mb-2">Welcome, {profile?.discord_username}</h1>
-            <p className="text-zinc-500 font-headline uppercase tracking-widest text-xs">
+            <h1 className="text-xl md:text-3xl font-pixel text-white mb-1 md:mb-2 text-wrap">Welcome, {profile?.discord_username}</h1>
+            <p className="text-zinc-500 font-headline uppercase tracking-widest text-[9px] md:text-xs">
               Role: <span className="text-realm-green">{profile?.role}</span>
             </p>
           </div>
         </FramerIn>
         
-        <FramerIn delay={0.2}>
+        <FramerIn delay={0.2} className="self-end md:self-auto">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link 
               to="/submit" 
-              className="flex items-center gap-2 bg-[#4EC44E] text-[#002202] px-6 py-3 rounded-xl font-headline font-bold hover:bg-[#85fc7e] transition-colors shadow-lg shadow-green-500/20"
+              className="flex items-center gap-2 bg-[#4EC44E] text-[#002202] px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl font-headline font-bold hover:bg-[#85fc7e] transition-colors shadow-lg shadow-green-500/20 text-xs md:text-sm"
             >
-              <PlusCircle className="w-5 h-5" />
+              <PlusCircle className="w-4 h-4 md:w-5 md:h-5" />
               New Listing
             </Link>
           </motion.div>
@@ -148,23 +149,37 @@ export function DashboardPage() {
               }}
               className="relative group"
             >
-              <ServerCard server={server} showStatus={true} />
-              
-              {/* Dashboard Actions overlay on hover */}
-              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 z-10 bg-zinc-950/80 p-1.5 rounded-lg backdrop-blur-sm border border-zinc-800">
-                  <Link 
-                    to={`/submit/${server.id}`}
-                    className="text-xs font-bold text-blue-400 hover:text-blue-300 px-2 py-1"
-                  >
-                    EDIT
-                  </Link>
-                  <button 
-                    onClick={() => handleDeleteClick(server.id, server.name)}
-                    className="text-xs font-bold text-red-500 hover:text-red-400 px-2 py-1"
-                  >
-                    DELETE
-                  </button>
-              </div>
+              <ServerCard 
+                server={server} 
+                showStatus={true} 
+                hideVotes={true}
+                actions={
+                  <div className="flex flex-col gap-1.5">
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        navigate(`/submit/${server.id}`)
+                      }}
+                      className="text-[11px] md:text-sm font-bold text-blue-400 hover:text-blue-300 px-4 py-2 bg-blue-500/10 rounded-lg transition-colors border border-blue-500/20 text-center min-w-[100px] flex items-center justify-center gap-2"
+                    >
+                      <Pencil className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                      EDIT
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleDeleteClick(server.id, server.name)
+                      }}
+                      className="text-[11px] md:text-sm font-bold text-red-500 hover:text-red-400 px-4 py-2 bg-red-500/10 rounded-lg transition-colors border border-red-500/20 text-center min-w-[100px] flex items-center justify-center gap-2"
+                    >
+                      <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                      DELETE
+                    </button>
+                  </div>
+                }
+              />
             </motion.div>
           ))}
         </motion.div>

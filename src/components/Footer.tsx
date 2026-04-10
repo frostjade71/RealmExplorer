@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Github } from 'lucide-react'
-import { SiDiscord } from 'react-icons/si'
+import { SiDiscord, SiKofi } from 'react-icons/si'
 
 export function Footer() {
   return (
@@ -33,6 +33,16 @@ export function Footer() {
         <div className="flex flex-col items-center md:items-end gap-4">
           <div className="flex gap-4">
             <a 
+              href="https://ko-fi.com/P5P11XJVKI" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="px-4 h-10 bg-white/5 rounded-lg flex items-center gap-2 text-white hover:bg-[#FF5E5B] hover:text-white transition-all hover:scale-105"
+              title="Support Frost on Ko-fi"
+            >
+              <SiKofi className="w-5 h-5" />
+              <span className="text-xs font-headline font-medium">Support Frost on Ko-fi</span>
+            </a>
+            <a 
               href="https://discord.com/invite/realmexplorer" 
               target="_blank" 
               rel="noreferrer" 
@@ -51,7 +61,7 @@ export function Footer() {
               <Github className="w-5 h-5" />
             </a>
           </div>
-          <p className="font-body text-xs text-white/40">v0.2.0-beta | © 2026 Realm Explorer. All rights reserved.</p>
+          <p className="font-body text-xs text-white/40">v0.5.0-beta | © 2026 Realm Explorer. All rights reserved.</p>
         </div>
       </div>
     </footer>
