@@ -122,7 +122,7 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square' }: 
       </label>
       
       <div 
-        className={`relative group rounded-xl border-2 border-dashed border-zinc-800 bg-zinc-950/50 hover:border-realm-green transition-all overflow-hidden ${
+        className={`relative group rounded-lg border-2 border-dashed border-zinc-800 bg-zinc-950/50 hover:border-realm-green transition-all overflow-hidden ${
           aspectRatio === 'square' ? 'aspect-square max-w-[200px]' : 'aspect-video'
         }`}
       >
@@ -177,7 +177,7 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square' }: 
                     e.stopPropagation()
                     removeImage()
                   }}
-                  className="absolute top-2 right-2 z-30 bg-red-500/80 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                  className="absolute top-2 right-2 z-30 bg-red-500/80 text-white p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>

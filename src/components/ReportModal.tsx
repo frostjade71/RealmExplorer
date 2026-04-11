@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Flag, X, Send, AlertTriangle } from 'lucide-react'
+import { X, Send, AlertTriangle } from 'lucide-react'
 
 interface ReportModalProps {
   isOpen: boolean
@@ -44,10 +44,7 @@ export function ReportModal({
           >
             {/* Header */}
             <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center border border-red-500/20">
-                  <Flag className="w-4 h-4 text-red-400" />
-                </div>
+              <div className="flex items-center">
                 <h2 className="font-pixel text-white text-lg">Report Server</h2>
               </div>
               <button 

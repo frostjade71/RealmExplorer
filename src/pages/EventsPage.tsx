@@ -168,15 +168,9 @@ export function EventsPage() {
       <div className="max-w-7xl mx-auto px-8 py-20">
       {/* Vote Section */}
       <FramerIn delay={0.2}>
-        <div className="mb-10 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-pixel text-white mb-2 uppercase tracking-wide">Vote Your OTM!</h2>
-            <p className="text-zinc-500 font-headline text-sm">Support your favorites and help them reach the throne.</p>
-          </div>
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-realm-green/10 rounded-full border border-realm-green/20">
-             <div className="w-1.5 h-1.5 rounded-full bg-realm-green animate-pulse" />
-             <span className="text-[10px] font-pixel text-realm-green uppercase tracking-widest font-bold">Active Voting</span>
-          </div>
+        <div className="mb-10">
+          <h2 className="text-2xl font-pixel text-white mb-2 uppercase tracking-wide">Vote Your OTM!</h2>
+          <p className="text-zinc-500 font-headline text-sm">Support your favorites and help them reach the throne.</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">

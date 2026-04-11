@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useServer, useUserVoteStatus, useServerRatings, useServerMessages } from '../hooks/queries'
-import { useVoteMutation, useSubmitRatingMutation, useSubmitReportMutation } from '../hooks/mutations'
+import { useVoteMutation, useSubmitRatingMutation, useSubmitReportMutation, useDeleteRatingMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { CategoryBadge } from '../components/CategoryBadge'
-import { Globe, Copy, CheckCircle, ArrowUpSquare, Star, ExternalLink, Calendar, Clock, Flag } from 'lucide-react'
+import { Globe, Copy, CheckCircle, ArrowUpSquare, Star, ExternalLink, Calendar, Clock, Flag, Mail } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { SiDiscord, SiTiktok, SiInstagram, SiYoutube, SiFacebook, SiTwitch } from 'react-icons/si'
 import { AnimatedPage } from '../components/AnimatedPage'
@@ -42,6 +42,7 @@ export function ServerDetailPage() {
   const { data: messages = [] } = useServerMessages(server?.id)
   const voteMutation = useVoteMutation()
   const ratingMutation = useSubmitRatingMutation()
+  const deleteRatingMutation = useDeleteRatingMutation()
   
   const [copied, setCopied] = useState(false)
   const [bedrockCopied, setBedrockCopied] = useState(false)
@@ -112,6 +113,25 @@ export function ServerDetailPage() {
     )
   }
 
+  const handleRatingDelete = () => {
+    if (!user || !server) return
+    deleteRatingMutation.mutate(
+      { userId: user.id, serverId: server.id },
+      {
+        onSuccess: () => {
+          setIsRatingModalOpen(false)
+          refetchServer()
+          toast.success('Rating Removed', {
+            icon: <Star className="w-4 h-4 text-realm-green" />
+          })
+        },
+        onError: () => {
+          setError("Failed to remove rating. Please try again.")
+        }
+      }
+    )
+  }
+
   const reportMutation = useSubmitReportMutation()
 
   const handleReportSubmit = (subject: string, message: string) => {
@@ -141,13 +161,14 @@ export function ServerDetailPage() {
   return (
     <AnimatedPage className="max-w-5xl mx-auto px-4 md:px-8 py-8 md:py-12">
       {/* Banner */}
-      <FramerIn delay={0.1} className="w-full h-32 md:h-64 bg-zinc-900 rounded-t-2xl overflow-hidden relative border border-zinc-800">
+      <FramerIn delay={0.1} className="w-full h-32 md:h-64 bg-zinc-950 rounded-t-xl overflow-hidden relative border border-zinc-800">
         {server.banner_url ? (
            <motion.img 
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
+            initial={{ scale: 1.1, opacity: 0 }}
+            animate={{ scale: 1, opacity: 0.8 }}
             transition={{ duration: 0.8 }}
-            src={server.banner_url} alt="Banner" className="w-full h-full object-cover opacity-80" 
+            src={server.banner_url} alt="Banner" className="w-full h-full object-cover" 
+            fetchPriority="high"
            />
         ) : (
            <div className="w-full h-full pixel-grid opacity-20"></div>
@@ -155,8 +176,8 @@ export function ServerDetailPage() {
       </FramerIn>
 
       {/* Header Info */}
-      <FramerIn delay={0.2} className="bg-zinc-950 border-x border-b border-zinc-800 rounded-b-2xl p-5 md:p-8 mb-6 md:mb-8 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative -mt-4 shadow-xl">
-        <div className="w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-xl overflow-hidden flex-shrink-0 border-4 border-zinc-950 -mt-10 md:-mt-12 z-10 shadow-lg">
+      <FramerIn delay={0.2} className="bg-zinc-950 border-x border-b border-zinc-800 rounded-b-xl p-5 md:p-8 mb-6 md:mb-8 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative -mt-4 shadow-xl">
+        <div className="w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-lg overflow-hidden flex-shrink-0 border-4 border-zinc-950 -mt-10 md:-mt-12 z-10 shadow-lg">
 
           {server.icon_url ? (
             <img src={server.icon_url} alt="Icon" className="w-full h-full object-cover" />
@@ -170,8 +191,8 @@ export function ServerDetailPage() {
         <div className="flex-1 w-full pt-1 md:pt-2">
 
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-            <div className="w-full">
-              <h1 className="text-xl md:text-3xl font-pixel text-white mb-2 md:mb-3 truncate">{server.name}</h1>
+            <div className="min-w-0 w-full">
+              <h1 className="text-lg md:text-2xl font-pixel text-white mb-2 md:mb-3 break-words whitespace-normal leading-tight">{server.name}</h1>
               <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
                 {!isApproved && statusInfo && (
                   <span className={`px-2 py-0.5 text-[9px] md:text-[10px] font-bold uppercase tracking-wider rounded border border-current/10 ${statusInfo.bg} ${statusInfo.text}`}>
@@ -194,7 +215,7 @@ export function ServerDetailPage() {
                       whileTap={isApproved ? { scale: 0.95 } : {}}
                       onClick={handleVote}
                       disabled={alreadyVoted || voteMutation.isPending || checkingVote || !isApproved}
-                      className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-l-xl rounded-r-md font-headline font-bold transition-colors shadow-lg text-xs md:text-sm ${
+                      className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-l-lg rounded-r-sm font-headline font-bold transition-colors shadow-lg text-xs md:text-sm ${
                         !isApproved ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-800 opacity-50' :
                         alreadyVoted ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' : 
                         'bg-[#4EC44E] text-zinc-950 hover:bg-[#85fc7e] shadow-green-500/20'
@@ -208,7 +229,7 @@ export function ServerDetailPage() {
                       whileTap={isApproved ? { scale: 0.9 } : {}}
                       onClick={() => isApproved && setIsRatingModalOpen(true)}
                       disabled={!isApproved}
-                      className={`p-2.5 md:p-3 rounded-r-xl rounded-l-md border transition-colors shadow-lg ${
+                      className={`p-2.5 md:p-3 rounded-r-lg rounded-l-sm border transition-colors shadow-lg ${
                         !isApproved ? 'bg-zinc-900 border-zinc-800 text-zinc-600 cursor-not-allowed opacity-50' : 
                         'bg-zinc-900 border-zinc-800 text-yellow-400 hover:bg-zinc-800'
                       }`}
@@ -238,7 +259,7 @@ export function ServerDetailPage() {
                       className="w-full mt-4 space-y-3"
                     >
                       {messages.map((msg: any) => (
-                        <div key={msg.id} className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                        <div key={msg.id} className={`p-4 rounded-lg border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
                           msg.type === 'rejection' 
                             ? 'bg-red-500/10 border-red-500/20' 
                             : 'bg-blue-500/10 border-blue-500/20'
@@ -272,7 +293,7 @@ export function ServerDetailPage() {
                                   {msg.profiles.role}
                                 </div>
                               </div>
-                              <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10 bg-zinc-900">
+                              <div className="w-8 h-8 rounded-md overflow-hidden border border-white/10 bg-zinc-900">
                                 {msg.profiles.discord_avatar ? (
                                   <img src={msg.profiles.discord_avatar} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
@@ -289,7 +310,7 @@ export function ServerDetailPage() {
                   )}
                 </div>
             ) : (
-              <div className="text-[10px] md:text-xs font-headline text-zinc-500 border border-zinc-800 px-3 md:px-4 py-1.5 md:py-2 rounded-lg w-full text-center md:w-auto">Login to Vote</div>
+              <div className="text-[10px] md:text-xs font-headline text-zinc-500 border border-zinc-800 px-3 md:px-4 py-1.5 md:py-2 rounded-md w-full text-center md:w-auto">Login to Vote</div>
             )}
           </div>
 
@@ -308,10 +329,10 @@ export function ServerDetailPage() {
               {server.type === 'server' ? (
                 <div className="flex flex-col gap-1 w-full sm:w-auto">
                    <div className="text-[8px] md:text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Java IP</div>
-                   <motion.button 
+                    <motion.button 
                     whileTap={{ scale: 0.98 }}
                     onClick={handleCopyIp}
-                    className="flex items-center justify-center sm:justify-start gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-headline text-xs md:text-sm transition-all border border-zinc-800 w-full"
+                    className="flex items-center justify-center sm:justify-start gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-md font-headline text-xs md:text-sm transition-all border border-zinc-800 w-full"
                   >
                     {copied ? <CheckCircle className="w-3.5 h-3.5 text-realm-green" /> : <Copy className="w-3.5 h-3.5" />}
                     {server.ip_or_code || 'Hidden IP'}
@@ -326,7 +347,7 @@ export function ServerDetailPage() {
                     target="_blank"
                     rel="noreferrer"
                     whileTap={{ scale: 0.98 }}
-                    className="flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-5 md:px-6 py-1.5 md:py-2 rounded-lg font-headline text-xs md:text-sm transition-all border border-zinc-800 w-full"
+                    className="flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-5 md:px-6 py-1.5 md:py-2 rounded-md font-headline text-xs md:text-sm transition-all border border-zinc-800 w-full"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     Connect
@@ -338,10 +359,10 @@ export function ServerDetailPage() {
               {server.type === 'server' && server.bedrock_ip && (
                 <div className="flex flex-col gap-1 w-full sm:w-auto">
                    <div className="text-[8px] md:text-[9px] font-bold text-realm-green/60 uppercase tracking-widest ml-1">Bedrock IP</div>
-                   <motion.button 
+                    <motion.button 
                     whileTap={{ scale: 0.98 }}
                     onClick={handleCopyBedrockIp}
-                    className="flex items-center justify-center sm:justify-start gap-2 bg-realm-green/5 hover:bg-realm-green/10 text-realm-green px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-headline text-xs md:text-sm transition-all border border-realm-green/20 w-full"
+                    className="flex items-center justify-center sm:justify-start gap-2 bg-realm-green/5 hover:bg-realm-green/10 text-realm-green px-3 md:px-4 py-1.5 md:py-2 rounded-md font-headline text-xs md:text-sm transition-all border border-realm-green/20 w-full"
                   >
                     {bedrockCopied ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     {server.bedrock_ip}
@@ -356,7 +377,7 @@ export function ServerDetailPage() {
                     href={server.website_url} 
                     target="_blank" 
                     rel="noreferrer" 
-                    className="flex-1 sm:flex-none flex items-center justify-center p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-[#5865F2] hover:border-[#5865F2]/30 transition-all shadow-sm"
+                    className="flex-1 sm:flex-none flex items-center justify-center p-2 bg-zinc-900 border border-zinc-800 rounded-md text-[#5865F2] hover:border-[#5865F2]/40 transition-all shadow-sm"
                     title="Discord Invite"
                   >
                     <SiDiscord className="w-4 h-4 md:w-5 h-5" />
@@ -365,29 +386,34 @@ export function ServerDetailPage() {
 
                 {/* Curated Social Links */}
                 {server.social_links && server.social_links.map((link, idx) => {
-                  const icons = {
+                  const icons: Record<string, React.ReactNode> = {
                     website: <Globe className="w-4 h-4 md:w-5 h-5" />,
                     instagram: <SiInstagram className="w-4 h-4 md:w-5 h-5" />,
                     youtube: <SiYoutube className="w-4 h-4 md:w-5 h-5" />,
                     tiktok: <SiTiktok className="w-4 h-4 md:w-5 h-5" />,
                     facebook: <SiFacebook className="w-4 h-4 md:w-5 h-5" />,
                     twitch: <SiTwitch className="w-4 h-4 md:w-5 h-5" />,
+                    discord: <SiDiscord className="w-4 h-4 md:w-5 h-5" />,
+                    email: <Mail className="w-4 h-4 md:w-5 h-5" />
                   }
-                  const hoverColors = {
-                    website: 'hover:text-white',
-                    instagram: 'hover:text-pink-500',
-                    youtube: 'hover:text-red-600',
-                    tiktok: 'hover:text-cyan-400',
-                    facebook: 'hover:text-blue-600',
-                    twitch: 'hover:text-purple-500',
+                  const colors: Record<string, { text: string; border: string }> = {
+                    website: { text: 'text-white', border: 'hover:border-white/30' },
+                    instagram: { text: 'text-pink-500', border: 'hover:border-pink-500/40' },
+                    youtube: { text: 'text-red-600', border: 'hover:border-red-600/40' },
+                    tiktok: { text: 'text-cyan-400', border: 'hover:border-cyan-400/40' },
+                    facebook: { text: 'text-blue-600', border: 'hover:border-blue-600/40' },
+                    twitch: { text: 'text-purple-500', border: 'hover:border-purple-500/40' },
+                    discord: { text: 'text-[#5865F2]', border: 'hover:border-[#5865F2]/40' },
+                    email: { text: 'text-white', border: 'hover:border-white/30' }
                   }
+                  const theme = colors[link.platform] || { text: 'text-white', border: 'hover:border-white/30' }
                   return (
                     <a 
                       key={idx}
                       href={link.url} 
                       target="_blank" 
                       rel="noreferrer" 
-                      className={`flex-1 sm:flex-none flex items-center justify-center p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 ${hoverColors[link.platform] || 'hover:text-white'} transition-all shadow-sm`}
+                      className={`flex-1 sm:flex-none flex items-center justify-center p-2 bg-zinc-900 border border-zinc-800 rounded-md ${theme.text} ${theme.border} transition-all shadow-sm`}
                       title={link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}
                     >
                       {icons[link.platform] || <Globe className="w-4 h-4 md:w-5 h-5" />}
@@ -401,9 +427,9 @@ export function ServerDetailPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         <FramerIn delay={0.3} className="md:col-span-2 space-y-6 md:space-y-8">
-          <div className="bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-2xl">
-            <h2 className="font-pixel text-white text-lg md:text-xl mb-4 md:mb-6">About</h2>
-            <div className="text-zinc-300 font-body leading-relaxed text-sm">
+          <div className="bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-xl">
+            <h2 className="font-pixel text-white text-base md:text-lg mb-4 md:mb-6">About</h2>
+            <div className="text-zinc-300 font-body leading-relaxed text-[13px]">
               {server.description ? (
                 <RichText content={server.description} />
               ) : (
@@ -414,7 +440,7 @@ export function ServerDetailPage() {
         </FramerIn>
         
         <FramerIn delay={0.4} className="space-y-4 md:space-y-6">
-          <div className="bg-zinc-900/50 border border-zinc-800 p-5 md:p-6 rounded-2xl">
+          <div className="bg-zinc-900/50 border border-zinc-800 p-5 md:p-6 rounded-xl">
             <h3 className="font-headline font-bold text-zinc-500 uppercase tracking-widest text-[10px] md:text-xs mb-4">Statistics</h3>
             <div className="flex flex-col gap-3 md:gap-4">
               <div className="flex justify-between items-center">
@@ -448,12 +474,16 @@ export function ServerDetailPage() {
           {owner && (
             <Link 
               to={`/profile/${owner.discord_username}`}
-              className="bg-zinc-900/50 border border-zinc-800 p-4 md:p-6 rounded-2xl flex items-center gap-3 md:gap-4 hover:bg-zinc-800/80 transition-all group"
+              className="bg-zinc-900/50 border border-zinc-800 p-4 md:p-6 rounded-xl flex items-center gap-3 md:gap-4 hover:bg-zinc-800/80 transition-all group"
             >
-              <img src={owner.discord_avatar || ''} className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-zinc-700 bg-zinc-800 group-hover:border-realm-green/30 transition-colors" alt="Owner" />
+              <img src={owner.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-zinc-700 bg-zinc-800 group-hover:border-realm-green/30 transition-colors" alt="Owner" />
               <div>
-                <p className="text-[9px] md:text-xs text-zinc-500 uppercase tracking-widest font-headline mb-0.5">Owner</p>
-                <p className="text-white text-sm md:text-base font-bold group-hover:text-realm-green transition-colors">{owner.discord_username}</p>
+                <p className={`text-[9px] md:text-xs uppercase tracking-widest font-headline mb-0.5 ${
+                  (server.submitter_role || 'Owner') === 'Owner' ? 'text-yellow-400' : 'text-realm-green'
+                }`}>
+                  {server.submitter_role || 'Owner'}
+                </p>
+                <p className="text-white text-sm md:text-base font-bold transition-colors">{owner.discord_username}</p>
               </div>
             </Link>
           )}
@@ -468,7 +498,7 @@ export function ServerDetailPage() {
               }
               setIsReportModalOpen(true)
             }}
-            className="w-full bg-zinc-900/50 border border-zinc-800 p-4 rounded-2xl flex items-center justify-center gap-3 text-zinc-500 hover:text-red-400 hover:border-red-500/20 hover:bg-red-500/5 transition-all group"
+            className="w-full bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl flex items-center justify-center gap-3 text-zinc-500 hover:text-red-400 hover:border-red-500/20 hover:bg-red-500/5 transition-all group"
           >
             <Flag className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
             <span className="font-headline font-bold uppercase tracking-widest text-[9px]">Report Server</span>
@@ -478,9 +508,9 @@ export function ServerDetailPage() {
 
       {/* Ratings Section */}
       <FramerIn delay={0.5} className="mt-6 md:mt-8">
-        <div className="bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-2xl">
+        <div className="bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-xl">
           <div className="flex items-center justify-between mb-6 md:mb-8">
-            <h2 className="font-pixel text-white text-lg md:text-xl">Ratings</h2>
+            <h2 className="font-pixel text-white text-base md:text-lg">Ratings</h2>
             <div className="flex items-center gap-2 md:gap-4 text-[10px] md:text-sm font-headline text-zinc-500 uppercase tracking-widest">
               <span>{server.rating_count} Reviews</span>
             </div>
@@ -494,7 +524,7 @@ export function ServerDetailPage() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   key={rating.id} 
-                  className="bg-zinc-950 border border-zinc-800 p-5 md:p-6 rounded-xl space-y-3"
+                  className="bg-zinc-950 border border-zinc-800 p-5 md:p-6 rounded-lg space-y-3"
                 >
                   <div className="flex justify-between items-start">
                     <Link 
@@ -502,7 +532,7 @@ export function ServerDetailPage() {
                       className="flex items-center gap-3 group/reviewer"
                     >
                       <img 
-                        src={rating.profiles?.discord_avatar || ''} 
+                        src={rating.profiles?.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} 
                         className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-800 bg-zinc-900 group-hover/reviewer:border-realm-green/30 transition-colors" 
                         alt="User" 
                       />
@@ -540,7 +570,11 @@ export function ServerDetailPage() {
         isOpen={isRatingModalOpen}
         onClose={() => setIsRatingModalOpen(false)}
         onSubmit={handleRatingSubmit}
+        onRemove={handleRatingDelete}
         isSubmitting={ratingMutation.isPending}
+        isRemoving={deleteRatingMutation.isPending}
+        initialRating={ratings?.find((r: any) => r.user_id === user?.id)?.rating}
+        initialComment={ratings?.find((r: any) => r.user_id === user?.id)?.comment || ''}
       />
 
       <ReportModal 

@@ -14,9 +14,11 @@ interface CustomSelectProps {
   options: Option[]
   placeholder?: string
   className?: string
+  hideLabel?: boolean
+  hideLabelMobile?: boolean
 }
 
-export function CustomSelect({ value, onChange, options, placeholder = 'Select an option', className = '' }: CustomSelectProps) {
+export function CustomSelect({ value, onChange, options, placeholder = 'Select an option', className = '', hideLabel = false, hideLabelMobile = false }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -37,15 +39,17 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Select a
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-2 md:px-4 py-3 text-white flex items-center justify-between hover:border-zinc-700 transition-all font-headline group focus:ring-1 focus:ring-realm-green/30 outline-none"
+        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2 md:px-4 py-3 text-white flex items-center justify-between hover:border-zinc-700 transition-all font-headline group focus:ring-1 focus:ring-realm-green/30 outline-none"
       >
         <div className="flex items-center gap-1.5 md:gap-3">
           <div className="flex-shrink-0">
             {selectedOption?.icon}
           </div>
-          <span className={`text-sm ${selectedOption ? 'text-white' : 'text-zinc-500'} hidden md:block`}>
-            {selectedOption ? selectedOption.label : placeholder}
-          </span>
+          {(!hideLabel || hideLabelMobile) && (
+            <span className={`text-sm ${selectedOption ? 'text-white' : 'text-zinc-500'} ${hideLabelMobile ? 'hidden md:inline' : ''}`}>
+              {selectedOption ? selectedOption.label : placeholder}
+            </span>
+          )}
         </div>
         <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -57,7 +61,7 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Select a
             animate={{ opacity: 1, y: 8, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.98 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute z-50 left-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden p-1.5 backdrop-blur-xl"
+            className="absolute z-50 left-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-lg shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden p-1.5 backdrop-blur-xl"
           >
             <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-0.5">
               {options.map((option) => (

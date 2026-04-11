@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useSubmitServerMutation, useUpdateServerMutation } from '../hooks/mutations'
 import { useServer } from '../hooks/queries'
 import { supabase } from '../lib/supabase'
 import type { ServerCategory, SocialLink } from '../types'
-import { Server, Globe, Plus, Trash2, Layers, Tags, Type, Link, Share2, FileText, MoreHorizontal } from 'lucide-react'
+import { Server, Globe, Plus, Trash2, Layers, Tags, Type, Link, Share2, FileText, MoreHorizontal, User } from 'lucide-react'
 import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch } from 'react-icons/si'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
@@ -24,6 +24,9 @@ import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
 
 export function SubmitPage() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
+  const roleParam = searchParams.get('role') || 'Owner'
+  
   const isEditing = !!id
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -42,7 +45,8 @@ export function SubmitPage() {
     website_url: '',
     icon_url: '',
     banner_url: '',
-    social_links: [] as SocialLink[]
+    social_links: [] as SocialLink[],
+    submitter_role: roleParam
   })
 
   const [showBedrockIp, setShowBedrockIp] = useState(false)
@@ -61,7 +65,8 @@ export function SubmitPage() {
         website_url: server.website_url || '',
         icon_url: server.icon_url || '',
         banner_url: server.banner_url || '',
-        social_links: server.social_links || []
+        social_links: server.social_links || [],
+        submitter_role: server.submitter_role || 'Owner'
       }
       setFormData(initialData)
       setShowBedrockIp(!!server.bedrock_ip)
@@ -157,7 +162,8 @@ export function SubmitPage() {
           port: formData.port === '' ? null : Number(formData.port),
           bedrock_ip: formData.bedrock_ip || null,
           slug,
-          status
+          status,
+          submitter_role: formData.submitter_role
         }
 
         updateMutation.mutate(
@@ -247,7 +253,7 @@ export function SubmitPage() {
       <div className="mb-10 text-center">
         <FramerIn>
           <h1 className="text-3xl font-pixel text-white mb-4">
-            {isEditing ? 'Edit Listing' : 'Submit Directory'}
+            {isEditing ? 'Edit Listing' : 'Submit Listing'}
           </h1>
           <p className="text-zinc-400 font-headline">
             {isEditing ? 'Modify your server or realm details below.' : 'Register your Server or Realm to our global index.'}
@@ -256,12 +262,28 @@ export function SubmitPage() {
       </div>
 
       <FramerIn delay={0.2}>
-        <form onSubmit={handleSubmit} className="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl space-y-6 shadow-2xl">
+        <div className="mb-6 flex justify-center">
+          <div className="inline-flex items-center gap-3 bg-zinc-900 border border-zinc-800 px-6 py-3 rounded-xl shadow-xl">
+             <div className="w-10 h-10 bg-realm-green/10 rounded-lg flex items-center justify-center">
+                <User className="w-5 h-5 text-realm-green" />
+             </div>
+             <div>
+                <p className="text-[10px] text-zinc-500 font-headline uppercase tracking-widest leading-none mb-1">Listing As</p>
+                <p className={`font-pixel text-sm uppercase leading-none ${
+                   formData.submitter_role === 'Owner' ? 'text-yellow-400' : 'text-realm-green'
+                }`}>
+                  {formData.submitter_role}
+                </p>
+             </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="bg-zinc-900 border border-zinc-800 p-8 rounded-xl space-y-6 shadow-2xl">
           {error && (
             <motion.div 
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl font-headline text-sm"
+              className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg font-headline text-sm"
             >
               {error}
             </motion.div>
@@ -287,25 +309,21 @@ export function SubmitPage() {
               <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
                 <Layers className="w-3 h-3" /> Type
               </label>
-              <div className="flex flex-col md:flex-row gap-3 md:gap-4">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+              <div className="flex flex-col md:flex-row gap-3 md:gap-4 relative z-10">
+                <button
                   type="button"
                   onClick={() => setFormData({ ...formData, type: 'server' })}
-                  className={`flex-1 py-3 px-4 rounded-xl border flex items-center justify-center gap-2 font-headline font-bold transition-all whitespace-nowrap ${formData.type === 'server' ? 'bg-realm-green/10 border-realm-green text-realm-green' : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
+                  className={`flex-1 py-3 px-4 rounded-lg border flex items-center justify-center gap-2 font-headline font-bold transition-all active:scale-95 whitespace-nowrap ${formData.type === 'server' ? 'bg-realm-green/10 border-realm-green text-realm-green' : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
                 >
                   <Server className="w-4 h-4" /> Server (Java)
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                </button>
+                <button
                   type="button"
                   onClick={() => setFormData({ ...formData, type: 'realm' })}
-                  className={`flex-1 py-3 px-4 rounded-xl border flex items-center justify-center gap-2 font-headline font-bold transition-all whitespace-nowrap ${formData.type === 'realm' ? 'bg-realm-green/10 border-realm-green text-realm-green' : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
+                  className={`flex-1 py-3 px-4 rounded-lg border flex items-center justify-center gap-2 font-headline font-bold transition-all active:scale-95 whitespace-nowrap ${formData.type === 'realm' ? 'bg-realm-green/10 border-realm-green text-realm-green' : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300'}`}
                 >
                   <Globe className="w-4 h-4" /> Bedrock (Realm)
-                </motion.button>
+                </button>
               </div>
             </div>
 
@@ -330,7 +348,7 @@ export function SubmitPage() {
                 type="text"
                 maxLength={100}
                 placeholder="e.g. Hypixel Network"
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
                 value={formData.name}
                 onChange={e => setFormData({ ...formData, name: e.target.value })}
               />
@@ -358,7 +376,7 @@ export function SubmitPage() {
                     required
                     type="text"
                     placeholder={formData.type === 'server' ? 'play.example.com' : 'https://realms.gg/your-code'}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
                     value={formData.ip_or_code}
                     onChange={e => setFormData({ ...formData, ip_or_code: e.target.value })}
                   />
@@ -368,7 +386,7 @@ export function SubmitPage() {
                     <input
                       type="number"
                       placeholder="19132"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       value={formData.port}
                       onChange={e => setFormData({ ...formData, port: e.target.value ? parseInt(e.target.value) : '' })}
                       onKeyDown={(e) => {
@@ -403,7 +421,7 @@ export function SubmitPage() {
                 <input
                   type="text"
                   placeholder="play.example.com"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
                   value={formData.bedrock_ip}
                   onChange={e => setFormData({ ...formData, bedrock_ip: e.target.value })}
                 />
@@ -419,7 +437,7 @@ export function SubmitPage() {
                 <input
                   type="url"
                   placeholder="https://discord.gg/yourserver"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-12 pr-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-12 pr-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
                   value={formData.website_url}
                   onChange={e => setFormData({ ...formData, website_url: e.target.value })}
                 />
@@ -434,19 +452,20 @@ export function SubmitPage() {
                 </label>
                 <button
                   type="button"
+                  disabled={(formData.social_links?.length || 0) >= 6}
                   onClick={() => {
                     const newSocialLinks = [...(formData.social_links || []), { platform: 'website', url: '' } as SocialLink]
                     setFormData({ ...formData, social_links: newSocialLinks })
                   }}
-                  className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-realm-green hover:text-[#85fc7e] transition-colors"
+                  className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${(formData.social_links?.length || 0) >= 6 ? 'text-zinc-600 cursor-not-allowed' : 'text-realm-green hover:text-[#85fc7e]'}`}
                 >
-                  <Plus className="w-3 h-3" /> Add Link
+                  <Plus className="w-3 h-3" /> Add Link {(formData.social_links?.length || 0) >= 6 && '(Limit reached)'}
                 </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(formData.social_links || []).map((link, index) => (
-                  <div key={index} className="flex gap-2 items-center bg-zinc-950 border border-zinc-800 p-2 rounded-xl group">
+                  <div key={index} className="flex gap-2 items-center bg-zinc-950 border border-zinc-800 p-2 rounded-lg group">
                     <CustomSelect
                       value={link.platform}
                       onChange={(val) => {
@@ -456,6 +475,7 @@ export function SubmitPage() {
                       }}
                       options={socialOptions}
                       className="w-[52px] md:w-40 flex-shrink-0"
+                      hideLabel={true}
                     />
                     <input
                       type="url"
@@ -482,7 +502,7 @@ export function SubmitPage() {
                 ))}
 
                 {(formData.social_links?.length === 0) && (
-                  <div className="col-span-2 py-4 text-center border-2 border-dashed border-zinc-800 rounded-xl">
+                  <div className="col-span-2 py-4 text-center border-2 border-dashed border-zinc-800 rounded-lg">
                     <p className="text-zinc-600 text-[10px] font-headline uppercase tracking-widest">No social links added yet</p>
                   </div>
                 )}
@@ -493,11 +513,16 @@ export function SubmitPage() {
               <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
                 <FileText className="w-3 h-3" /> Description
               </label>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-[10px] text-zinc-500 font-headline">Provide a detailed description of your server.</p>
+                <span className={`text-[10px] font-bold font-headline ${formData.description.length >= 3000 ? 'text-red-400' : 'text-zinc-500'}`}>
+                  {formData.description.length}/3000
+                </span>
+              </div>
               <textarea
-                required
-                rows={10}
+                maxLength={3000}
                 placeholder="Tell players about your server..."
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline resize-y focus:ring-1 focus:ring-realm-green/30 min-h-[200px]"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white text-[13px] md:text-sm outline-none focus:border-realm-green transition-all font-headline resize-y focus:ring-1 focus:ring-realm-green/30 min-h-[200px]"
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
               ></textarea>
@@ -510,7 +535,7 @@ export function SubmitPage() {
               whileTap={{ scale: 0.98 }}
               type="button"
               onClick={() => navigate('/dashboard')}
-              className="px-6 py-3 rounded-xl font-headline font-bold text-zinc-500 hover:text-white transition-colors"
+              className="px-6 py-3 rounded-lg font-headline font-bold text-zinc-500 hover:text-white transition-colors"
             >
               Cancel
             </motion.button>
@@ -519,7 +544,7 @@ export function SubmitPage() {
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={submitMutation.isPending}
-              className={`bg-[#4EC44E] text-[#002202] px-8 py-3 rounded-xl font-headline font-bold transition-all shadow-lg ${(submitMutation.isPending || updateMutation.isPending) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#85fc7e] hover:shadow-green-500/20'}`}
+              className={`bg-[#4EC44E] text-[#002202] px-8 py-3 rounded-lg font-headline font-bold transition-all shadow-lg ${(submitMutation.isPending || updateMutation.isPending) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#85fc7e] hover:shadow-green-500/20'}`}
             >
               {(submitMutation.isPending || updateMutation.isPending) ? 'Saving...' : (isEditing ? 'Save Changes' : 'Submit for Review')}
             </motion.button>

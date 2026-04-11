@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useUserServers } from '../hooks/queries'
 import { useDeleteServerMutation } from '../hooks/mutations'
@@ -9,9 +9,11 @@ import { PlusCircle, Pencil, Trash2 } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
+import { RoleSelectionModal } from '../components/RoleSelectionModal'
+
 
 export function DashboardPage() {
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
   
   const { data: servers = [], isLoading: loading } = useUserServers(user?.id)
@@ -19,6 +21,7 @@ export function DashboardPage() {
   
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteName, setDeleteName] = useState('')
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false)
 
   const handleDeleteClick = (id: string, name: string) => {
     setDeleteId(id)
@@ -83,39 +86,32 @@ export function DashboardPage() {
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-4 md:gap-6">
-        <FramerIn className="flex items-center gap-4 md:gap-6">
-          <motion.div 
-            whileHover={{ scale: 1.05, rotate: 5 }}
-            className="w-12 h-12 md:w-16 md:h-16 bg-zinc-800 rounded-xl md:rounded-2xl overflow-hidden border border-zinc-700 shadow-xl"
-          >
-             <img src={profile?.discord_avatar || ''} alt="avatar" className="w-full h-full object-cover" />
-          </motion.div>
-          <div>
-            <h1 className="text-xl md:text-3xl font-pixel text-white mb-1 md:mb-2 text-wrap">Welcome, {profile?.discord_username}</h1>
-            <p className="text-zinc-500 font-headline uppercase tracking-widest text-[9px] md:text-xs">
-              Role: <span className="text-realm-green">{profile?.role}</span>
-            </p>
-          </div>
-        </FramerIn>
+      <FramerIn delay={0.1} className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div>
+          <h1 className="font-pixel text-base md:text-lg text-white mb-2 uppercase tracking-wide">Your Listings</h1>
+          <div className="h-px w-full bg-zinc-800"></div>
+        </div>
         
-        <FramerIn delay={0.2} className="self-end md:self-auto">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link 
-              to="/submit" 
-              className="flex items-center gap-2 bg-[#4EC44E] text-[#002202] px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl font-headline font-bold hover:bg-[#85fc7e] transition-colors shadow-lg shadow-green-500/20 text-xs md:text-sm"
-            >
-              <PlusCircle className="w-4 h-4 md:w-5 md:h-5" />
-              New Listing
-            </Link>
-          </motion.div>
-        </FramerIn>
-      </div>
-
-      <FramerIn delay={0.3} className="mb-8">
-        <h2 className="font-pixel text-xl text-white mb-4">Your Listings</h2>
-        <div className="h-px w-full bg-zinc-800"></div>
+         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0">
+          <button 
+            onClick={() => setIsRoleModalOpen(true)}
+            className="flex items-center gap-2 bg-[#4EC44E] text-[#002202] px-5 py-2.5 rounded-lg font-headline font-bold hover:bg-[#85fc7e] transition-all shadow-lg shadow-green-500/20 text-xs md:text-sm"
+          >
+            <PlusCircle className="w-4 h-4 md:w-5 h-5" />
+            New Listing
+          </button>
+        </motion.div>
       </FramerIn>
+
+      <RoleSelectionModal 
+        isOpen={isRoleModalOpen}
+        onClose={() => setIsRoleModalOpen(false)}
+        onSelect={(role) => {
+          setIsRoleModalOpen(false)
+          navigate(`/submit?role=${role}`)
+        }}
+      />
+
 
       {servers.length === 0 ? (
         <FramerIn delay={0.4}>
@@ -152,19 +148,21 @@ export function DashboardPage() {
               <ServerCard 
                 server={server} 
                 showStatus={true} 
+                showRole={false}
                 hideVotes={true}
+                hideRatings={true}
                 actions={
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2">
                     <button 
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
                         navigate(`/submit/${server.id}`)
                       }}
-                      className="text-[11px] md:text-sm font-bold text-blue-400 hover:text-blue-300 px-4 py-2 bg-blue-500/10 rounded-lg transition-colors border border-blue-500/20 text-center min-w-[100px] flex items-center justify-center gap-2"
+                      className="text-[10px] md:text-xs font-bold text-blue-400 hover:text-blue-300 px-3 md:px-4 py-2 bg-blue-500/10 rounded-lg transition-colors border border-blue-500/20 flex items-center justify-center gap-2 hover:bg-blue-500/20"
                     >
-                      <Pencil className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                      EDIT
+                      <Pencil className="w-3 h-3" />
+                      Edit
                     </button>
                     <button 
                       onClick={(e) => {
@@ -172,10 +170,10 @@ export function DashboardPage() {
                         e.stopPropagation()
                         handleDeleteClick(server.id, server.name)
                       }}
-                      className="text-[11px] md:text-sm font-bold text-red-500 hover:text-red-400 px-4 py-2 bg-red-500/10 rounded-lg transition-colors border border-red-500/20 text-center min-w-[100px] flex items-center justify-center gap-2"
+                      className="p-2 text-red-500 hover:text-red-400 bg-red-500/10 rounded-lg transition-colors border border-red-500/20 flex items-center justify-center hover:bg-red-500/20"
+                      title="Delete Listing"
                     >
-                      <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                      DELETE
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 }

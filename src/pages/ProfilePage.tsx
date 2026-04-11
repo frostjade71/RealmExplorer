@@ -6,11 +6,13 @@ import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
-import { Calendar, Server, ArrowLeft, LayoutDashboard, Globe, Pencil, Share2 } from 'lucide-react'
+import { Calendar, Server, ArrowLeft, LayoutDashboard, Globe, Pencil, Share2, Mail } from 'lucide-react'
 import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch } from 'react-icons/si'
 import { RoleBadge } from '../components/RoleBadge'
 import { EditProfileModal } from '../components/EditProfileModal'
+import { EditBioModal } from '../components/EditBioModal'
 import { useState } from 'react'
+import { toast } from 'sonner'
 import type { SocialLink } from '../types'
 
 export function ProfilePage() {
@@ -19,6 +21,7 @@ export function ProfilePage() {
   const { data: servers = [], isLoading: serversLoading } = useUserServers(profile?.id, 'approved')
   const { user } = useAuth()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false)
 
   const isOwnProfile = user?.id === profile?.id
 
@@ -30,6 +33,7 @@ export function ProfilePage() {
       case 'tiktok': return <SiTiktok className="w-4 h-4" />
       case 'facebook': return <SiFacebook className="w-4 h-4" />
       case 'twitch': return <SiTwitch className="w-4 h-4" />
+      case 'email': return <Mail className="w-4 h-4" />
       default: return <Globe className="w-4 h-4" />
     }
   }
@@ -42,12 +46,38 @@ export function ProfilePage() {
       case 'tiktok': return 'text-[#00f2ea]' 
       case 'facebook': return 'text-[#1877F2]'
       case 'twitch': return 'text-[#9146FF]'
+      case 'email': return 'text-white'
+      case 'website': return 'text-blue-400'
       default: return 'text-zinc-400'
+    }
+  }
+
+  const getPlatformBorderColor = (platform: string) => {
+    switch (platform) {
+      case 'discord': return 'border-[#5865F2]/20 hover:border-[#5865F2]/40'
+      case 'instagram': return 'border-[#E4405F]/20 hover:border-[#E4405F]/40'
+      case 'youtube': return 'border-[#FF0000]/20 hover:border-[#FF0000]/40'
+      case 'tiktok': return 'border-[#00f2ea]/20 hover:border-[#00f2ea]/40'
+      case 'facebook': return 'border-[#1877F2]/20 hover:border-[#1877F2]/40'
+      case 'twitch': return 'border-[#9146FF]/20 hover:border-[#9146FF]/40'
+      case 'email': return 'border-white/10 hover:border-white/20'
+      case 'website': return 'border-blue-400/20 hover:border-blue-400/40'
+      default: return 'border-white/5 hover:border-white/10'
     }
   }
 
   const getPlatformName = (platform: string) => {
     return platform.charAt(0).toUpperCase() + platform.slice(1)
+  }
+
+  const handleEmailClick = (_e: React.MouseEvent, email: string) => {
+    // Copy to clipboard fallback
+    navigator.clipboard.writeText(email)
+    toast.success('Email Copied', {
+      description: 'The email address has been copied to your clipboard.'
+    })
+    
+    // We don't prevent default here so the mailto: still tries to fire
   }
 
   if (profileLoading) return <LoadingSpinner />
@@ -143,47 +173,83 @@ export function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pb-16">
           {/* Sidebar / Personal Links */}
           <div className="lg:col-span-1 space-y-6">
-            <FramerIn delay={0.4} className="bg-zinc-900/50 border border-white/5 rounded-2xl p-4 backdrop-blur-xl group/sidebar relative">
-              <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
-                <h3 className="font-pixel text-[8px] text-zinc-400 uppercase tracking-widest">
-                  Personal Links
-                </h3>
-                {isOwnProfile && (
-                  <button 
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="p-1 text-zinc-500 hover:text-white transition-colors"
-                  >
-                    <Pencil className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-              
-              <div className="space-y-3">
-                {profile.social_links && profile.social_links.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-2">
-                    {profile.social_links.map((link: SocialLink, i: number) => (
-                      <a 
-                        key={i}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-950/50 border border-white/5 hover:border-realm-green/30 hover:bg-zinc-800 transition-all group/link"
+            <FramerIn delay={0.4} className="space-y-6">
+              {/* Bio Section */}
+              {(profile.bio || isOwnProfile) && (
+                <div className="group/bio px-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="font-pixel text-[8px] text-zinc-500 uppercase tracking-widest">
+                      Bio
+                    </h3>
+                    {isOwnProfile && (
+                      <button 
+                        onClick={() => setIsBioModalOpen(true)}
+                        className="p-1 text-zinc-600 hover:text-white transition-colors opacity-0 group-hover/bio:opacity-100"
+                        title="Edit Bio"
                       >
-                        <div className={`w-8 h-8 flex items-center justify-center transition-colors ${getPlatformColor(link.platform)}`}>
-                          {getSocialIcon(link.platform)}
-                        </div>
-                        <span className="text-xs font-headline text-zinc-400 group-hover/link:text-zinc-200 transition-colors">
-                          {getPlatformName(link.platform)}
-                        </span>
-                      </a>
-                    ))}
+                        <Pencil className="w-2.5 h-2.5" />
+                      </button>
+                    )}
                   </div>
-                ) : (
-                  <div className="py-8 text-center bg-zinc-950/30 rounded-xl border border-dashed border-white/5">
-                    <Share2 className="w-6 h-6 text-zinc-800 mx-auto mb-2" />
-                    <p className="text-[9px] text-zinc-600 uppercase font-headline tracking-tighter">No links shared yet</p>
-                  </div>
-                )}
+                  {profile.bio ? (
+                    <p className="text-zinc-400 font-headline text-xs leading-relaxed whitespace-pre-wrap">
+                      {profile.bio}
+                    </p>
+                  ) : isOwnProfile ? (
+                    <button 
+                      onClick={() => setIsBioModalOpen(true)}
+                      className="text-zinc-600 font-headline text-xs italic hover:text-zinc-400 transition-colors"
+                    >
+                      Click to add a bio...
+                    </button>
+                  ) : null}
+                </div>
+              )}
+
+              {/* Personal Links Card */}
+              <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4 backdrop-blur-xl group/sidebar relative">
+                <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+                  <h3 className="font-pixel text-[8px] text-zinc-400 uppercase tracking-widest">
+                    Personal Links
+                  </h3>
+                  {isOwnProfile && (
+                    <button 
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="p-1 text-zinc-500 hover:text-white transition-colors"
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                
+                <div className="space-y-3">
+                  {profile.social_links && profile.social_links.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-2">
+                      {profile.social_links.map((link: SocialLink, i: number) => (
+                        <a 
+                          key={i}
+                          href={link.platform === 'email' ? `mailto:${link.url}` : link.url}
+                          onClick={(e) => link.platform === 'email' && handleEmailClick(e, link.url)}
+                          target={link.platform === 'email' ? undefined : "_blank"}
+                          rel={link.platform === 'email' ? undefined : "noopener noreferrer"}
+                          className={`flex items-center gap-3 p-2.5 rounded-lg bg-zinc-950/50 border transition-all group/link overflow-hidden ${getPlatformBorderColor(link.platform)}`}
+                        >
+                          <div className={`w-8 h-8 flex items-center justify-center transition-colors flex-shrink-0 ${getPlatformColor(link.platform)} group-hover/link:scale-110 duration-300`}>
+                            {getSocialIcon(link.platform)}
+                          </div>
+                          <span className="text-xs font-headline text-zinc-400 group-hover/link:text-zinc-200 transition-colors truncate">
+                            {link.platform === 'email' ? link.url : getPlatformName(link.platform)}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center bg-zinc-950/30 rounded-lg border border-dashed border-white/5">
+                      <Share2 className="w-6 h-6 text-zinc-800 mx-auto mb-2" />
+                      <p className="text-[9px] text-zinc-600 uppercase font-headline tracking-tighter">No links shared yet</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </FramerIn>
 
@@ -193,7 +259,7 @@ export function ProfilePage() {
           {/* Listings Section */}
           <div className="lg:col-span-3">
             <FramerIn delay={0.5} className="mb-6 flex items-center justify-between">
-              <h2 className="font-pixel text-sm text-white">Public Listings</h2>
+              <h2 className="font-pixel text-xs md:text-sm text-white">Public Listings</h2>
               <div className="h-px flex-1 bg-zinc-800 mx-4 hidden md:block"></div>
               {isOwnProfile && (
                 <Link 
@@ -240,7 +306,7 @@ export function ProfilePage() {
                       visible: { opacity: 1, y: 0 }
                     }}
                   >
-                    <ServerCard server={server} />
+                    <ServerCard server={server} showRole={true} />
                   </motion.div>
                 ))}
               </motion.div>
@@ -253,12 +319,20 @@ export function ProfilePage() {
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-realm-green/5 blur-[120px] rounded-full -z-10 pointer-events-none" />
 
       {profile && (
-        <EditProfileModal 
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          profileId={profile.id}
-          initialLinks={profile.social_links || []}
-        />
+        <>
+          <EditProfileModal 
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            profileId={profile.id}
+            initialLinks={profile.social_links || []}
+          />
+          <EditBioModal 
+            isOpen={isBioModalOpen}
+            onClose={() => setIsBioModalOpen(false)}
+            profileId={profile.id}
+            initialBio={profile.bio}
+          />
+        </>
       )}
     </AnimatedPage>
   )

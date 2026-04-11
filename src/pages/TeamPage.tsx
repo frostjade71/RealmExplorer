@@ -89,27 +89,27 @@ export function TeamPage() {
       </section>
 
       {/* Vision Statement Section */}
-      <section className="py-16 px-8 bg-black relative border-t-4 border-[#101010]">
+      <section className="py-10 md:py-16 px-8 bg-black relative border-t-4 border-[#101010]">
         <div className="absolute inset-0 opacity-5 pixel-grid pointer-events-none"></div>
         
         <div className="max-w-2xl mx-auto text-center relative z-10">
-          <FramerIn className="mb-8">
-            <h2 className="font-pixel text-white text-xl mb-3 uppercase tracking-[0.2em]">
+          <FramerIn className="mb-6 md:mb-8">
+            <h2 className="font-pixel text-white text-lg md:text-xl mb-3 uppercase tracking-[0.2em]">
               Vision <span className="text-realm-green">Statement</span>
             </h2>
-            <div className="h-1 w-16 bg-realm-green mx-auto rounded-full"></div>
+            <div className="h-1 w-12 md:w-16 bg-realm-green mx-auto rounded-full"></div>
           </FramerIn>
 
-          <FramerIn delay={0.2} className="relative mb-8">
-            <span className="text-4xl font-pixel text-white/10 absolute -top-8 -left-4 select-none">"</span>
-            <p className="font-headline text-base md:text-lg text-zinc-300 leading-relaxed italic relative z-10">
+          <FramerIn delay={0.2} className="relative mb-6 md:mb-8">
+            <span className="text-3xl md:text-4xl font-pixel text-white/10 absolute -top-8 -left-4 select-none">"</span>
+            <p className="font-headline text-sm md:text-lg text-zinc-300 leading-relaxed italic relative z-10 px-2">
               As the owner of Realm Explorer i stand to provide a safe space for all and helping assist new servers/realms to grow!
             </p>
             <span className="text-4xl font-pixel text-white/10 absolute -bottom-12 -right-4 select-none leading-none">"</span>
           </FramerIn>
 
           <FramerIn delay={0.4} className="flex flex-col items-center">
-            <div className={`relative w-14 h-14 mb-3 border-4 border-realm-green bg-black/40 shadow-inner group transition-transform ${visionProfile ? '' : 'animate-pulse'}`}>
+            <div className={`relative w-12 h-12 md:w-14 md:h-14 mb-3 border-4 border-realm-green bg-black/40 shadow-inner group transition-transform ${visionProfile ? '' : 'animate-pulse'}`}>
               <div className="absolute inset-0 border-t-2 border-l-2 border-white/20 pointer-events-none" />
               <div className="absolute inset-0 border-b-2 border-r-2 border-black/60 pointer-events-none" />
               
@@ -123,10 +123,10 @@ export function TeamPage() {
             </div>
             
             <div className="text-center">
-              <div className="font-pixel text-white text-sm mb-1">
+              <div className="font-pixel text-white text-[13px] md:text-sm mb-1">
                 {visionProfile?.discord_username || 'Loading...'}
               </div>
-              <div className="font-pixel text-[8px] text-realm-green uppercase tracking-widest opacity-60">
+              <div className="font-pixel text-[7px] md:text-[8px] text-realm-green uppercase tracking-widest opacity-60">
                 Owner
               </div>
             </div>
@@ -135,27 +135,27 @@ export function TeamPage() {
       </section>
 
       {/* The Developer Section */}
-      <section className="py-16 px-8 bg-black relative border-t border-white/5">
+      <section className="py-10 md:py-16 px-8 bg-black relative border-t border-white/5">
         <div className="absolute inset-0 opacity-5 pixel-grid pointer-events-none"></div>
         
         <div className="max-w-2xl mx-auto text-center relative z-10">
-          <FramerIn className="mb-8">
-            <h2 className="font-pixel text-white text-xl mb-3 uppercase tracking-[0.2em]">
+          <FramerIn className="mb-6 md:mb-8">
+            <h2 className="font-pixel text-white text-lg md:text-xl mb-3 uppercase tracking-[0.2em]">
               The <span className="text-realm-green">Developer</span>
             </h2>
-            <div className="h-1 w-16 bg-realm-green mx-auto rounded-full"></div>
+            <div className="h-1 w-12 md:w-16 bg-realm-green mx-auto rounded-full"></div>
           </FramerIn>
 
-          <FramerIn delay={0.2} className="relative mb-8">
-            <span className="text-4xl font-pixel text-white/10 absolute -top-8 -left-4 select-none">"</span>
-            <p className="font-headline text-base md:text-lg text-zinc-300 leading-relaxed italic relative z-10">
+          <FramerIn delay={0.2} className="relative mb-6 md:mb-8">
+            <span className="text-3xl md:text-4xl font-pixel text-white/10 absolute -top-8 -left-4 select-none">"</span>
+            <p className="font-headline text-sm md:text-lg text-zinc-300 leading-relaxed italic relative z-10 px-2">
               i maeke websites :D
             </p>
             <span className="text-4xl font-pixel text-white/10 absolute -bottom-12 -right-4 select-none leading-none">"</span>
           </FramerIn>
 
           <FramerIn delay={0.4} className="flex flex-col items-center">
-            <div className={`relative w-14 h-14 mb-3 border-4 border-realm-green bg-black/40 shadow-inner group transition-transform ${devProfile ? '' : 'animate-pulse'}`}>
+            <div className={`relative w-12 h-12 md:w-14 md:h-14 mb-3 border-4 border-realm-green bg-black/40 shadow-inner group transition-transform ${devProfile ? '' : 'animate-pulse'}`}>
               <div className="absolute inset-0 border-t-2 border-l-2 border-white/20 pointer-events-none" />
               <div className="absolute inset-0 border-b-2 border-r-2 border-black/60 pointer-events-none" />
               
@@ -169,10 +169,10 @@ export function TeamPage() {
             </div>
             
             <div className="text-center">
-              <div className="font-pixel text-white text-sm mb-1">
+              <div className="font-pixel text-white text-[13px] md:text-sm mb-1">
                 {devProfile?.discord_username || 'Loading...'}
               </div>
-              <div className="font-pixel text-[8px] text-realm-green uppercase tracking-widest opacity-60">
+              <div className="font-pixel text-[7px] md:text-[8px] text-realm-green uppercase tracking-widest opacity-60">
                 Lead Web Developer
               </div>
             </div>

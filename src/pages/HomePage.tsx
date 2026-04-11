@@ -93,7 +93,7 @@ export function HomePage() {
 
   return (
     <AnimatedPage>
-      <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[50vh] md:min-h-[65vh] flex flex-col items-center justify-center">
+      <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[50vh] md:min-h-[65vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}
         <motion.img 
           initial={{ scale: 1.1, opacity: 0 }}
@@ -102,6 +102,7 @@ export function HomePage() {
           src={heroGif} 
           alt="Realm Explorer Background" 
           className="absolute inset-0 w-full h-full object-cover z-0 block"
+          fetchPriority="high"
         />
         {/* Dark Radial Gradient Overlay for focus and legibility */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10"></div>
@@ -129,7 +130,7 @@ export function HomePage() {
           
           <FramerIn delay={0.8}>
             <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-10 md:mb-12">
-              <Link to="/servers" className="bg-[#006e15] hover:bg-[#85fc7e] text-white hover:text-[#002202] px-6 md:px-8 py-3 md:py-3.5 rounded-xl font-headline font-bold transition-all flex items-center gap-2.5 group shadow-xl shadow-green-900/10 text-[12px] md:text-sm">
+              <Link to="/servers" className="bg-[#006e15] hover:bg-[#85fc7e] text-white hover:text-[#002202] px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all flex items-center gap-2.5 group shadow-xl shadow-green-900/10 text-[12px] md:text-sm">
                 Browse Servers
                 <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform text-sm">arrow_forward</span>
               </Link>
@@ -141,7 +142,7 @@ export function HomePage() {
                     signInWithDiscord()
                   }
                 }}
-                className="bg-white/5 border border-white/10 hover:border-white/30 backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-3.5 rounded-xl font-headline font-bold transition-all text-[12px] md:text-sm flex items-center justify-center gap-2 group"
+                className="bg-white/5 border border-white/10 hover:border-white/30 backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all text-[12px] md:text-sm flex items-center justify-center gap-2 group"
               >
                 List your Server
                 <span className="material-symbols-outlined text-[16px] md:text-[18px] group-hover:scale-110 transition-transform">add_circle</span>
@@ -185,7 +186,7 @@ export function HomePage() {
               <Link 
                 key={c.id} 
                 to={`/servers?category=${c.id}`}
-                className="relative bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:shadow-2xl transition-all group min-h-[180px] md:min-h-[220px] flex flex-col justify-end p-5 md:p-6"
+                className="relative bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden hover:shadow-2xl transition-all group min-h-[180px] md:min-h-[220px] flex flex-col justify-end p-5 md:p-6"
               >
                 {/* Background Image with Overlay */}
                 <div className="absolute inset-0 z-0">
@@ -208,7 +209,7 @@ export function HomePage() {
             ))}
             <button 
               onClick={() => user ? setIsModalOpen(true) : signInWithDiscord()}
-              className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-xl hover:shadow-lg transition-all group border-dashed flex flex-col items-center justify-center text-center min-h-[180px] md:min-h-[220px] w-full"
+              className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-lg hover:shadow-lg transition-all group border-dashed flex flex-col items-center justify-center text-center min-h-[180px] md:min-h-[220px] w-full"
             >
               <span className="material-symbols-outlined text-2xl md:text-3xl text-zinc-600 mb-2 md:mb-3 transition-transform group-hover:scale-110 group-hover:text-realm-green">add_circle</span>
               <h3 className="font-pixel text-sm md:text-base mb-1 text-zinc-500 group-hover:text-white transition-colors">+ More</h3>
@@ -237,7 +238,7 @@ export function HomePage() {
       )}
 
       <section className="px-8 pb-12 md:pb-24">
-        <FramerIn className="max-w-5xl mx-auto bg-zinc-900 rounded-2xl p-8 md:p-14 text-center relative overflow-hidden shadow-2xl border border-white/5">
+        <FramerIn className="max-w-5xl mx-auto bg-zinc-900 rounded-xl p-8 md:p-14 text-center relative overflow-hidden shadow-2xl border border-white/5">
           {/* Cinematic Background Image */}
           <img 
             src={ctaBg} 
@@ -257,13 +258,13 @@ export function HomePage() {
                 href="https://discord.gg/realmexplorer" 
                 target="_blank" 
                 rel="noreferrer"
-                className="bg-white text-[#006e15] px-6 md:px-8 py-3 md:py-4 rounded-xl font-headline font-bold hover:bg-[#4EC44E] hover:text-white transition-all min-w-[140px] md:min-w-[180px] flex items-center justify-center text-xs md:text-sm"
+                className="bg-white text-[#006e15] px-6 md:px-8 py-3 md:py-4 rounded-lg font-headline font-bold hover:bg-[#4EC44E] hover:text-white transition-all min-w-[140px] md:min-w-[180px] flex items-center justify-center text-xs md:text-sm"
               >
                 Join Discord
               </a>
               <Link 
                 to="/servers" 
-                className="bg-green-900/40 text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-xl font-headline font-bold hover:bg-green-900 transition-all min-w-[140px] md:min-w-[180px] flex items-center justify-center text-xs md:text-sm"
+                className="bg-green-900/40 text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-lg font-headline font-bold hover:bg-green-900 transition-all min-w-[140px] md:min-w-[180px] flex items-center justify-center text-xs md:text-sm"
               >
                 Browse Realms
               </Link>

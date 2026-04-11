@@ -70,12 +70,12 @@ export function LeaderboardsPage() {
                                 <img src={secondPlaceIcon} className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="2nd Place Icon" />
                                 <img 
                                     src={podium[1].icon_url || logo} 
-                                    className="w-10 h-10 md:w-16 md:h-16 rounded-lg md:rounded-2xl border-2 md:border-4 border-zinc-400 object-cover shadow-2xl group-hover:scale-110 transition-transform"
+                                    className="w-10 h-10 md:w-16 md:h-16 rounded-md md:rounded-xl border-2 md:border-4 border-zinc-400 object-cover shadow-2xl group-hover:scale-110 transition-transform"
                                     alt="2nd Place"
                                 />
                                 <Medal className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 w-3 h-3 md:w-6 md:h-6 text-zinc-400 drop-shadow-lg" />
                             </div>
-                            <div className="h-14 md:h-20 w-full bg-gradient-to-b from-zinc-400/20 to-zinc-400/5 backdrop-blur-md border-t-2 border-zinc-400/30 rounded-t-lg md:rounded-t-xl flex flex-col items-center justify-center p-1 md:p-2">
+                            <div className="h-14 md:h-20 w-full bg-gradient-to-b from-zinc-400/20 to-zinc-400/5 backdrop-blur-md border-t-2 border-zinc-400/30 rounded-t-md md:rounded-t-lg flex flex-col items-center justify-center p-1 md:p-2">
                                 <span className="text-white font-pixel text-[6px] md:text-[9px] text-center line-clamp-1 mb-0.5">{podium[1].name}</span>
                                 <div className="flex items-center gap-1 md:gap-1.5 text-zinc-400 font-headline text-[5px] md:text-[8px] uppercase tracking-widest font-bold">
                                     <ThumbsUp className="w-1.5 h-1.5 md:w-2 md:h-2" />
@@ -94,12 +94,12 @@ export function LeaderboardsPage() {
                                 <img src={firstPlaceIcon} className="absolute -top-4 -left-4 md:-top-8 md:-left-8 w-8 h-8 md:w-16 md:h-16 z-30 object-contain drop-shadow-xl" alt="1st Place Icon" />
                                 <img 
                                     src={podium[0].icon_url || logo} 
-                                    className="w-14 h-14 md:w-24 md:h-24 rounded-xl md:rounded-3xl border-2 md:border-4 border-yellow-500 object-cover shadow-[0_0_50px_rgba(234,179,8,0.3)] group-hover:scale-110 transition-transform"
+                                    className="w-14 h-14 md:w-24 md:h-24 rounded-lg md:rounded-2xl border-2 md:border-4 border-yellow-500 object-cover shadow-[0_0_50px_rgba(234,179,8,0.3)] group-hover:scale-110 transition-transform"
                                     alt="1st Place"
                                 />
                                 <Crown className="absolute -top-6 md:-top-10 left-1/2 -translate-x-1/2 w-5 h-5 md:w-8 md:h-8 text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
                             </div>
-                            <div className="h-20 md:h-28 w-full bg-gradient-to-b from-yellow-500/30 to-yellow-500/5 backdrop-blur-md border-t-2 border-yellow-500/40 rounded-t-xl md:rounded-t-2xl flex flex-col items-center justify-center p-2 md:p-4">
+                            <div className="h-20 md:h-28 w-full bg-gradient-to-b from-yellow-500/30 to-yellow-500/5 backdrop-blur-md border-t-2 border-yellow-500/40 rounded-t-lg md:rounded-t-xl flex flex-col items-center justify-center p-2 md:p-4">
                                 <span className="text-white font-pixel text-[8px] md:text-xs text-center line-clamp-1 mb-1 md:mb-1.5">{podium[0].name}</span>
                                 <div className="flex items-center gap-1 md:gap-2 text-yellow-500 font-headline text-[7px] md:text-[9px] uppercase tracking-widest font-black">
                                     <ThumbsUp className="w-2 h-2 md:w-3 md:h-3" />
@@ -118,12 +118,12 @@ export function LeaderboardsPage() {
                                 <img src={thirdPlaceIcon} className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="3rd Place Icon" />
                                 <img 
                                     src={podium[2].icon_url || logo} 
-                                    className="w-8 h-8 md:w-14 md:h-14 rounded-lg md:rounded-2xl border-2 md:border-4 border-orange-700 object-cover shadow-2xl group-hover:scale-110 transition-transform"
+                                    className="w-8 h-8 md:w-14 md:h-14 rounded-md md:rounded-xl border-2 md:border-4 border-orange-700 object-cover shadow-2xl group-hover:scale-110 transition-transform"
                                     alt="3rd Place"
                                 />
                                 <Medal className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 w-2.5 h-2.5 md:w-5 md:h-5 text-orange-700 drop-shadow-lg" />
                             </div>
-                            <div className="h-10 md:h-14 w-full bg-gradient-to-b from-orange-700/20 to-orange-700/5 backdrop-blur-md border-t-2 border-orange-700/30 rounded-t-lg md:rounded-t-xl flex flex-col items-center justify-center p-1 md:p-1.5">
+                            <div className="h-10 md:h-14 w-full bg-gradient-to-b from-orange-700/20 to-orange-700/5 backdrop-blur-md border-t-2 border-orange-700/30 rounded-t-md md:rounded-t-lg flex flex-col items-center justify-center p-1 md:p-1.5">
                                 <span className="text-white font-pixel text-[5px] md:text-[8px] text-center line-clamp-1">{podium[2].name}</span>
                                 <div className="flex items-center gap-0.5 md:gap-1 text-orange-700 font-headline text-[5px] md:text-[7px] uppercase tracking-widest font-bold">
                                     <ThumbsUp className="w-1 md:w-1.5 h-1 md:h-1.5" />
@@ -157,7 +157,7 @@ export function LeaderboardsPage() {
                         <Link 
                             key={server.id} 
                             to={`/server/${server.slug || slugify(server.name)}`}
-                            className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-xl md:rounded-2xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-900/60 transition-all group ${idx < 3 ? 'hover:border-realm-green' : 'hover:border-realm-green/20'}`}
+                            className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg md:rounded-xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-900/60 transition-all group ${idx < 3 ? 'hover:border-realm-green' : 'hover:border-realm-green/20'}`}
                         >
                             <div className="w-6 md:w-8 flex justify-center">
                                 {idx === 0 ? <Crown className="w-3 md:w-4 h-3 md:h-4 text-realm-green" /> : 
@@ -165,7 +165,7 @@ export function LeaderboardsPage() {
                                  idx === 2 ? <Medal className="w-3 md:w-4 h-3 md:h-4 text-orange-700" /> :
                                  <span className="font-pixel text-zinc-700 text-[8px] md:text-[10px]">{idx + 1}</span>}
                             </div>
-                            <img src={server.icon_url || logo} className="w-8 h-8 md:w-10 md:h-10 rounded-lg object-cover border border-white/10" alt={server.name} />
+                            <img src={server.icon_url || logo} className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover border border-white/10" alt={server.name} />
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-white font-pixel text-[9px] md:text-[11px] group-hover:text-realm-green transition-colors truncate">{server.name}</h3>
                                 <p className="text-zinc-500 font-headline text-[7px] md:text-[9px] uppercase tracking-widest mt-0.5">{server.type}</p>
@@ -177,7 +177,7 @@ export function LeaderboardsPage() {
                         </Link>
                     ))}
                     {votesList.length === 0 && (
-                        <div className="p-12 text-center border border-dashed border-white/5 rounded-2xl text-zinc-600 font-pixel text-xs">
+                        <div className="p-12 text-center border border-dashed border-white/5 rounded-xl text-zinc-600 font-pixel text-xs">
                             No additional ranked servers.
                         </div>
                     )}
@@ -201,7 +201,7 @@ export function LeaderboardsPage() {
                         <Link 
                             key={server.id} 
                             to={`/server/${server.slug || slugify(server.name)}`}
-                            className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-xl md:rounded-2xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-900/60 transition-all group ${idx < 3 ? 'hover:border-yellow-500' : 'hover:border-yellow-500/20'}`}
+                            className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg md:rounded-xl bg-zinc-900/40 border border-white/5 hover:bg-zinc-900/60 transition-all group ${idx < 3 ? 'hover:border-yellow-500' : 'hover:border-yellow-500/20'}`}
                         >
                             <div className="w-6 md:w-8 flex justify-center">
                                 {idx === 0 ? <Crown className="w-3 md:w-4 h-3 md:h-4 text-yellow-500" /> : 
@@ -209,7 +209,7 @@ export function LeaderboardsPage() {
                                  idx === 2 ? <Medal className="w-3 md:w-4 h-3 md:h-4 text-orange-700" /> :
                                  <span className="font-pixel text-zinc-700 text-[8px] md:text-[10px]">{idx + 1}</span>}
                             </div>
-                            <img src={server.icon_url || logo} className="w-8 h-8 md:w-10 md:h-10 rounded-lg object-cover border border-white/10" alt={server.name} />
+                            <img src={server.icon_url || logo} className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover border border-white/10" alt={server.name} />
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-white font-pixel text-[9px] md:text-[11px] group-hover:text-yellow-500 transition-colors truncate">{server.name}</h3>
                                 <p className="text-zinc-500 font-headline text-[7px] md:text-[9px] uppercase tracking-widest mt-0.5">{server.type}</p>
@@ -224,7 +224,7 @@ export function LeaderboardsPage() {
                         </Link>
                     ))}
                     {topRated.length === 0 && (
-                        <div className="p-12 text-center border border-dashed border-white/5 rounded-2xl text-zinc-600 font-pixel text-xs">
+                        <div className="p-12 text-center border border-dashed border-white/5 rounded-xl text-zinc-600 font-pixel text-xs">
                             No rated servers available.
                         </div>
                     )}

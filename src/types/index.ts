@@ -11,11 +11,12 @@ export interface Profile {
   discord_id: string | null
   role: UserRole
   social_links: SocialLink[] | null
+  bio: string | null
   created_at: string
   updated_at: string
 }
 
-export type SocialPlatform = 'website' | 'instagram' | 'youtube' | 'tiktok' | 'facebook' | 'twitch'
+export type SocialPlatform = 'website' | 'instagram' | 'youtube' | 'tiktok' | 'facebook' | 'twitch' | 'email' | 'discord'
 
 export interface SocialLink {
   platform: SocialPlatform
@@ -44,6 +45,7 @@ export interface Server {
   average_rating: number
   rating_count: number
   social_links: SocialLink[] | null
+  submitter_role: string | null
   last_edited_at: string
   created_at: string
   updated_at: string

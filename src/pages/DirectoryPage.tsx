@@ -7,12 +7,19 @@ import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, Swords, Cloud, Users, Box, MoreHorizontal, Sparkles, Clock, Globe, History } from 'lucide-react'
+import { Search, X, MoreHorizontal, Sparkles, Clock, Globe, History } from 'lucide-react'
 import directoryHero from '../assets/hero/directoryhero.jpg'
 
 // Type Icons
 import serverGif from '../assets/category/gif/6128-minecraft.gif'
 import realmGif from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
+
+// Category Icons
+import factionsIcon from '../assets/category/7587-netherite-sword.png'
+import kitpvpIcon from '../assets/category/95615-mace.png'
+import skyblockIcon from '../assets/category/41601-minecraftoaktree.png'
+import moddedIcon from '../assets/category/437888-bedrock.png'
+import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
 
 export function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -48,13 +55,13 @@ export function DirectoryPage() {
     limit: 12
   })
 
-  const categories: { id: ServerCategory; label: string; icon: any }[] = [
-    { id: 'smp', label: 'SMP', icon: Users },
-    { id: 'factions', label: 'Factions', icon: Swords },
-    { id: 'skyblock', label: 'Skyblock', icon: Cloud },
-    { id: 'kitpvp', label: 'KitPVP', icon: Swords },
-    { id: 'modded', label: 'Modded', icon: Box },
-    { id: 'other', label: 'Other', icon: MoreHorizontal },
+  const categories: { id: ServerCategory; label: string; icon: string | any; isImage?: boolean }[] = [
+    { id: 'smp', label: 'SMP', icon: smpIcon, isImage: true },
+    { id: 'factions', label: 'Factions', icon: factionsIcon, isImage: true },
+    { id: 'skyblock', label: 'Skyblock', icon: skyblockIcon, isImage: true },
+    { id: 'kitpvp', label: 'KitPVP', icon: kitpvpIcon, isImage: true },
+    { id: 'modded', label: 'Modded', icon: moddedIcon, isImage: true },
+    { id: 'other', label: 'Other', icon: MoreHorizontal, isImage: false },
   ]
 
   const setType = (type: ServerType | null) => {
@@ -76,7 +83,7 @@ export function DirectoryPage() {
 
   return (
     <AnimatedPage>
-      <header className="relative pt-32 pb-16 md:pb-20 px-8 overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center">
+      <header className="relative pt-32 pb-16 md:pb-20 px-8 overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}
         <motion.img 
           initial={{ scale: 1.1, opacity: 0 }}
@@ -85,6 +92,7 @@ export function DirectoryPage() {
           src={directoryHero} 
           alt="Directory Background" 
           className="absolute inset-0 w-full h-full object-cover z-0 block"
+          fetchPriority="high"
         />
         {/* Dark Cinematic Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10 pointer-events-none"></div>
@@ -128,11 +136,11 @@ export function DirectoryPage() {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent z-20 pointer-events-none"></div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-8 py-8 md:py-12">
+      <div className="w-full max-w-7xl mx-auto px-8 py-8 md:py-12 flex-grow">
 
-      <FramerIn delay={0.2} className="space-y-6 md:space-y-8 mb-10 md:mb-12">
+      <FramerIn delay={0.2} className="w-full space-y-6 md:space-y-8 mb-10 md:mb-12">
         {/* Search and Sort Row */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="w-full flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full max-w-md group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-realm-green transition-colors" />
             <input 
@@ -174,7 +182,7 @@ export function DirectoryPage() {
         </div>
 
         {/* Categories Chips */}
-        <div className="flex flex-wrap gap-1.5 md:gap-2">
+        <div className="w-full flex flex-wrap gap-1.5 md:gap-2">
           <button
             onClick={() => setCategory(null)}
             className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${!activeCategory ? 'bg-realm-green text-[#002202] border-realm-green shadow-lg shadow-green-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
@@ -187,7 +195,11 @@ export function DirectoryPage() {
               onClick={() => setCategory(cat.id)}
               className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-realm-green text-[#002202] border-realm-green shadow-lg shadow-green-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
             >
-              <cat.icon className="w-3 h-3 md:w-3.5 md:h-3.5" />
+              {cat.isImage ? (
+                <img src={cat.icon} alt="" className="w-3.5 h-3.5 md:w-4 md:h-4 object-contain" />
+              ) : (
+                <cat.icon className="w-3 h-3 md:w-3.5 md:h-3.5" />
+              )}
               {cat.label}
             </button>
           ))}
@@ -201,7 +213,7 @@ export function DirectoryPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="py-12 md:py-20"
+            className="w-full py-12 md:py-20 flex justify-center"
           >
             <LoadingSpinner />
           </motion.div>
@@ -211,7 +223,7 @@ export function DirectoryPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="py-12 md:py-20"
+            className="w-full py-12 md:py-20"
           >
             <EmptyState 
               title={`No results found`} 

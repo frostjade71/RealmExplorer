@@ -86,7 +86,7 @@ export function NotificationDropdown() {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="fixed inset-x-4 top-24 md:absolute md:inset-x-auto md:right-0 md:top-full md:mt-3 md:w-80 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[60]"
+            className="fixed right-4 left-auto top-20 w-[280px] md:absolute md:inset-x-auto md:right-0 md:top-full md:mt-3 md:w-80 bg-zinc-950 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[60]"
           >
             <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/20">
               <h3 className="text-white font-bold text-sm font-headline">Notifications</h3>
@@ -134,6 +134,7 @@ export function NotificationDropdown() {
                             type === 'approval' || 
                             type === 'otm_podium' || 
                             type === 'otm_competitor' ||
+                            type === 'server_rating' ||
                             (type === 'category_request_result' && msg.includes('accepted')) ||
                             (type === 'report_update' && msg.includes('resolved'))
                           ) {
@@ -173,7 +174,7 @@ export function NotificationDropdown() {
                           </p>
                           {n.related_id && (
                              <div className="mt-2 flex items-center gap-1 text-[9px] font-bold text-realm-green/60 uppercase tracking-widest group-hover:text-realm-green transition-colors">
-                               View <ExternalLink className="w-2.5 h-2.5" />
+                               {n.type === 'server_rating' ? 'View Rating' : 'View'} <ExternalLink className="w-2.5 h-2.5" />
                              </div>
                           )}
                         </div>

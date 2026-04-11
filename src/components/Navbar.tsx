@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useGlobalStats } from '../hooks/queries'
 import { useEffect, useState, useRef } from 'react'
 import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Star, Users, BookOpen, ShieldCheck } from 'lucide-react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
@@ -8,6 +9,7 @@ import logo from '../assets/rerealm.webp'
 
 export function Navbar() {
   const { user, profile, signInWithDiscord, signOut, isModerator } = useAuth()
+  const { data: stats } = useGlobalStats()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation()
@@ -70,7 +72,7 @@ export function Navbar() {
   return (
     <>
       <nav className="fixed top-0 w-full z-50 bg-[#1A3D1A]/80 backdrop-blur-xl border-b border-white/5 shadow-xl shadow-green-900/10 transition-all">
-        <div className="flex justify-between items-center px-8 h-20 max-w-7xl mx-auto">
+        <div className="flex justify-between items-center px-8 h-16 max-w-7xl mx-auto">
           <Link to="/" className="flex items-center gap-4 group">
             <motion.div 
               whileHover={{ scale: 1.05 }}
@@ -170,7 +172,7 @@ export function Navbar() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={signInWithDiscord}
-                className="bg-[#5865F2] text-white px-6 py-2 rounded-lg font-headline font-bold text-sm shadow-lg shadow-indigo-500/20 hidden sm:flex items-center gap-2"
+                className="bg-[#5865F2] text-white px-3 py-1.5 sm:px-6 sm:py-2 rounded-lg font-headline font-bold text-[10px] sm:text-sm shadow-lg shadow-indigo-500/20 flex items-center gap-2"
               >
                 <svg 
                   className="w-5 h-5 fill-current" 
@@ -184,7 +186,7 @@ export function Navbar() {
             ) : (
               <div className="flex items-center gap-3">
                 <NotificationDropdown />
-                <div className="relative" ref={accountMenuRef}>
+                <div className="relative hidden md:block" ref={accountMenuRef}>
                   <motion.button 
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
@@ -272,14 +274,16 @@ export function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] md:hidden"
+              className="fixed inset-0 bg-black/60 z-[60] md:hidden"
+              style={{ willChange: 'opacity' }}
             />
             <motion.div 
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed right-0 top-0 bottom-0 w-[280px] bg-zinc-950 border-l border-white/10 z-[70] md:hidden flex flex-col shadow-2xl"
+              transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+              className="fixed right-0 top-0 bottom-0 w-[60%] bg-zinc-950 border-l border-white/10 z-[70] md:hidden flex flex-col shadow-2xl"
+              style={{ willChange: 'transform' }}
             >
               <div className="p-6 flex flex-col h-full">
                 <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
@@ -293,7 +297,6 @@ export function Navbar() {
                       className="w-8 h-8 rounded-lg shadow-lg border border-white/10" 
                       alt="RE Logo" 
                     />
-                    <span className="font-pixel text-[8px] text-white tracking-widest uppercase opacity-60">Realm Explorer</span>
                   </Link>
                   <button 
                     onClick={() => setMobileMenuOpen(false)}
@@ -305,20 +308,33 @@ export function Navbar() {
 
                 <div className="flex flex-col gap-1.5 flex-grow overflow-y-auto pr-2">
                   {navItems.map((item) => {
-                     const isActive = location.pathname === item.path
-                     const hasChildren = item.children && item.children.length > 0
-                     
-                     return (
-                      <div key={item.path} className="flex flex-col gap-1">
-                        <Link 
-                          to={item.path}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-xl font-headline text-sm font-bold transition-all ${isActive ? 'bg-realm-green text-zinc-950' : 'text-white/70 hover:text-white hover:bg-white/5'}`}
-                        >
-                          <span className={`${isActive ? 'text-zinc-950' : 'text-realm-green'} opacity-80`}>
-                            {item.icon}
-                          </span>
-                          {item.label}
-                        </Link>
+                      const isActive = location.pathname === item.path
+                      const hasChildren = item.children && item.children.length > 0
+                      const isServers = item.label === 'Servers'
+                      
+                      return (
+                       <div key={item.path} className="flex flex-col gap-1">
+                         <Link 
+                           to={item.path}
+                           className={`flex items-center gap-3 px-4 py-2 rounded-lg font-headline text-sm font-bold transition-all ${
+                             isActive 
+                               ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20 scale-[1.02]' 
+                               : isServers
+                                 ? 'text-realm-green border border-realm-green/30'
+                                 : 'text-white/70 hover:text-white hover:bg-white/5'
+                           }`}
+                         >
+                           <span className={`${isActive ? 'text-zinc-950' : 'text-realm-green'} transition-colors`}>
+                             {item.icon}
+                           </span>
+                           {item.label}
+                           
+                           {isServers && (
+                             <span className="ml-auto text-realm-green text-[10px] font-mono font-bold">
+                               +{stats?.servers || 0}
+                             </span>
+                           )}
+                         </Link>
                         
                         {hasChildren && (
                           <div className="flex flex-col gap-1 ml-4 border-l border-white/5 pl-2">
@@ -341,10 +357,10 @@ export function Navbar() {
 
                 <div className="pt-6 border-t border-white/5 flex flex-col gap-4 mt-auto">
                   {!user ? (
-                    <button 
-                      onClick={signInWithDiscord}
-                      className="w-full bg-[#5865F2] text-white py-3 rounded-xl font-headline font-bold text-sm shadow-lg flex items-center justify-center gap-2 hover:bg-[#4752c4] transition-colors"
-                    >
+                     <button 
+                       onClick={signInWithDiscord}
+                       className="w-full bg-[#5865F2] text-white py-2.5 rounded-lg font-headline font-bold text-xs shadow-lg flex items-center justify-center gap-2 hover:bg-[#4752c4] transition-colors"
+                     >
                       <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
                       </svg>
@@ -355,20 +371,18 @@ export function Navbar() {
                       <Link 
                         to={`/profile/${profile?.discord_username}`}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-colors group"
+                        className="flex items-center gap-3 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg border border-white/5 transition-colors group"
                       >
                         <img 
                           src={profile?.discord_avatar || `https://cdn.discordapp.com/embed/avatars/0.png`} 
                           alt="" 
-                          className="w-10 h-10 rounded-full border-2 border-realm-green/20"
+                          className="w-8 h-8 rounded-full border-2 border-realm-green/20"
                         />
-                        <div className="flex flex-col overflow-hidden">
-                          <span className="text-white text-sm font-bold truncate group-hover:text-realm-green transition-colors">{profile?.discord_username}</span>
-                          <span className="text-realm-green text-[10px] uppercase font-pixel tracking-tighter">{profile?.role || 'Member'}</span>
-                        </div>
-                        <div className="ml-auto flex flex-col items-center">
-                          <Users className="w-4 h-4 text-white/20 group-hover:text-realm-green transition-colors" />
-                          <span className="text-[8px] font-headline font-bold uppercase tracking-widest text-white/20 mt-1">Profile</span>
+                        <div className="flex flex-col overflow-hidden gap-1">
+                          <span className="text-white text-xs font-bold truncate group-hover:text-realm-green transition-colors">{profile?.discord_username}</span>
+                          <div className="bg-zinc-900 border-t border-l border-white/10 border-r border-b border-black/50 px-1.5 py-0.5 text-realm-green shadow-[1px_1px_0px_rgba(0,0,0,0.4)] w-fit inline-flex items-center">
+                            <span className="text-[7px] uppercase font-pixel tracking-[0.1em]">{profile?.role || 'Member'}</span>
+                          </div>
                         </div>
                       </Link>
                       
@@ -376,33 +390,33 @@ export function Navbar() {
                         <Link 
                           to="/dashboard"
                           onClick={() => setMobileMenuOpen(false)}
-                          className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5"
+                          className={`flex ${isModerator ? 'flex-col items-center justify-center gap-1.5 p-2' : 'items-center gap-3 px-4 py-3'} rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5`}
                         >
-                          <LayoutDashboard className="w-5 h-5 text-white/60" />
-                          <span className="text-[10px] font-headline font-bold uppercase tracking-widest text-white/40">Listings</span>
+                          <LayoutDashboard className="w-4 h-4 text-white/60" />
+                          <span className="text-[9px] font-headline font-bold uppercase tracking-widest text-white/40">Listings</span>
                         </Link>
                         {isModerator && (
-                          <Link 
-                            to="/admin"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-realm-green/10 hover:bg-realm-green/20 transition-colors border border-realm-green/20"
-                          >
-                            <ShieldCheck className="w-5 h-5 text-realm-green" />
-                            <span className="text-[10px] font-headline font-bold uppercase tracking-widest text-realm-green/60">Admin Panel</span>
-                          </Link>
+                            <Link 
+                              to="/admin"
+                              onClick={() => setMobileMenuOpen(false)}
+                              className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-realm-green/10 hover:bg-realm-green/20 transition-colors border border-realm-green/20"
+                            >
+                              <ShieldCheck className="w-4 h-4 text-realm-green" />
+                              <span className="text-[9px] font-headline font-bold uppercase tracking-widest text-realm-green/60 text-center">Admin Panel</span>
+                            </Link>
                         )}
                       </div>
 
-                      <button 
-                        onClick={() => {
-                          setMobileMenuOpen(false)
-                          signOut()
-                        }}
-                        className="flex w-full items-center justify-center gap-3 px-4 py-3 rounded-xl font-headline text-xs font-bold uppercase tracking-[0.2em] text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors mt-2"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        Sign Out
-                      </button>
+                        <button 
+                          onClick={() => {
+                            setMobileMenuOpen(false)
+                            signOut()
+                          }}
+                          className="flex w-full items-center justify-center gap-3 px-4 py-2 rounded-lg font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors mt-2"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          Sign Out
+                        </button>
                     </div>
                   )}
                 </div>

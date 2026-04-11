@@ -9,12 +9,16 @@ export function ServerCard({
   server, 
   showStatus = false,
   actions,
-  hideVotes = false
+  hideVotes = false,
+  showRole = false,
+  hideRatings = false
 }: { 
   server: Server, 
   showStatus?: boolean,
   actions?: React.ReactNode,
-  hideVotes?: boolean
+  hideVotes?: boolean,
+  showRole?: boolean,
+  hideRatings?: boolean
 }) {
   const statusInfo = {
     approved: { label: 'Active', bg: 'bg-realm-green/10', text: 'text-realm-green' },
@@ -33,12 +37,12 @@ export function ServerCard({
         whileTap={{ scale: 0.98 }}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-surface border border-outline-variant/30 p-4 md:p-6 rounded-xl hover:shadow-2xl hover:shadow-green-950/20 hover:border-t-realm-green transition-all duration-300 flex flex-col h-full overflow-hidden relative cursor-pointer"
+        className="bg-surface border border-outline-variant/30 p-4 md:p-6 rounded-lg hover:shadow-2xl hover:shadow-green-950/20 hover:border-t-realm-green transition-all duration-300 flex flex-col h-full overflow-hidden relative cursor-pointer"
       >
         <div className="flex items-start justify-between mb-3 md:mb-4">
           <div className="flex items-center gap-3 md:gap-4 w-full">
             <div 
-              className="w-12 h-12 md:w-14 md:h-14 bg-zinc-900 rounded-lg overflow-hidden flex-shrink-0 border border-zinc-800"
+              className="w-12 h-12 md:w-14 md:h-14 bg-zinc-900 rounded md:rounded-lg overflow-hidden flex-shrink-0 border border-zinc-800"
             >
               {server.icon_url ? (
                 <img src={server.icon_url} alt={server.name} className="w-full h-full object-cover" />
@@ -53,7 +57,7 @@ export function ServerCard({
                 server.name.length > 25 ? 'text-[11px] md:text-xs' : 
                 server.name.length > 15 ? 'text-xs md:text-sm' : 
                 'text-sm md:text-base'
-              } line-clamp-2 mb-1 transition-colors leading-tight`}>
+              } line-clamp-2 mb-1 transition-colors leading-tight break-words`}>
                 {server.name}
               </h3>
               <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
@@ -68,31 +72,54 @@ export function ServerCard({
           </div>
         </div>
         
-        <p className="text-on-surface-variant text-[13px] md:text-sm flex-grow line-clamp-2 leading-relaxed mb-4 md:mb-6 group-hover:text-zinc-300 transition-colors">
+        <p className="text-on-surface-variant text-[12px] md:text-[13px] flex-grow line-clamp-2 leading-relaxed mb-4 md:mb-6 group-hover:text-zinc-300 transition-colors">
           {server.description || "No description provided."}
         </p>
         
         <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-outline-variant/20 mt-auto">
-          <div className="flex flex-col">
-            <span className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest font-headline mb-0.5">Ratings</span>
-            <div className="flex items-center gap-1.5">
-              <Star className={`w-3 md:w-3.5 h-3 md:h-3.5 ${server.average_rating > 0 ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-600'}`} />
-              <span className="text-xs md:text-sm font-bold text-white/90">
-                {server.average_rating > 0 ? server.average_rating.toFixed(1) : 'No ratings'}
-              </span>
-            </div>
+          <div className="flex items-center gap-4 md:gap-6">
+            {!hideRatings && (
+              <div className="flex flex-col">
+                <span className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest font-headline mb-0.5">Ratings</span>
+                <div className="flex items-center gap-1.5">
+                  <Star className={`w-3 md:w-3.5 h-3 md:h-3.5 ${server.average_rating > 0 ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-600'}`} />
+                  <span className="text-xs md:text-sm font-bold text-white/90">
+                    {server.average_rating > 0 ? server.average_rating.toFixed(1) : '0.0'}
+                  </span>
+                </div>
+              </div>
+            )}
+            
+            {showRole && !hideVotes && (
+              <div className="flex flex-col">
+                <span className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest font-headline mb-0.5">Votes</span>
+                <span className="text-xs md:text-sm font-bold text-realm-green">{server.votes.toLocaleString()}</span>
+              </div>
+            )}
           </div>
           
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             {actions && (
-              <div onClick={(e) => e.stopPropagation()} className="flex">
+              <div onClick={(e) => e.stopPropagation()} className="flex items-center">
                 {actions}
               </div>
             )}
-            {!hideVotes && (
-              <div className="flex flex-col items-end ml-3 md:ml-4">
+
+            {!showRole && !hideVotes && (
+              <div className="flex flex-col items-end">
                 <span className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest font-headline mb-0.5">Votes</span>
                 <span className="text-xs md:text-sm font-bold text-realm-green">{server.votes.toLocaleString()}</span>
+              </div>
+            )}
+            
+            {showRole && (
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest font-headline mb-0.5">Role</span>
+                <span className={`text-[10px] md:text-xs font-pixel uppercase leading-none tracking-tight ${
+                  (server.submitter_role || 'Owner') === 'Owner' ? 'text-yellow-400' : 'text-realm-green'
+                }`}>
+                  {server.submitter_role || 'Owner'}
+                </span>
               </div>
             )}
           </div>

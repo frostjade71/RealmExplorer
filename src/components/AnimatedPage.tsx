@@ -40,7 +40,7 @@ export function AnimatedPage({ children, className = '' }: AnimatedPageProps) {
       initial="initial"
       animate="animate"
       exit="exit"
-      className={className}
+      className={`flex-grow flex flex-col ${className}`}
     >
       {children}
     </motion.div>

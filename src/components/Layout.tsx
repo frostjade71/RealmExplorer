@@ -7,10 +7,10 @@ export function Layout() {
   const location = useLocation()
 
   return (
-    <div className="min-h-dvh flex flex-col pt-20">
+    <div className="min-h-dvh flex flex-col">
       <ScrollRestoration />
       <Navbar />
-      <main className="flex-grow">
+      <main className="flex-grow pt-16 flex flex-col">
         <AnimatePresence mode="wait">
           <Outlet key={location.pathname} />
         </AnimatePresence>

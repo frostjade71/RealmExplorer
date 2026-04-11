@@ -157,8 +157,12 @@ export function useUpdateUserRoleMutation() {
 export function useUpdateProfileMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, social_links }: { id: string, social_links: any[] }) => {
-      const { error } = await supabase.from('profiles').update({ social_links }).eq('id', id)
+    mutationFn: async ({ id, social_links, bio }: { id: string, social_links?: any[], bio?: string | null }) => {
+      const updateData: any = {}
+      if (social_links !== undefined) updateData.social_links = social_links
+      if (bio !== undefined) updateData.bio = bio
+      
+      const { error } = await supabase.from('profiles').update(updateData).eq('id', id)
       if (error) throw error
     },
     onSuccess: () => {
@@ -210,6 +214,7 @@ export function useSubmitRatingMutation() {
       rating: number; 
       comment: string | null 
     }) => {
+      // 1. Submit rating
       const { error } = await supabase
         .from('server_ratings')
         .upsert({ 
@@ -218,6 +223,27 @@ export function useSubmitRatingMutation() {
           rating, 
           comment 
         }, { onConflict: 'user_id,server_id' })
+      
+      if (error) throw error
+      return serverId
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['server'] })
+      queryClient.invalidateQueries({ queryKey: ['serverRatings'] })
+      queryClient.invalidateQueries({ queryKey: ['servers'] })
+    }
+  })
+}
+
+export function useDeleteRatingMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ userId, serverId }: { userId: string; serverId: string }) => {
+      const { error } = await supabase
+        .from('server_ratings')
+        .delete()
+        .eq('user_id', userId)
+        .eq('server_id', serverId)
       
       if (error) throw error
       return serverId

@@ -6,7 +6,9 @@ interface RatingModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (rating: number, comment: string) => void
+  onRemove?: () => void
   isSubmitting?: boolean
+  isRemoving?: boolean
   initialRating?: number
   initialComment?: string
 }
@@ -15,7 +17,9 @@ export function RatingModal({
   isOpen, 
   onClose, 
   onSubmit, 
+  onRemove,
   isSubmitting,
+  isRemoving,
   initialRating = 0,
   initialComment = ''
 }: RatingModalProps) {
@@ -40,10 +44,11 @@ export function RatingModal({
             className="bg-zinc-950 border border-zinc-800 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
           >
             <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
-              <h2 className="font-pixel text-white text-lg">Rate Server</h2>
+              <h2 className="font-pixel text-white text-lg">{initialRating > 0 ? 'Edit Rating' : 'Rate Server'}</h2>
               <button 
                 onClick={onClose}
                 className="text-zinc-500 hover:text-white transition-colors"
+                disabled={isSubmitting || isRemoving}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -63,6 +68,7 @@ export function RatingModal({
                       onMouseEnter={() => setHoverRating(num)}
                       onMouseLeave={() => setHoverRating(0)}
                       className="focus:outline-none"
+                      disabled={isSubmitting || isRemoving}
                     >
                       <Star 
                         className={`w-8 h-8 transition-colors ${
@@ -90,31 +96,54 @@ export function RatingModal({
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
+                  disabled={isSubmitting || isRemoving}
                   placeholder="Tell others what you think of this server..."
-                  className="w-full h-32 bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white font-body text-sm focus:outline-none focus:ring-2 focus:ring-realm-green/50 placeholder:text-zinc-600 resize-none transition-all"
+                  className="w-full h-32 bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white font-body text-sm focus:outline-none focus:ring-2 focus:ring-realm-green/50 placeholder:text-zinc-600 resize-none transition-all disabled:opacity-50"
                 />
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="submit"
-                disabled={rating === 0 || isSubmitting}
-                className={`w-full py-4 rounded-xl font-headline font-bold flex items-center justify-center gap-2 transition-all ${
-                  rating === 0 || isSubmitting
-                    ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
-                    : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e] shadow-lg shadow-green-500/20'
-                }`}
-              >
-                {isSubmitting ? (
-                  <div className="w-5 h-5 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    Submit Rating
-                  </>
+              <div className="flex flex-col gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="submit"
+                  disabled={rating === 0 || isSubmitting || isRemoving}
+                  className={`w-full py-4 rounded-xl font-headline font-bold flex items-center justify-center gap-2 transition-all ${
+                    rating === 0 || isSubmitting || isRemoving
+                      ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+                      : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e] shadow-lg shadow-green-500/20'
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <div className="w-5 h-5 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      {initialRating > 0 ? 'Update Rating' : 'Submit Rating'}
+                    </>
+                  )}
+                </motion.button>
+
+                {initialRating > 0 && onRemove && (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={onRemove}
+                    disabled={isSubmitting || isRemoving}
+                    className="w-full py-4 rounded-xl font-headline font-bold flex items-center justify-center gap-3 text-red-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                  >
+                    {isRemoving ? (
+                      <div className="w-5 h-5 border-2 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-lg opacity-60 group-hover:opacity-100 transition-opacity">delete</span>
+                        Remove Rating
+                      </>
+                    )}
+                  </motion.button>
                 )}
-              </motion.button>
+              </div>
             </form>
           </motion.div>
         </div>
