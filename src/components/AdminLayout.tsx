@@ -1,4 +1,4 @@
-import { useLocation, Link, Outlet, ScrollRestoration } from 'react-router-dom'
+import { useLocation, Link, Outlet } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { useAdminServers, useCategoryRequests, useReports } from '../hooks/queries'
@@ -49,7 +49,6 @@ export function AdminLayout() {
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-white selection:bg-realm-green selection:text-zinc-950">
-      <ScrollRestoration />
       {/* Premium Glass Sidebar */}
       <aside className="w-72 border-r border-white/5 bg-black/40 backdrop-blur-xl p-6 shrink-0 flex flex-col sticky top-0 h-screen z-50">
         <div className="mb-10 px-2">
@@ -116,7 +115,18 @@ export function AdminLayout() {
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-realm-green/5 blur-[100px] -z-10 pointer-events-none" />
         
         <div className="p-10 max-w-7xl mx-auto">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" onExitComplete={() => { 
+            const doScroll = () => {
+              window.scrollTo(0, 0); 
+              document.documentElement.scrollTop = 0; 
+              document.body.scrollTop = 0;
+              const root = document.getElementById('root');
+              if (root) root.scrollTop = 0;
+            };
+            doScroll();
+            setTimeout(doScroll, 50);
+            setTimeout(doScroll, 150);
+          }}>
             <Outlet key={location.pathname} />
           </AnimatePresence>
         </div>

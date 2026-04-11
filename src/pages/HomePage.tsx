@@ -111,7 +111,7 @@ export function HomePage() {
           <FramerIn delay={0.2}>
             <div className="inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] backdrop-blur-md">
               <img src={mcGif} alt="Minecraft Icon" className="w-5 h-5 object-contain" />
-              <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase">The Website is now in BETA Phase</span>
+              <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase">The Website is now in RC Phase</span>
             </div>
           </FramerIn>
           
