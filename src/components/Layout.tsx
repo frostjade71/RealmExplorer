@@ -21,7 +21,7 @@ export function Layout() {
   const location = useLocation()
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="flex-1 flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow pt-16 flex flex-col">
         <AnimatePresence mode="wait" onExitComplete={scrollToTop}>

@@ -43,11 +43,13 @@ html, body, #root {
   padding: 0;
   overflow-x: hidden;
   scrollbar-color: #1a3d1a #050805;
+  height: 100%;
 }
 
 #root {
   display: flex;
   flex-direction: column;
+  min-height: 100%;
 }
 
 /* Chrome, Edge, and Safari */
