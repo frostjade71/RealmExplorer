@@ -46,7 +46,7 @@ export function RoleSelectionModal({ isOpen, onClose, onSelect }: RoleSelectionM
             className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden"
           >
             <div className="p-6 border-b border-zinc-800 flex justify-between items-center relative z-10 bg-zinc-900">
-              <h2 className="font-pixel text-white text-base md:text-lg uppercase tracking-widest">What's your Role in This Server?</h2>
+              <h2 className="font-pixel text-white text-sm md:text-lg uppercase tracking-widest">What's your Role in This Server?</h2>
               <button 
                 onClick={onClose}
                 className="p-2 text-zinc-500 hover:text-white transition-colors"

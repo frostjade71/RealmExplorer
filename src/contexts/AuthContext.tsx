@@ -88,7 +88,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       provider: 'discord',
       options: {
         redirectTo: `${siteUrl}/auth/callback`,
-        scopes: 'identify email guilds'
+        scopes: 'identify',
+        queryParams: {
+          scope: 'identify',
+          prompt: 'consent'
+        }
       }
     })
   }

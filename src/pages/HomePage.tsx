@@ -159,7 +159,7 @@ export function HomePage() {
               />
               <StatItem 
                 value={safeStats.users} 
-                label="Global Players" 
+                label="Global Users" 
                 formatter={(v) => v.toLocaleString()}
               />
               <div className="flex flex-col items-center shrink-0">

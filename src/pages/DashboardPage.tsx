@@ -92,7 +92,7 @@ export function DashboardPage() {
           <div className="h-px w-full bg-zinc-800"></div>
         </div>
         
-         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0">
+         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0 self-end sm:self-auto">
           <button 
             onClick={() => setIsRoleModalOpen(true)}
             className="flex items-center gap-2 bg-[#4EC44E] text-[#002202] px-5 py-2.5 rounded-lg font-headline font-bold hover:bg-[#85fc7e] transition-all shadow-lg shadow-green-500/20 text-xs md:text-sm"

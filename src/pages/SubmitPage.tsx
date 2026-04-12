@@ -5,11 +5,11 @@ import { useSubmitServerMutation, useUpdateServerMutation } from '../hooks/mutat
 import { useServer } from '../hooks/queries'
 import { supabase } from '../lib/supabase'
 import type { ServerCategory, SocialLink } from '../types'
-import { Server, Globe, Plus, Trash2, Layers, Tags, Type, Link, Share2, FileText, MoreHorizontal, User } from 'lucide-react'
+import { Server, Globe, Plus, Trash2, Layers, Tags, Type, Link, Share2, FileText, MoreHorizontal, User, GripVertical } from 'lucide-react'
 import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch } from 'react-icons/si'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
-import { motion } from 'framer-motion'
+import { motion, Reorder } from 'framer-motion'
 import { ImageUpload } from '../components/ImageUpload'
 import { slugify } from '../lib/urlUtils'
 import { toast } from 'sonner'
@@ -21,6 +21,10 @@ import kitpvpIcon from '../assets/category/95615-mace.png'
 import skyblockIcon from '../assets/category/41601-minecraftoaktree.png'
 import moddedIcon from '../assets/category/437888-bedrock.png'
 import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
+
+interface ReorderableSocialLink extends SocialLink {
+  localId: string
+}
 
 export function SubmitPage() {
   const { id } = useParams()
@@ -45,7 +49,7 @@ export function SubmitPage() {
     website_url: '',
     icon_url: '',
     banner_url: '',
-    social_links: [] as SocialLink[],
+    social_links: [] as ReorderableSocialLink[],
     submitter_role: roleParam
   })
 
@@ -65,7 +69,10 @@ export function SubmitPage() {
         website_url: server.website_url || '',
         icon_url: server.icon_url || '',
         banner_url: server.banner_url || '',
-        social_links: server.social_links || [],
+        social_links: (server.social_links || []).map((link: any) => ({
+          ...link,
+          localId: Math.random().toString(36).substr(2, 9)
+        })),
         submitter_role: server.submitter_role || 'Owner'
       }
       setFormData(initialData)
@@ -163,7 +170,8 @@ export function SubmitPage() {
           bedrock_ip: formData.bedrock_ip || null,
           slug,
           status,
-          submitter_role: formData.submitter_role
+          submitter_role: formData.submitter_role,
+          social_links: formData.social_links.map(({ localId, ...link }: any) => link)
         }
 
         updateMutation.mutate(
@@ -194,7 +202,8 @@ export function SubmitPage() {
           bedrock_ip: formData.bedrock_ip || null,
           slug,
           owner_id: user.id,
-          status: 'pending'
+          status: 'pending',
+          social_links: formData.social_links.map(({ localId, ...link }: any) => link)
         }
 
         submitMutation.mutate(
@@ -357,7 +366,7 @@ export function SubmitPage() {
             <div className={`space-y-2 col-span-2 ${formData.type === 'server' ? 'md:col-span-2' : 'md:col-span-1'}`}>
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
-                  <Link className="w-3 h-3" /> {formData.type === 'server' ? 'Java IP' : 'Code'}
+                  <Link className="w-3 h-3" /> {formData.type === 'server' ? 'Java IP' : 'Realm Code'}
                 </label>
                 {formData.type === 'server' && !showBedrockIp && (
                    <button
@@ -454,7 +463,11 @@ export function SubmitPage() {
                   type="button"
                   disabled={(formData.social_links?.length || 0) >= 6}
                   onClick={() => {
-                    const newSocialLinks = [...(formData.social_links || []), { platform: 'website', url: '' } as SocialLink]
+                    const newSocialLinks = [...(formData.social_links || []), { 
+                      platform: 'website', 
+                      url: '',
+                      localId: Math.random().toString(36).substr(2, 9)
+                    } as ReorderableSocialLink]
                     setFormData({ ...formData, social_links: newSocialLinks })
                   }}
                   className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${(formData.social_links?.length || 0) >= 6 ? 'text-zinc-600 cursor-not-allowed' : 'text-realm-green hover:text-[#85fc7e]'}`}
@@ -463,50 +476,67 @@ export function SubmitPage() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Reorder.Group 
+                axis="y" 
+                values={formData.social_links} 
+                onReorder={(newLinks) => setFormData({ ...formData, social_links: newLinks })}
+                className="space-y-3 max-w-2xl"
+              >
                 {(formData.social_links || []).map((link, index) => (
-                  <div key={index} className="flex gap-2 items-center bg-zinc-950 border border-zinc-800 p-2 rounded-lg group">
-                    <CustomSelect
-                      value={link.platform}
-                      onChange={(val) => {
-                        const newLinks = [...(formData.social_links || [])]
-                        newLinks[index].platform = val
-                        setFormData({ ...formData, social_links: newLinks })
-                      }}
-                      options={socialOptions}
-                      className="w-[52px] md:w-40 flex-shrink-0"
-                      hideLabel={true}
-                    />
-                    <input
-                      type="url"
-                      placeholder="https://..."
-                      className="flex-1 bg-transparent border-none text-sm text-white outline-none font-headline"
-                      value={link.url}
-                      onChange={(e) => {
-                        const newLinks = [...(formData.social_links || [])]
-                        newLinks[index].url = e.target.value
-                        setFormData({ ...formData, social_links: newLinks })
-                      }}
-                    />
+                  <Reorder.Item 
+                    key={link.localId} 
+                    value={link}
+                    className="flex gap-2 items-center group"
+                  >
+                    <div className="cursor-grab active:cursor-grabbing p-1 text-zinc-700 hover:text-zinc-400 transition-colors flex-shrink-0">
+                      <GripVertical className="w-4 h-4" />
+                    </div>
+
+                    <div className="flex-1 flex gap-2 items-center bg-zinc-950 border border-zinc-800 p-2 rounded-lg min-w-0">
+                      <CustomSelect
+                        value={link.platform}
+                        onChange={(val) => {
+                          const newLinks = [...(formData.social_links || [])]
+                          newLinks[index].platform = val
+                          setFormData({ ...formData, social_links: newLinks })
+                        }}
+                        options={socialOptions}
+                        className="w-16 md:w-36 flex-shrink-0"
+                        hideLabelMobile={true}
+                      />
+                      <div className="h-4 w-px bg-zinc-800 mx-1 flex-shrink-0" />
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        className="flex-1 min-w-0 bg-transparent border-none text-sm text-white outline-none font-headline focus:ring-0"
+                        value={link.url}
+                        onChange={(e) => {
+                          const newLinks = [...(formData.social_links || [])]
+                          newLinks[index].url = e.target.value
+                          setFormData({ ...formData, social_links: newLinks })
+                        }}
+                      />
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => {
                         const newLinks = (formData.social_links || []).filter((_, i) => i !== index)
                         setFormData({ ...formData, social_links: newLinks })
                       }}
-                      className="p-2 text-zinc-600 hover:text-red-400 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100"
+                      className="p-2 text-zinc-600 hover:text-red-400 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100 flex-shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
-                  </div>
+                  </Reorder.Item>
                 ))}
 
                 {(formData.social_links?.length === 0) && (
-                  <div className="col-span-2 py-4 text-center border-2 border-dashed border-zinc-800 rounded-lg">
+                  <div className="py-4 text-center border-2 border-dashed border-zinc-800 rounded-lg">
                     <p className="text-zinc-600 text-[10px] font-headline uppercase tracking-widest">No social links added yet</p>
                   </div>
                 )}
-              </div>
+              </Reorder.Group>
             </div>
 
             <div className="space-y-2 col-span-2">
@@ -529,13 +559,13 @@ export function SubmitPage() {
             </div>
           </div>
 
-          <div className="pt-6 border-t border-zinc-800 flex justify-end gap-3">
+          <div className="pt-6 border-t border-zinc-800 flex justify-end gap-3 flex-wrap md:flex-nowrap">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="button"
               onClick={() => navigate('/dashboard')}
-              className="px-6 py-3 rounded-lg font-headline font-bold text-zinc-500 hover:text-white transition-colors"
+              className="px-6 py-3 rounded-lg font-headline font-bold text-zinc-500 hover:text-white transition-colors whitespace-nowrap"
             >
               Cancel
             </motion.button>
@@ -544,7 +574,7 @@ export function SubmitPage() {
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={submitMutation.isPending}
-              className={`bg-[#4EC44E] text-[#002202] px-8 py-3 rounded-lg font-headline font-bold transition-all shadow-lg ${(submitMutation.isPending || updateMutation.isPending) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#85fc7e] hover:shadow-green-500/20'}`}
+              className={`bg-[#4EC44E] text-[#002202] px-8 py-3 rounded-lg font-headline font-bold transition-all shadow-lg whitespace-nowrap ${(submitMutation.isPending || updateMutation.isPending) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#85fc7e] hover:shadow-green-500/20'}`}
             >
               {(submitMutation.isPending || updateMutation.isPending) ? 'Saving...' : (isEditing ? 'Save Changes' : 'Submit for Review')}
             </motion.button>
