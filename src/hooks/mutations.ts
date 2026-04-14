@@ -2,6 +2,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { ServerStatus, UserRole } from '../types'
 import { logAction } from '../lib/audit'
+import { 
+  sendApprovalNotification, 
+  sendStaffReviewNotification, 
+  sendLogNotification, 
+  sendErrorNotification 
+} from '../lib/discord'
 
 export function useVoteMutation() {
   const queryClient = useQueryClient()
@@ -19,6 +25,13 @@ export function useVoteMutation() {
       queryClient.invalidateQueries({ queryKey: ['server'] })
       queryClient.invalidateQueries({ queryKey: ['servers'] })
       queryClient.invalidateQueries({ queryKey: ['voteStatus'] })
+    },
+    onError: (error, variables) => {
+      sendErrorNotification({
+        error,
+        context: 'User attempted to vote',
+        userEmail: variables.userId
+      })
     }
   })
 }
@@ -59,6 +72,12 @@ export function useDeleteServerMutation() {
       // 4. Log Action
       if (server) {
         await logAction('SERVER_DELETED', { serverName: server.name }, adminId, adminName, id)
+        await sendLogNotification({
+          action: '🗑️ Server Deleted',
+          adminName: adminName,
+          details: `**${server.name}** has been permanently deleted from the platform.`,
+          color: 0xe74c3c // Soft Red
+        })
       }
     },
     onSuccess: () => {
@@ -74,7 +93,7 @@ export function useUpdateServerStatusMutation() {
   return useMutation({
     mutationFn: async ({ id, status, adminId, adminName }: { id: string, status: ServerStatus, adminId?: string | null, adminName?: string | null }) => {
       // 0. Get current server state before update
-      const { data: server } = await supabase.from('servers').select('owner_id, name, status').eq('id', id).single()
+      const { data: server } = await supabase.from('servers').select('owner_id, name, status, slug, icon_url').eq('id', id).single()
 
       // 1. Update status
       const { error: statusError } = await supabase.from('servers').update({ status }).eq('id', id)
@@ -103,6 +122,41 @@ export function useUpdateServerStatusMutation() {
           message,
           related_id: id
         } as any)
+
+        // 2a. Discord Notification
+        if (server.name && server.slug) {
+          if (server.status === 'pending') {
+            // New submission: Notify Public AND Logs
+            await sendApprovalNotification({
+              serverName: server.name,
+              adminName: adminName || 'A Staff Member',
+              slug: server.slug,
+              iconUrl: server.icon_url,
+              type: 'new_listing',
+              target: 'public'
+            })
+            await sendApprovalNotification({
+              serverName: server.name,
+              adminName: adminName || 'A Staff Member',
+              slug: server.slug,
+              iconUrl: server.icon_url,
+              type: 'new_listing',
+              target: 'logs',
+              previousStatus: server.status
+            })
+          } else {
+            // Asset update: Notify Logs only
+            await sendApprovalNotification({
+              serverName: server.name,
+              adminName: adminName || 'A Staff Member',
+              slug: server.slug,
+              iconUrl: server.icon_url,
+              type: 'asset_update',
+              target: 'logs',
+              previousStatus: server.status
+            })
+          }
+        }
       }
 
       // 3. Log action
@@ -113,6 +167,15 @@ export function useUpdateServerStatusMutation() {
         adminName,
         id
       )
+
+      // 3a. Log to Discord if status changed but NOT approved (approvals handled above)
+      if (status !== 'approved' && server?.name) {
+        await sendLogNotification({
+          action: '📝 Server Status Updated',
+          adminName: adminName,
+          details: `**${server.name}** status changed to **${status}** (previously: \`${server.status}\`).`,
+        })
+      }
 
       // 3. If approved, cleanup messages
       if (status === 'approved') {
@@ -126,6 +189,13 @@ export function useUpdateServerStatusMutation() {
       queryClient.invalidateQueries({ queryKey: ['userServers'] })
       queryClient.invalidateQueries({ queryKey: ['server'] })
       queryClient.invalidateQueries({ queryKey: ['serverMessages'] })
+    },
+    onError: (error, variables) => {
+      sendErrorNotification({
+        error,
+        context: `Admin attempted to update ${variables.id} status to ${variables.status}`,
+        userEmail: variables.adminId
+      })
     }
   })
 }
@@ -134,8 +204,8 @@ export function useUpdateUserRoleMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, role, adminId, adminName }: { id: string, role: UserRole, adminId?: string | null, adminName?: string | null }) => {
-      // Get target user name
-      const { data: targetProfile } = await supabase.from('profiles').select('discord_username').eq('id', id).single()
+      // Get target user details
+      const { data: targetProfile } = await supabase.from('profiles').select('discord_username, role').eq('id', id).single()
 
       const { error } = await supabase.from('profiles').update({ role }).eq('id', id)
       if (error) throw error
@@ -147,6 +217,13 @@ export function useUpdateUserRoleMutation() {
         adminName,
         id
       )
+
+      await sendLogNotification({
+        action: '🔐 User Role Changed',
+        adminName: adminName,
+        details: `**${targetProfile?.discord_username}**'s role set to **${role}** (previously: \`${targetProfile?.role}\`).`,
+        color: 0xf1c40f // Yellow
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
@@ -178,9 +255,25 @@ export function useSubmitServerMutation() {
       const { error } = await supabase.from('servers').insert([{ ...formData, last_edited_at: new Date().toISOString() }])
       if (error) throw error
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['userServers'] })
       queryClient.invalidateQueries({ queryKey: ['adminServers'] })
+
+      // Discord Staff Notification
+      if (variables?.name) {
+        sendStaffReviewNotification({
+          serverName: variables.name,
+          status: variables.status || 'pending',
+          iconUrl: variables.icon_url
+        })
+      }
+    },
+    onError: (error, variables) => {
+      sendErrorNotification({
+        error,
+        context: `User attempted to submit server: ${variables.name}`,
+        userEmail: variables.owner_id
+      })
     }
   })
 }
@@ -191,11 +284,26 @@ export function useUpdateServerMutation() {
       const { error } = await supabase.from('servers').update({ ...formData, last_edited_at: new Date().toISOString() }).eq('id', id)
       if (error) throw error
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['server'] })
       queryClient.invalidateQueries({ queryKey: ['userServers'] })
       queryClient.invalidateQueries({ queryKey: ['servers'] })
       queryClient.invalidateQueries({ queryKey: ['adminServers'] })
+
+      // Discord Staff Notification for asset reviews
+      const isReviewStatus = variables?.status && (
+        variables.status === 'Review Icon' || 
+        variables.status === 'Review Cover' || 
+        variables.status === 'Review Icon & Cover'
+      );
+
+      if (isReviewStatus && variables?.name) {
+        sendStaffReviewNotification({
+          serverName: variables.name,
+          status: variables.status,
+          iconUrl: variables.icon_url
+        })
+      }
     }
   })
 }
@@ -333,6 +441,13 @@ export function useSendMessageMutation() {
         adminName,
         serverId
       )
+
+      await sendLogNotification({
+        action: type === 'rejection' ? '❌ Server Listing Rejected' : '📧 Staff Outreach Sent',
+        adminName: adminName,
+        details: `**${server?.name}** status changed to **${newStatus}** (previously: \`${server?.status}\`).\n\n**Subject:** ${subject}\n*Note: User has been notified.*`,
+        color: type === 'rejection' ? 0xe67e22 : 0x3498db // Orange for rejection, Blue for contact
+      })
 
       return serverId
     },
@@ -568,6 +683,12 @@ export function useClearAuditLogsMutation() {
 
       // Log the clearing action itself
       await logAction('AUDIT_LOGS_CLEARED', {}, adminId, adminName)
+      await sendLogNotification({
+        action: '🧹 Audit Logs Cleared',
+        adminName: adminName,
+        details: 'The system audit logs have been purged.',
+        color: 0x95a5a6 // Gray
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
@@ -584,6 +705,12 @@ export function useClearVoteLogsMutation() {
 
       // Log the clearing action
       await logAction('VOTE_LOGS_CLEARED', {}, adminId, adminName)
+      await sendLogNotification({
+        action: '🗳️ Vote Logs Cleared',
+        adminName: adminName,
+        details: 'All server votes have been reset.',
+        color: 0x95a5a6 // Gray
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['voteLogs'] })
@@ -654,6 +781,13 @@ export function useUpdateCategoryRequestStatusMutation() {
         adminName,
         id
       )
+
+      await sendLogNotification({
+        action: status === 'accepted' ? '✅ Category Request Accepted' : '❌ Category Request Rejected',
+        adminName: adminName,
+        details: `**Request:** ${request.subject}\n**Description:** ${request.description}`,
+        color: status === 'accepted' ? 0x2ecc71 : 0xe74c3c
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categoryRequests'] })
@@ -711,6 +845,12 @@ export function useAddTeamMemberMutation() {
       const { data: profile } = await supabase.from('profiles').select('discord_username').eq('id', userId).single()
       
       await logAction('TEAM_MEMBER_ADDED', { username: profile?.discord_username, roleTitle }, adminId, adminName, userId)
+      await sendLogNotification({
+        action: '👤 Team Member Added',
+        adminName: adminName,
+        details: `**${profile?.discord_username}** joined the team as **${roleTitle}**.`,
+        color: 0x8e44ad // Purple
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teamMembers'] })
@@ -729,6 +869,13 @@ export function useRemoveTeamMemberMutation() {
       if (error) throw error
 
       await logAction('TEAM_MEMBER_REMOVED', { username: (member as any)?.profiles?.discord_username }, adminId, adminName, (member as any)?.user_id)
+      
+      await sendLogNotification({
+        action: '👤 Team Member Removed',
+        adminName: adminName,
+        details: `**${(member as any)?.profiles?.discord_username}** has been removed from the team.`,
+        color: 0xc0392b // Dark Red
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teamMembers'] })
@@ -755,11 +902,20 @@ export function useUpdateTeamMemberRoleMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, roleTitle, adminId, adminName }: { id: string, roleTitle: string, adminId?: string | null, adminName?: string | null }) => {
+      // Get details before update
+      const { data: member } = await supabase.from('team_members').select('role_title, profiles(discord_username)').eq('id', id).single()
+      
       const { error } = await supabase.from('team_members').update({ role_title: roleTitle }).eq('id', id)
       if (error) throw error
       
-      const { data: member } = await supabase.from('team_members').select('profiles(discord_username)').eq('id', id).single()
       await logAction('TEAM_MEMBER_ROLE_UPDATED', { username: (member as any)?.profiles?.discord_username, newRole: roleTitle }, adminId, adminName)
+
+      await sendLogNotification({
+        action: '👤 Team Member Role Updated',
+        adminName: adminName,
+        details: `**${(member as any)?.profiles?.discord_username}**'s team role set to **${roleTitle}** (previously: \`${(member as any)?.role_title}\`).`,
+        color: 0x8e44ad // Purple
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teamMembers'] })
@@ -858,6 +1014,13 @@ export function useUpdateReportStatusMutation() {
         adminName,
         id
       )
+
+      await sendLogNotification({
+        action: '🚩 Report Status Updated',
+        adminName: adminName,
+        details: `Report for **${serverName}** marked as **${status}** (previously: \`${report.status}\`).\n**Subject:** ${report.subject}`,
+        color: status === 'resolved' ? 0x2ecc71 : status === 'rejected' ? 0xe74c3c : 0xf1c40f
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reports'] })

@@ -5,7 +5,7 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { Link } from 'react-router-dom'
 import { LoadingSpinner } from '../components/FeedbackStates'
-import heroGif from '../assets/hero/heroRE.gif'
+import heroVideo from '../assets/hero/heroRE.mp4'
 import logo from '../assets/rerealm.webp'
 import { slugify } from '../lib/urlUtils'
 import firstPlaceIcon from '../assets/leaderboards/5336-1st.png'
@@ -36,12 +36,15 @@ export function LeaderboardsPage() {
     <AnimatedPage>
       {/* Hero Section */}
       <header className="relative pt-32 pb-16 px-8 overflow-hidden min-h-[50vh] flex flex-col items-center justify-center">
-        <motion.img 
+        <motion.video 
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 0.5 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          src={heroGif} 
-          alt="Leaderboards Background" 
+          src={heroVideo} 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
           className="absolute inset-0 w-full h-full object-cover z-0 block"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10"></div>

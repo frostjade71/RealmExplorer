@@ -10,7 +10,7 @@ import { CategoryRequestModal } from '../components/CategoryRequestModal'
 import { useCreateCategoryRequestMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
-import heroGif from '../assets/hero/heroRE.gif'
+import heroVideo from '../assets/hero/heroRE.mp4'
 import ctaBg from '../assets/homepage/Minecraft Buddies.jpg'
 import mcGif from '../assets/category/gif/6128-minecraft.gif'
 
@@ -95,14 +95,16 @@ export function HomePage() {
     <AnimatedPage>
       <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[50vh] md:min-h-[65vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}
-        <motion.img 
+        <motion.video 
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 0.5 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          src={heroGif} 
-          alt="Realm Explorer Background" 
+          src={heroVideo} 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
           className="absolute inset-0 w-full h-full object-cover z-0 block"
-          fetchPriority="high"
         />
         {/* Dark Radial Gradient Overlay for focus and legibility */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10"></div>

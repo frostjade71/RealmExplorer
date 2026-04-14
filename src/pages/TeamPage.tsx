@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { useTeamMembers, useUserProfile, useAdminUsers } from '../hooks/queries'
 import { TeamMemberCard } from '../components/TeamMemberCard'
 import { LoadingSpinner } from '../components/FeedbackStates'
-import heroGif from '../assets/hero/heroRE.gif'
+import heroVideo from '../assets/hero/heroRE.mp4'
 import steveIcon from '../assets/about/87389-steve.png'
 import ownerIcon from '../assets/about/16739-owner-gradient.png'
 
@@ -21,12 +21,15 @@ export function TeamPage() {
       {/* Hero Section */}
       <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[50vh] flex flex-col items-center justify-center">
         {/* Cinematic Background */}
-        <motion.img 
+        <motion.video 
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 0.4 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          src={heroGif} 
-          alt="Realm Explorer Background" 
+          src={heroVideo} 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
           className="absolute inset-0 w-full h-full object-cover z-0 block"
         />
         {/* Overlays */}

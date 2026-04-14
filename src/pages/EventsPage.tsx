@@ -10,7 +10,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
 import { RichText } from '../components/RichText'
 import type { OTMCategory } from '../types'
-import heroGif from '../assets/hero/heroRE.gif'
+import heroVideo from '../assets/hero/heroRE.mp4'
 import logo from '../assets/rerealm.webp'
 import { slugify } from '../lib/urlUtils'
 
@@ -56,12 +56,15 @@ export function EventsPage() {
       {/* Hero Section - OTM Cinematic Carousel */}
       <header className="relative pt-32 pb-20 px-8 overflow-hidden min-h-[60vh] flex flex-col items-center justify-center">
         {/* Cinematic Background (Cloned from HomePage) */}
-        <motion.img 
+        <motion.video 
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 0.5 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          src={heroGif} 
-          alt="Events Background" 
+          src={heroVideo} 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
           className="absolute inset-0 w-full h-full object-cover z-0 block"
         />
         {/* Dark Cinematic Overlay */}
