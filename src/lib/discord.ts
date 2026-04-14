@@ -4,6 +4,7 @@ const WEBHOOK_URL = import.meta.env.VITE_DISCORD_WEBHOOK_URL;
 const STAFF_WEBHOOK_URL = import.meta.env.VITE_DISCORD_STAFF_WEBHOOK_URL;
 const LOGS_WEBHOOK_URL = import.meta.env.VITE_DISCORD_LOGS_WEBHOOK_URL;
 const STAFF_ROLE_ID = import.meta.env.VITE_DISCORD_STAFF_ROLE_ID;
+const MEMBER_ROLE_ID = import.meta.env.VITE_DISCORD_MEMBER_ROLE_ID;
 
 export async function sendApprovalNotification(params: {
   serverName: string;
@@ -41,6 +42,9 @@ export async function sendApprovalNotification(params: {
     username: target === 'public' 
       ? 'Realm Explorer | Find & Promote Website'
       : 'Realm Explorer | Web Logs',
+    content: (target === 'public' && type === 'new_listing' && MEMBER_ROLE_ID) 
+      ? `<@&${MEMBER_ROLE_ID}>` 
+      : undefined,
     embeds: [
       {
         title: title,
