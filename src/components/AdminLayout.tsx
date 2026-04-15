@@ -109,7 +109,7 @@ export function AdminLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-h-screen relative overflow-hidden">
+      <main className="flex-1 h-screen overflow-y-auto relative scrollbar-thin">
         {/* Subtle background decorative element */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-realm-green/5 blur-[120px] -z-10 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-realm-green/5 blur-[100px] -z-10 pointer-events-none" />

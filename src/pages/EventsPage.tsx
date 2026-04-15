@@ -38,6 +38,16 @@ export function EventsPage() {
     return winners?.find(w => w.category === currentCategory.id)
   }, [winners, currentCategory])
 
+  const heroBackground = useMemo(() => {
+    const isServerOrRealm = currentCategory.id === 'realm' || currentCategory.id === 'server';
+    const bannerUrl = activeWinner?.servers?.banner_url;
+    
+    if (isServerOrRealm && bannerUrl) {
+      return { type: 'image', url: bannerUrl, key: bannerUrl };
+    }
+    return { type: 'video', url: heroVideo, key: 'default-video' };
+  }, [currentCategory.id, activeWinner, heroVideo]);
+
   const categoryCompetitors = useMemo(() => {
     return competitors?.filter(c => c.category === currentCategory.id)
   }, [competitors, currentCategory])
@@ -55,20 +65,43 @@ export function EventsPage() {
     <AnimatedPage>
       {/* Hero Section - OTM Cinematic Carousel */}
       <header className="relative pt-32 pb-20 px-8 overflow-hidden min-h-[60vh] flex flex-col items-center justify-center">
-        {/* Cinematic Background (Cloned from HomePage) */}
-        <motion.video 
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.5 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          src={heroVideo} 
-          autoPlay 
-          loop 
-          muted 
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover z-0 block"
-        />
+        {/* Cinematic Background */}
+        <div className="absolute inset-0 z-0">
+          <AnimatePresence mode="wait">
+            {heroBackground.type === 'video' ? (
+              <motion.video 
+                key="default-video"
+                initial={{ scale: 1.1, opacity: 0 }}
+                animate={{ scale: 1, opacity: 0.5 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                src={heroBackground.url} 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover block"
+              />
+            ) : (
+              <motion.div
+                key={heroBackground.key}
+                initial={{ scale: 1.1, opacity: 0 }}
+                animate={{ scale: 1, opacity: 0.5 }}
+                exit={{ opacity: 0, scale: 1.05 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="absolute inset-0"
+              >
+                <img 
+                  src={heroBackground.url}
+                  alt="Winner Cover"
+                  className="w-full h-full object-cover"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
         {/* Dark Cinematic Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-green-950/70 z-10"></div>
         
         <div className="max-w-7xl mx-auto w-full relative z-20">
           <AnimatePresence mode="wait">
@@ -91,7 +124,10 @@ export function EventsPage() {
               </FramerIn>
               
               <FramerIn delay={0.2}>
-                <h1 className="font-pixel text-white text-3xl md:text-5xl leading-tight mb-8 drop-shadow-2xl">
+                <h1 
+                  className="font-pixel text-white text-3xl md:text-5xl leading-tight mb-8 drop-shadow-2xl"
+                  style={{ textShadow: '0 4px 12px rgba(0,0,0,1), 0 0 40px rgba(0,0,0,0.4)' }}
+                >
                    {currentCategory.label.split(' ')[0]} <br/>
                    <span className="text-realm-green">{currentCategory.label.split(' ').slice(1).join(' ')}</span>
                 </h1>
@@ -119,10 +155,10 @@ export function EventsPage() {
                       <img 
                         src={activeWinner.winner_image_url || activeWinner.servers?.icon_url || logo} 
                         alt="Winner" 
-                        className="w-16 h-16 rounded-xl object-cover border-2 border-realm-green shadow-2xl shadow-realm-green/20 group-hover:border-white transition-colors"
+                        className="w-16 h-16 rounded-xl object-cover border-2 border-yellow-400 shadow-2xl shadow-yellow-400/20 group-hover:border-white transition-colors"
                       />
                       <div className="text-center md:text-left">
-                        <h2 className="text-xl md:text-2xl font-pixel text-white drop-shadow-lg group-hover:text-realm-green transition-colors">
+                        <h2 className="text-xl md:text-2xl font-pixel text-white drop-shadow-lg transition-colors">
                           {activeWinner.winner_name || activeWinner.servers?.name}
                         </h2>
                       </div>
@@ -168,15 +204,15 @@ export function EventsPage() {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent z-20"></div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-8 py-20">
+      <div className="max-w-[1600px] mx-auto px-6 md:px-12 py-20">
       {/* Vote Section */}
       <FramerIn delay={0.2}>
         <div className="mb-10">
           <h2 className="text-2xl font-pixel text-white mb-2 uppercase tracking-wide">Vote Your OTM!</h2>
-          <p className="text-zinc-500 font-headline text-sm">Support your favorites and help them reach the throne.</p>
+          <p className="text-zinc-500 font-headline text-sm">Support your favorites and help them be the next OTM winner!</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {categoryCompetitors?.map((competitor, idx) => {
             const isPerson = competitor.category === 'developer' || competitor.category === 'builder'
             const displayName = isPerson 
@@ -185,111 +221,116 @@ export function EventsPage() {
             const displayImage = isPerson 
               ? competitor.profiles?.discord_avatar 
               : competitor.servers?.icon_url
-            const displayDesc = isPerson
-              ? (competitor.category === 'developer' ? 'A talented developer.' : 'A master builder.')
-              : competitor.servers?.description
 
             return (
-              <motion.div 
-                key={competitor.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="bg-zinc-900/40 border border-white/5 rounded-xl p-3 group hover:bg-zinc-900/60 transition-all hover:border-realm-green/20"
-              >
-                <div className="block">
-                  <Link 
-                    to={isPerson 
-                      ? (competitor.profiles?.discord_username ? `/profile/${competitor.profiles.discord_username}` : '#')
-                      : `/server/${competitor.servers?.slug || slugify(competitor.servers?.name || '')}`
-                    }
-                    className="block group/link"
-                  >
-                    <div className={`w-20 h-20 mx-auto overflow-hidden mb-3 relative border border-white/5 group-hover:border-realm-green/50 transition-colors ${isPerson ? 'rounded-full' : 'rounded-lg'}`}>
-                       <img 
-                         src={displayImage || (isPerson ? logo : 'https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&q=80&w=800')} 
-                         alt="Competitor"
-                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                       />
-                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                          <Eye className="w-6 h-6 text-white" />
-                       </div>
-                    </div>
-                    <h3 className="text-[13px] font-pixel text-white mb-1 line-clamp-1 text-center group-hover:text-realm-green transition-colors">
-                      {displayName || 'Curated Candidate'}
-                    </h3>
-                  </Link>
-                </div>
-                <p className="text-zinc-500 text-[10px] font-headline mb-4 line-clamp-1 leading-relaxed opacity-60 text-center">
-                  {displayDesc || 'A highly rated participant.'}
-                </p>
-                <div className="flex items-center justify-between px-1 mb-4 relative">
-                   <span className="text-[9px] font-pixel text-white/30 uppercase tracking-[0.2em]">Votes</span>
-                   <span className="text-xl font-pixel text-realm-green font-bold leading-none">{competitor.total_votes || 0}</span>
-                   {userVotes.includes(competitor.id) && (
-                     <div className="absolute -top-3 -right-1">
-                       <span className="bg-realm-green text-zinc-950 text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-lg">Voted</span>
-                     </div>
-                   )}
-                </div>
-
-                <button 
-                  disabled={voteMutation.isPending || unvoteMutation.isPending}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    if (!user) {
-                      toast.error('Login Required', { description: 'Please sign in to vote for OTM.' })
-                      return
-                    }
-                    
-                    if (userServers.length === 0) {
-                      toast.error('Eligibility Required', { description: 'You must own at least one approved server to vote.' })
-                      return
-                    }
-                    
-                    // Self-voting check
-                    if (!isPerson && competitor.server_id) {
-                      const isOwnServer = userServers.some(s => s.id === competitor.server_id)
-                      if (isOwnServer) {
-                        toast.error('Self-voting Restricted', { description: 'You cannot vote for your own server.' })
-                        return
-                      }
-                    } else if (isPerson && competitor.user_id === user.id) {
-                      toast.error('Self-voting Restricted', { description: 'You cannot vote for yourself.' })
-                      return
-                    }
-
-                    if (userVotes.includes(competitor.id)) {
-                      unvoteMutation.mutate({ userId: user.id, competitorId: competitor.id })
-                    } else {
-                      voteMutation.mutate({ userId: user.id, competitorId: competitor.id })
-                    }
-                  }}
-                  className={`block w-full py-2 rounded-lg border font-pixel text-[9px] uppercase tracking-widest transition-all ${
-                    userVotes.includes(competitor.id)
-                      ? 'bg-realm-green border-realm-green text-zinc-950 hover:bg-red-500 hover:border-red-500 hover:text-white'
-                      : 'bg-white/5 border-white/10 text-white hover:bg-realm-green hover:border-realm-green hover:text-zinc-950'
-                  }`}
+              <FramerIn key={competitor.id} delay={idx * 0.05}>
+                <motion.div 
+                  whileHover={{ y: -5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative group cursor-pointer h-full"
                 >
-                  {voteMutation.isPending || unvoteMutation.isPending 
-                    ? 'Processing...' 
-                    : userVotes.includes(competitor.id) ? 'Undo Vote' : 'Cast Vote'}
-                </button>
-              </motion.div>
+                  <div className="relative h-full bg-[#313233] border-4 border-[#101010] p-4 flex flex-col items-center text-center shadow-[5px_5px_0_rgba(0,0,0,0.5)] transition-all group-hover:bg-[#3c3c43]">
+                    {/* Inner Highlight Border */}
+                    <div className="absolute inset-0 border-t-2 border-l-2 border-white/10 pointer-events-none" />
+                    <div className="absolute inset-0 border-b-2 border-r-2 border-black/40 pointer-events-none" />
+
+                    <div className="relative z-10 flex flex-col h-full items-center w-full">
+                      {/* Image Frame */}
+                      <Link 
+                        to={isPerson 
+                          ? (competitor.profiles?.discord_username ? `/profile/${competitor.profiles.discord_username}` : '#')
+                          : `/server/${competitor.servers?.slug || slugify(competitor.servers?.name || '')}`
+                        }
+                        className="block mb-4 group/link"
+                      >
+                        <div className={`relative w-24 h-24 mx-auto border-4 border-realm-green bg-black/40 shadow-inner overflow-hidden group-hover:scale-105 transition-transform duration-300 ${isPerson ? 'rounded-full' : 'rounded-none'}`}>
+                          <img 
+                            src={displayImage || (isPerson ? logo : 'https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&q=80&w=800')} 
+                            alt={displayName || 'Competitor'}
+                            className="w-full h-full object-cover p-1 group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <Eye className="w-6 h-6 text-white" />
+                          </div>
+                        </div>
+                      </Link>
+
+                      <h3 className="text-[11px] font-pixel text-white mb-2 line-clamp-1 w-full drop-shadow-md">
+                        {displayName || 'Curated Candidate'}
+                      </h3>
+                      
+                      <div className="mt-auto w-full space-y-4">
+                        <div className="flex items-center justify-between px-1 relative">
+                          <span className="text-[8px] font-pixel text-white/30 uppercase tracking-[0.2em]">Votes</span>
+                          <span className="text-xl font-pixel text-realm-green font-bold leading-none">{competitor.total_votes || 0}</span>
+                          {userVotes.includes(competitor.id) && (
+                            <div className="absolute -top-3 -right-1">
+                              <span className="bg-realm-green text-zinc-950 text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-lg">Voted</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <button 
+                          disabled={voteMutation.isPending || unvoteMutation.isPending}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            if (!user) {
+                              toast.error('Login Required', { description: 'Please sign in to vote for OTM.' })
+                              return
+                            }
+                            
+                            if (userServers.length === 0) {
+                              toast.error('Eligibility Required', { description: 'You must own at least one approved server to vote.' })
+                              return
+                            }
+                            
+                            // Self-voting check
+                            if (!isPerson && competitor.server_id) {
+                              const isOwnServer = userServers.some(s => s.id === competitor.server_id)
+                              if (isOwnServer) {
+                                toast.error('Self-voting Restricted', { description: 'You cannot vote for your own server.' })
+                                return
+                              }
+                            } else if (isPerson && competitor.user_id === user.id) {
+                              toast.error('Self-voting Restricted', { description: 'You cannot vote for yourself.' })
+                              return
+                            }
+
+                            if (userVotes.includes(competitor.id)) {
+                              unvoteMutation.mutate({ userId: user.id, competitorId: competitor.id })
+                            } else {
+                              voteMutation.mutate({ userId: user.id, competitorId: competitor.id })
+                            }
+                          }}
+                          className={`block w-full py-2.5 border-2 border-[#101010] font-pixel text-[9px] uppercase tracking-widest transition-all shadow-[2px_2px_0_rgba(0,0,0,0.4)] ${
+                            userVotes.includes(competitor.id)
+                              ? 'bg-realm-green text-zinc-950 hover:bg-red-500 hover:text-white'
+                              : 'bg-white/5 text-white hover:bg-realm-green hover:text-zinc-950'
+                          }`}
+                        >
+                          {voteMutation.isPending || unvoteMutation.isPending 
+                            ? 'Processing...' 
+                            : userVotes.includes(competitor.id) ? 'Undo Vote' : 'Cast Vote'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </FramerIn>
             )
           })}
-
-          {(!categoryCompetitors || categoryCompetitors.length === 0) && (
-            <div className="col-span-full py-8 md:py-16 bg-zinc-900/20 border border-dashed border-white/10 rounded-[1.5rem] md:rounded-[2rem] flex flex-col items-center justify-center text-center">
-              <div className="w-10 h-10 md:w-14 md:h-14 bg-white/5 rounded-full flex items-center justify-center mb-3 md:mb-4">
-                <ThumbsUp className="w-4 h-4 md:w-6 md:h-6 text-zinc-700" />
-              </div>
-              <h3 className="text-sm md:text-lg font-pixel text-zinc-600">No Participants Yet</h3>
-              <p className="text-zinc-600 font-headline text-[10px] md:text-xs mt-1.5 md:mt-2 max-w-[200px] md:max-w-sm">Nominations are still open for this category. Check back soon!</p>
-            </div>
-          )}
         </div>
-      </FramerIn>
+
+        {(!categoryCompetitors || categoryCompetitors.length === 0) && (
+          <div className="col-span-full py-8 md:py-16 bg-zinc-900/20 border border-dashed border-white/10 rounded-[1.5rem] md:rounded-[2rem] flex flex-col items-center justify-center text-center">
+            <div className="w-10 h-10 md:w-14 md:h-14 bg-white/5 rounded-full flex items-center justify-center mb-3 md:mb-4">
+              <ThumbsUp className="w-4 h-4 md:w-6 md:h-6 text-zinc-700" />
+            </div>
+            <h3 className="text-sm md:text-lg font-pixel text-zinc-600">No Participants Yet</h3>
+            <p className="text-zinc-600 font-headline text-[10px] md:text-xs mt-1.5 md:mt-2 max-w-[200px] md:max-w-sm">Nominations are still open for this category. Check back soon!</p>
+          </div>
+        )}
+        </FramerIn>
       </div>
     </AnimatedPage>
   )

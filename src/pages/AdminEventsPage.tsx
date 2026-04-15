@@ -23,6 +23,12 @@ const MONTH_OPTIONS = Array.from({ length: 3 }).map((_, i) => {
   return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 })
 
+const COMPETITOR_MONTH_OPTIONS = [0, 1].map((i) => {
+  const d = new Date()
+  d.setMonth(d.getMonth() + i)
+  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+})
+
 export function AdminEventsPage() {
   const { profile } = useAuth()
   const { data: servers = [], isLoading: loadingServers } = useAdminServers()
@@ -336,7 +342,7 @@ export function AdminEventsPage() {
                     onChange={e => setCompForm({...compForm, month: e.target.value})}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-realm-green/50 appearance-none"
                    >
-                     {MONTH_OPTIONS.map(m => <option key={m} value={m} className="bg-zinc-900 text-white">{m}</option>)}
+                     {COMPETITOR_MONTH_OPTIONS.map(m => <option key={m} value={m} className="bg-zinc-900 text-white">{m}</option>)}
                    </select>
                 </div>
                 <div>

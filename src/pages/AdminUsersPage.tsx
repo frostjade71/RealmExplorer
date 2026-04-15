@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useAdminUsers } from '../hooks/queries'
 import { useUpdateUserRoleMutation } from '../hooks/mutations'
 import type { UserRole } from '../types'
@@ -173,7 +174,12 @@ export function AdminUsersPage() {
 
                       </div>
                       <div>
-                        <div className="font-bold text-white group-hover:text-realm-green transition-colors">{user.discord_username || 'Unknown Player'}</div>
+                        <Link 
+                          to={`/profile/${user.discord_username}`}
+                          className="font-bold text-white hover:text-realm-green transition-colors cursor-pointer"
+                        >
+                          {user.discord_username || 'Unknown Player'}
+                        </Link>
                         <div className="text-[10px] text-white/20 font-mono tracking-tighter mt-0.5">{user.discord_id}</div>
                       </div>
                     </div>
