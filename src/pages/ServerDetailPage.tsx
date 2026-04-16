@@ -5,12 +5,12 @@ import { useServer, useUserVoteStatus, useServerRatings, useServerMessages } fro
 import { useVoteMutation, useSubmitRatingMutation, useSubmitReportMutation, useDeleteRatingMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { CategoryBadge } from '../components/CategoryBadge'
-import { Globe, Copy, CheckCircle, ArrowUpSquare, Star, ExternalLink, Calendar, Clock, Flag, Mail } from 'lucide-react'
+import { Globe, Copy, CheckCircle, ArrowUpSquare, Star, ExternalLink, Calendar, Clock, Flag, Mail, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { SiDiscord, SiTiktok, SiInstagram, SiYoutube, SiFacebook, SiTwitch } from 'react-icons/si'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { VoteTimer } from '../components/VoteTimer'
 import { RatingModal } from '../components/RatingModal'
 import { ReportModal } from '../components/ReportModal'
@@ -49,6 +49,38 @@ export function ServerDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const [[activeImageIndex, direction], setDirectionalIndex] = useState([0, 0]);
+
+  const paginate = (newDirection: number) => {
+    if (!gallery.length) return;
+    const nextIndex =
+      (activeImageIndex + newDirection + gallery.length) % gallery.length;
+    setDirectionalIndex([nextIndex, newDirection]);
+  };
+
+  const goToImage = (index: number) => {
+    const newDirection = index > activeImageIndex ? 1 : -1;
+    setDirectionalIndex([index, newDirection]);
+  };
+
+  const variants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 30 : -30,
+      opacity: 0,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 30 : -30,
+      opacity: 0,
+    }),
+  };
+
+  const gallery = server?.gallery || []
   // A user has voted if they have a record in the DB OR if they just successfully clicked the button
   const alreadyVoted = voteStatus?.hasVoted || voteMutation.isSuccess
   const isApproved = server?.status === 'approved'
@@ -159,9 +191,9 @@ export function ServerDetailPage() {
   if (!server) return <EmptyState title="Not Found" message="This server or realm does not exist or was removed." />
 
   return (
-    <AnimatedPage className="max-w-5xl mx-auto px-4 md:px-8 py-8 md:py-12">
+    <AnimatedPage className="max-w-5xl mx-auto w-full px-4 md:px-8 py-8 md:py-12">
       {/* Banner */}
-      <FramerIn delay={0.1} className="w-full h-32 md:h-64 bg-zinc-950 rounded-t-xl overflow-hidden relative border border-zinc-800">
+      <FramerIn delay={0.1} className="w-full h-32 md:h-64 bg-zinc-950 rounded-t-lg overflow-hidden relative border border-zinc-800">
         {server.banner_url ? (
            <motion.img 
             initial={{ scale: 1.1, opacity: 0 }}
@@ -176,8 +208,8 @@ export function ServerDetailPage() {
       </FramerIn>
 
       {/* Header Info */}
-      <FramerIn delay={0.2} className="bg-zinc-950 border-x border-b border-zinc-800 rounded-b-xl p-5 md:p-8 mb-6 md:mb-8 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative -mt-4 shadow-xl">
-        <div className="w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-lg overflow-hidden flex-shrink-0 border-4 border-zinc-950 -mt-10 md:-mt-12 z-10 shadow-lg">
+      <FramerIn delay={0.2} className="bg-zinc-950 border-x border-b border-zinc-800 rounded-b-lg p-5 md:p-8 mb-4 md:mb-4 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative -mt-4 shadow-xl">
+        <div className="w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-md overflow-hidden flex-shrink-0 border-4 border-zinc-950 -mt-10 md:-mt-12 z-10 shadow-lg">
 
           {server.icon_url ? (
             <img src={server.icon_url} alt="Icon" className="w-full h-full object-cover" />
@@ -343,14 +375,14 @@ export function ServerDetailPage() {
                 <div className="flex flex-col gap-1 w-full sm:w-auto">
                    <div className="text-[8px] md:text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Join Realm</div>
                     <motion.a 
-                    href={server.ip_or_code?.startsWith('http') ? server.ip_or_code : `https://realms.gg/${server.ip_or_code}`}
+                    href={server.verify_discord ? server.website_url : (server.ip_or_code?.startsWith('http') ? server.ip_or_code : `https://realms.gg/${server.ip_or_code}`)}
                     target="_blank"
                     rel="noreferrer"
                     whileTap={{ scale: 0.98 }}
                     className="flex items-center justify-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-5 md:px-6 py-1.5 md:py-2 rounded-md font-headline text-xs md:text-sm transition-all border border-zinc-800 w-full"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    Connect
+                    {server.verify_discord ? 'Verify on Discord' : 'Connect'}
                   </motion.a>
                 </div>
               )}
@@ -425,9 +457,9 @@ export function ServerDetailPage() {
         </div>
       </FramerIn>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-        <FramerIn delay={0.3} className="md:col-span-2 space-y-6 md:space-y-8">
-          <div className="bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-xl">
+      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-4">
+        <FramerIn delay={0.3} className="md:col-span-2 w-full space-y-4 md:space-y-4">
+          <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-lg">
             <h2 className="font-pixel text-white text-base md:text-lg mb-4 md:mb-6">About</h2>
             <div className="text-zinc-300 font-body leading-relaxed text-[13px]">
               {server.description ? (
@@ -437,10 +469,83 @@ export function ServerDetailPage() {
               )}
             </div>
           </div>
+
+          {/* Gallery Carousel */}
+          {gallery.length > 0 && (
+            <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-pixel text-white text-base md:text-lg flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm text-realm-green">photo_library</span>
+                  Gallery
+                </h2>
+                <div className="flex gap-1">
+                  {gallery.map((_, i) => (
+                    <div 
+                      key={i} 
+                      className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === activeImageIndex ? 'bg-realm-green w-4' : 'bg-zinc-800'}`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="relative aspect-video bg-black rounded-xl overflow-hidden group">
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.img
+                    key={activeImageIndex}
+                    src={gallery[activeImageIndex]}
+                    custom={direction}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 },
+                    }}
+                    className="w-full h-full object-cover will-change-transform"
+                    alt={`Gallery ${activeImageIndex + 1}`}
+                  />
+                </AnimatePresence>
+
+                {gallery.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => paginate(-1)}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-realm-green hover:text-zinc-950 hover:border-realm-green shadow-xl backdrop-blur-sm"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button
+                      onClick={() => paginate(1)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-realm-green hover:text-zinc-950 hover:border-realm-green shadow-xl backdrop-blur-sm"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                  </>
+                )}
+
+                <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/60 border border-white/10 rounded-lg backdrop-blur-md text-[10px] font-pixel text-white/60">
+                  {activeImageIndex + 1} / {gallery.length}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-5 gap-3 mt-4">
+                {gallery.map((url, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => goToImage(i)}
+                    className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${i === activeImageIndex ? 'border-realm-green ring-4 ring-realm-green/10' : 'border-zinc-800 hover:border-zinc-700'}`}
+                  >
+                    <img src={url} alt={`Thumb ${i + 1}`} className={`w-full h-full object-cover ${i === activeImageIndex ? 'opacity-100' : 'opacity-40 hover:opacity-100 transition-opacity'}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </FramerIn>
         
-        <FramerIn delay={0.4} className="space-y-4 md:space-y-6">
-          <div className="bg-zinc-900/50 border border-zinc-800 p-5 md:p-6 rounded-xl">
+        <FramerIn delay={0.4} className="w-full space-y-4 md:space-y-4">
+          <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-6 rounded-lg">
             <h3 className="font-headline font-bold text-zinc-500 uppercase tracking-widest text-[10px] md:text-xs mb-4">Statistics</h3>
             <div className="flex flex-col gap-3 md:gap-4">
               <div className="flex justify-between items-center">
@@ -468,25 +573,28 @@ export function ServerDetailPage() {
                   <span>Updated {formatDistanceToNow(new Date(server.last_edited_at))} ago</span>
                 </div>
               </div>
+
+              {owner && (
+                <Link 
+                  to={`/profile/${owner.discord_username}`}
+                  className="pt-4 mt-1 border-t border-zinc-800/50 flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group"
+                >
+                  <img src={owner.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-zinc-700 bg-zinc-800" alt="Owner" />
+                  <div className="flex-1">
+                    <p className={`text-[8px] md:text-[9px] uppercase tracking-widest font-headline mb-0.5 ${
+                      (server.submitter_role || 'Owner') === 'Owner' ? 'text-yellow-400' : 'text-realm-green'
+                    }`}>
+                      {server.submitter_role || 'Owner'}
+                    </p>
+                    <p className="text-white text-xs md:text-sm font-bold">{owner.discord_username}</p>
+                  </div>
+                  <span className="text-[8px] md:text-[9px] uppercase tracking-widest font-headline text-zinc-600 font-bold whitespace-nowrap opacity-40 group-hover:opacity-100 transition-opacity">
+                    View Profile
+                  </span>
+                </Link>
+              )}
             </div>
           </div>
-          
-          {owner && (
-            <Link 
-              to={`/profile/${owner.discord_username}`}
-              className="bg-zinc-900/50 border border-zinc-800 p-4 md:p-6 rounded-xl flex items-center gap-3 md:gap-4 hover:bg-zinc-800/80 transition-all group"
-            >
-              <img src={owner.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-zinc-700 bg-zinc-800 group-hover:border-realm-green/30 transition-colors" alt="Owner" />
-              <div>
-                <p className={`text-[9px] md:text-xs uppercase tracking-widest font-headline mb-0.5 ${
-                  (server.submitter_role || 'Owner') === 'Owner' ? 'text-yellow-400' : 'text-realm-green'
-                }`}>
-                  {server.submitter_role || 'Owner'}
-                </p>
-                <p className="text-white text-sm md:text-base font-bold transition-colors">{owner.discord_username}</p>
-              </div>
-            </Link>
-          )}
 
           <motion.button 
             whileHover={{ scale: 1.01 }}
@@ -498,7 +606,7 @@ export function ServerDetailPage() {
               }
               setIsReportModalOpen(true)
             }}
-            className="w-full bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl flex items-center justify-center gap-3 text-zinc-500 hover:text-red-400 hover:border-red-500/20 hover:bg-red-500/5 transition-all group"
+            className="w-full bg-zinc-900/50 border border-zinc-800 p-4 rounded-lg flex items-center justify-center gap-3 text-zinc-500 hover:text-red-400 hover:border-red-500/20 hover:bg-red-500/5 transition-all group"
           >
             <Flag className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
             <span className="font-headline font-bold uppercase tracking-widest text-[9px]">Report Server</span>
@@ -507,8 +615,8 @@ export function ServerDetailPage() {
       </div>
 
       {/* Ratings Section */}
-      <FramerIn delay={0.5} className="mt-6 md:mt-8">
-        <div className="bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-xl">
+      <FramerIn delay={0.5} className="w-full mt-4 md:mt-4">
+        <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-lg">
           <div className="flex items-center justify-between mb-6 md:mb-8">
             <h2 className="font-pixel text-white text-base md:text-lg">Ratings</h2>
             <div className="flex items-center gap-2 md:gap-4 text-[10px] md:text-sm font-headline text-zinc-500 uppercase tracking-widest">
@@ -524,7 +632,7 @@ export function ServerDetailPage() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   key={rating.id} 
-                  className="bg-zinc-950 border border-zinc-800 p-5 md:p-6 rounded-lg space-y-3"
+                  className="bg-zinc-950 border border-zinc-800 p-5 md:p-6 rounded-md space-y-3"
                 >
                   <div className="flex justify-between items-start">
                     <Link 

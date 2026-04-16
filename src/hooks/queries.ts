@@ -13,7 +13,8 @@ import type {
   TeamMember,
   SiteSetting,
   CategoryRequest,
-  Report
+  Report,
+  BlogPost
 } from '../types'
 
 export function useServers(params?: {
@@ -399,6 +400,81 @@ export function useReports() {
       
       if (error) throw error
       return data as unknown as Report[]
+    }
+  })
+}
+
+export function useBlogPosts(params?: { status?: 'draft' | 'published'; limit?: number }) {
+  return useQuery({
+    queryKey: ['blogPosts', params],
+    queryFn: async () => {
+      let query = supabase
+        .from('blog_posts')
+        .select('*, profiles(discord_username, discord_avatar)')
+        .order('created_at', { ascending: false })
+
+      if (params?.status) query = query.eq('status', params.status)
+      if (params?.limit) query = query.limit(params.limit)
+
+      const { data, error } = await query
+      if (error) throw error
+      return data as unknown as BlogPost[]
+    }
+  })
+}
+
+export function useBlogPost(slugOrId: string | undefined) {
+  return useQuery({
+    queryKey: ['blogPost', slugOrId],
+    enabled: !!slugOrId,
+    queryFn: async () => {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId!)
+      
+      let query = supabase
+        .from('blog_posts')
+        .select('*, profiles(discord_username, discord_avatar)')
+      
+      if (isUuid) {
+        query = query.eq('id', slugOrId!)
+      } else {
+        query = query.eq('slug', slugOrId!)
+      }
+
+      const { data, error } = await query.maybeSingle()
+      if (error) throw error
+      return data as unknown as BlogPost
+    }
+  })
+}
+
+export function useBlogPostLikes(postId: string | undefined, userId: string | undefined) {
+  return useQuery({
+    queryKey: ['blogPostLikes', postId, userId],
+    enabled: !!postId,
+    queryFn: async () => {
+      // 1. Get total likes count
+      const { count, error: countError } = await supabase
+        .from('blog_post_likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('post_id', postId!)
+
+      if (countError) throw countError
+
+      // 2. Check if current user has liked
+      let hasLiked = false
+      if (userId) {
+        const { data, error: likeError } = await supabase
+          .from('blog_post_likes')
+          .select('id')
+          .eq('post_id', postId!)
+          .eq('user_id', userId)
+          .maybeSingle()
+        
+        if (likeError) throw likeError
+        hasLiked = !!data
+      }
+
+      return { count: count || 0, hasLiked }
     }
   })
 }

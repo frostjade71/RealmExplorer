@@ -135,14 +135,14 @@ export function ProfilePage() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-zinc-900 border-4 border-black overflow-hidden shadow-2xl relative group"
+            className="w-24 h-24 md:w-28 md:h-28 rounded-xl bg-zinc-900 border-4 border-black overflow-hidden shadow-2xl relative group"
           >
             <img 
               src={profile.discord_avatar || ''} 
               alt={profile.discord_username || ''} 
               className="w-full h-full object-cover p-1"
             />
-            <div className="absolute inset-0 border border-white/10 rounded-[28px] pointer-events-none" />
+            <div className="absolute inset-0 border border-white/10 rounded-[20px] pointer-events-none" />
           </motion.div>
 
           <FramerIn delay={0.3} className="flex-1 text-left pt-2 md:pt-12">
@@ -207,7 +207,7 @@ export function ProfilePage() {
               )}
 
               {/* Personal Links Card */}
-              <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4 backdrop-blur-xl group/sidebar relative">
+              <div className="bg-zinc-900/50 border border-white/5 rounded-lg p-4 backdrop-blur-xl group/sidebar relative">
                 <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
                   <h3 className="font-pixel text-[8px] text-zinc-400 uppercase tracking-widest">
                     Personal Links
@@ -232,7 +232,7 @@ export function ProfilePage() {
                           onClick={(e) => link.platform === 'email' && handleEmailClick(e, link.url)}
                           target={link.platform === 'email' ? undefined : "_blank"}
                           rel={link.platform === 'email' ? undefined : "noopener noreferrer"}
-                          className={`flex items-center gap-3 p-2.5 rounded-lg bg-zinc-950/50 border transition-all group/link overflow-hidden ${getPlatformBorderColor(link.platform)}`}
+                          className={`flex items-center gap-3 p-2.5 rounded-md bg-zinc-950/50 border transition-all group/link overflow-hidden ${getPlatformBorderColor(link.platform)}`}
                         >
                           <div className={`w-8 h-8 flex items-center justify-center transition-colors flex-shrink-0 ${getPlatformColor(link.platform)} group-hover/link:scale-110 duration-300`}>
                             {getSocialIcon(link.platform)}
@@ -244,7 +244,7 @@ export function ProfilePage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="py-8 text-center bg-zinc-950/30 rounded-lg border border-dashed border-white/5">
+                    <div className="py-8 text-center bg-zinc-950/30 rounded-md border border-dashed border-white/5">
                       <Share2 className="w-6 h-6 text-zinc-800 mx-auto mb-2" />
                       <p className="text-[9px] text-zinc-600 uppercase font-headline tracking-tighter">No links shared yet</p>
                     </div>
@@ -264,7 +264,7 @@ export function ProfilePage() {
               {isOwnProfile && (
                 <Link 
                   to="/dashboard"
-                  className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-lg transition-all border border-white/5 active:scale-95 flex-shrink-0"
+                  className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-md transition-all border border-white/5 active:scale-95 flex-shrink-0"
                   title="Go to Dashboard"
                 >
                   <LayoutDashboard className="w-4 h-4" />

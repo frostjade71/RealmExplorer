@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import typography from '@tailwindcss/typography'
 
 export default {
   content: [
@@ -65,8 +66,52 @@ export default {
         "body": ["Inter", "sans-serif"],
         "label": ["Inter", "sans-serif"],
         "pixel": ["'Press Start 2P'", "monospace"]
-      }
+      },
+      typography: ({ theme }: any) => ({
+        'realm-green': {
+          css: {
+            '--tw-prose-links': theme('colors.realm-green'),
+            '--tw-prose-invert-links': theme('colors.realm-green'),
+            '--tw-prose-bold': '#ffffff',
+            '--tw-prose-invert-bold': '#ffffff',
+            '--tw-prose-headings': '#ffffff',
+            '--tw-prose-invert-headings': '#ffffff',
+            '--tw-prose-quotes': theme('colors.realm-green'),
+            '--tw-prose-invert-quotes': theme('colors.realm-green'),
+            '--tw-prose-counters': theme('colors.realm-green'),
+            '--tw-prose-invert-counters': theme('colors.realm-green'),
+            '--tw-prose-bullets': theme('colors.realm-green'),
+            '--tw-prose-invert-bullets': theme('colors.realm-green'),
+            '--tw-prose-hr': 'rgba(255,255,255,0.05)',
+            '--tw-prose-invert-hr': 'rgba(255,255,255,0.05)',
+            '--tw-prose-th-borders': 'rgba(255,255,255,0.1)',
+            '--tw-prose-invert-th-borders': 'rgba(255,255,255,0.1)',
+            '--tw-prose-td-borders': 'rgba(255,255,255,0.05)',
+            '--tw-prose-invert-td-borders': 'rgba(255,255,255,0.05)',
+            p: {
+              marginTop: '1.5em',
+              marginBottom: '1.5em',
+              lineHeight: '1.75',
+            },
+            'h1, h2, h3, h4': {
+              marginTop: '2em',
+              marginBottom: '1em',
+            },
+            'ul, ol': {
+              marginTop: '1.25em',
+              marginBottom: '1.25em',
+              paddingLeft: '1.5em',
+            },
+            li: {
+              marginTop: '0.5em',
+              marginBottom: '0.5em',
+            },
+          },
+        },
+      }),
     },
   },
-  plugins: [],
+  plugins: [
+    typography,
+  ],
 } satisfies Config

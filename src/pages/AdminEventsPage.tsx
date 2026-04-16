@@ -171,14 +171,14 @@ export function AdminEventsPage() {
 
   return (
     <AnimatedPage>
-      <div className="mb-10">
+      <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
             <Trophy className="text-realm-green w-4 h-4" />
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold">Event Management</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">OTM Control Center</h1>
-          <p className="text-white/40 font-headline text-sm">Manage "Of The Month" winners and curate the upcoming voting polls.</p>
+          <p className="text-white/40 font-headline text-sm max-w-xl">Manage "Of The Month" winners and curate the upcoming voting polls.</p>
         </FramerIn>
       </div>
 
@@ -408,7 +408,7 @@ export function AdminEventsPage() {
                   <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Active Competitors</span>
                   <span className="text-[9px] font-bold text-realm-green/60 uppercase tracking-widest mt-0.5">{competitors.length} Total Records</span>
                 </div>
-                <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                <div className="flex flex-wrap gap-1">
                   {(['all', 'realm', 'server', 'developer', 'builder'] as const).map(f => (
                     <button
                       key={f}

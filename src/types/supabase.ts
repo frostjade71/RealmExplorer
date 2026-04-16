@@ -52,6 +52,92 @@ export type Database = {
           },
         ]
       }
+      blog_posts: {
+        Row: {
+          author_id: string | null
+          category: string
+          content: string | null
+          created_at: string | null
+          id: string
+          image_url: string | null
+          is_featured: boolean
+          slug: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          category?: string
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       category_requests: {
         Row: {
           created_at: string
@@ -298,6 +384,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
           created_at: string | null
           discord_avatar: string | null
           discord_banner: string | null
@@ -309,6 +396,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          bio?: string | null
           created_at?: string | null
           discord_avatar?: string | null
           discord_banner?: string | null
@@ -320,6 +408,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          bio?: string | null
           created_at?: string | null
           discord_avatar?: string | null
           discord_banner?: string | null
@@ -334,33 +423,33 @@ export type Database = {
       }
       reports: {
         Row: {
+          created_at: string
           id: string
+          message: string
           reporter_id: string
           server_id: string
-          subject: string
-          message: string
           status: string
-          created_at: string
+          subject: string
           updated_at: string
         }
         Insert: {
+          created_at?: string
           id?: string
+          message: string
           reporter_id: string
           server_id: string
-          subject: string
-          message: string
           status?: string
-          created_at?: string
+          subject: string
           updated_at?: string
         }
         Update: {
+          created_at?: string
           id?: string
+          message?: string
           reporter_id?: string
           server_id?: string
-          subject?: string
-          message?: string
           status?: string
-          created_at?: string
+          subject?: string
           updated_at?: string
         }
         Relationships: [
@@ -477,6 +566,7 @@ export type Database = {
           description: string | null
           discord_url: string | null
           featured: boolean | null
+          gallery: string[] | null
           icon_url: string | null
           id: string
           ip_or_code: string | null
@@ -488,11 +578,15 @@ export type Database = {
           slug: string
           social_links: Json | null
           status: string
+          submitter_role: string | null
           tags: string[] | null
           type: string
           updated_at: string | null
+          verify_discord: boolean | null
           votes: number | null
           website_url: string | null
+          yesterday_rating_rank: number | null
+          yesterday_vote_rank: number | null
         }
         Insert: {
           average_rating?: number | null
@@ -503,6 +597,7 @@ export type Database = {
           description?: string | null
           discord_url?: string | null
           featured?: boolean | null
+          gallery?: string[] | null
           icon_url?: string | null
           id?: string
           ip_or_code?: string | null
@@ -514,11 +609,15 @@ export type Database = {
           slug: string
           social_links?: Json | null
           status?: string
+          submitter_role?: string | null
           tags?: string[] | null
           type: string
           updated_at?: string | null
+          verify_discord?: boolean | null
           votes?: number | null
           website_url?: string | null
+          yesterday_rating_rank?: number | null
+          yesterday_vote_rank?: number | null
         }
         Update: {
           average_rating?: number | null
@@ -529,6 +628,7 @@ export type Database = {
           description?: string | null
           discord_url?: string | null
           featured?: boolean | null
+          gallery?: string[] | null
           icon_url?: string | null
           id?: string
           ip_or_code?: string | null
@@ -540,11 +640,15 @@ export type Database = {
           slug?: string
           social_links?: Json | null
           status?: string
+          submitter_role?: string | null
           tags?: string[] | null
           type?: string
           updated_at?: string | null
+          verify_discord?: boolean | null
           votes?: number | null
           website_url?: string | null
+          yesterday_rating_rank?: number | null
+          yesterday_vote_rank?: number | null
         }
         Relationships: [
           {
@@ -652,6 +756,7 @@ export type Database = {
     Functions: {
       get_my_role: { Args: never; Returns: string }
       reset_all_cooldowns: { Args: never; Returns: undefined }
+      update_yesterday_ranks: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

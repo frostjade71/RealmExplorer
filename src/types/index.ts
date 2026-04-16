@@ -1,7 +1,7 @@
 export type UserRole = 'explorer' | 'moderator' | 'admin'
-export type ServerCategory = 'factions' | 'kitpvp' | 'skyblock' | 'smp' | 'modded' | 'other'
+export type ServerCategory = 'factions' | 'kitpvp' | 'skyblock' | 'smp' | 'modded' | 'skygen' | 'other'
 export type ServerType = 'server' | 'realm'
-export type ServerStatus = 'pending' | 'approved' | 'rejected' | 'emailed' | 'Review Icon' | 'Review Cover' | 'Review Icon & Cover'
+export type ServerStatus = 'pending' | 'approved' | 'rejected' | 'emailed' | 'Review Icon' | 'Review Cover' | 'Review Icon & Cover' | 'Review Gallery' | 'Review Icon & Gallery' | 'Review Cover & Gallery' | 'Review All Assets'
 
 export interface Profile {
   id: string
@@ -37,6 +37,7 @@ export interface Server {
   discord_url: string | null
   banner_url: string | null
   icon_url: string | null
+  gallery: string[]
   slug: string
   tags: string[]
   status: ServerStatus
@@ -46,9 +47,12 @@ export interface Server {
   rating_count: number
   social_links: SocialLink[] | null
   submitter_role: string | null
+  verify_discord: boolean | null
   last_edited_at: string
   created_at: string
   updated_at: string
+  yesterday_vote_rank?: number | null
+  yesterday_rating_rank?: number | null
   profiles?: Profile
 }
 
@@ -163,4 +167,19 @@ export interface Report {
     name: string
     slug: string
   }
+}
+
+export interface BlogPost {
+  id: string
+  author_id: string | null
+  title: string
+  slug: string
+  content: string | null
+  image_url: string | null
+  status: 'draft' | 'published'
+  is_featured: boolean
+  category: 'Server Spotlight' | 'Event/News' | 'Changelog'
+  created_at: string
+  updated_at: string
+  profiles?: Profile
 }

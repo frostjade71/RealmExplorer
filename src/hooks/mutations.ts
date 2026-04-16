@@ -41,7 +41,7 @@ export function useDeleteServerMutation() {
   return useMutation({
     mutationFn: async ({ id, adminId, adminName }: { id: string, adminId?: string | null, adminName?: string | null }) => {
       // 0. Get server data for asset cleanup and logging
-      const { data: server } = await supabase.from('servers').select('icon_url, banner_url, name').eq('id', id).single()
+      const { data: server } = await supabase.from('servers').select('icon_url, banner_url, gallery, name').eq('id', id).single()
 
       if (server) {
         const filesToDelete: string[] = []
@@ -52,9 +52,11 @@ export function useDeleteServerMutation() {
 
         const iconPath = getPath(server.icon_url || '')
         const bannerPath = getPath(server.banner_url || '')
+        const galleryPaths = (server.gallery || []).map((url: string) => getPath(url)).filter(Boolean) as string[]
         
         if (iconPath) filesToDelete.push(iconPath)
         if (bannerPath) filesToDelete.push(bannerPath)
+        filesToDelete.push(...galleryPaths)
 
         // 1. Remove from storage
         if (filesToDelete.length > 0) {
@@ -113,6 +115,18 @@ export function useUpdateServerStatusMutation() {
         } else if (server.status === 'Review Icon & Cover') {
           title = 'Assets Approved'
           message = `Your icon and cover for "${server.name}" have been approved!`
+        } else if (server.status === 'Review Gallery') {
+          title = 'Gallery Approved'
+          message = `Your new gallery pictures for "${server.name}" have been approved!`
+        } else if (server.status === 'Review Icon & Gallery') {
+          title = 'Assets Approved'
+          message = `Your icon and gallery for "${server.name}" have been approved!`
+        } else if (server.status === 'Review Cover & Gallery') {
+          title = 'Assets Approved'
+          message = `Your cover and gallery for "${server.name}" have been approved!`
+        } else if (server.status === 'Review All Assets') {
+          title = 'Assets Approved'
+          message = `All visual assets for "${server.name}" have been approved!`
         }
 
         await supabase.from('notifications').insert({
@@ -294,7 +308,11 @@ export function useUpdateServerMutation() {
       const isReviewStatus = variables?.status && (
         variables.status === 'Review Icon' || 
         variables.status === 'Review Cover' || 
-        variables.status === 'Review Icon & Cover'
+        variables.status === 'Review Icon & Cover' ||
+        variables.status === 'Review Gallery' ||
+        variables.status === 'Review Icon & Gallery' ||
+        variables.status === 'Review Cover & Gallery' ||
+        variables.status === 'Review All Assets'
       );
 
       if (isReviewStatus && variables?.name) {
@@ -598,7 +616,7 @@ export function useDeleteOTMCompetitorMutation() {
 export function useOTMVoteMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ userId, competitorId }: { userId: string; competitorId: string }) => {
+    mutationFn: async ({ userId, competitorId, voterName }: { userId: string; competitorId: string; voterName?: string }) => {
       const { error } = await supabase
         .from('otm_votes')
         .insert({ user_id: userId, competitor_id: competitorId })
@@ -608,10 +626,35 @@ export function useOTMVoteMutation() {
         if (error.code === 'P0001') throw new Error(error.message)
         throw error
       }
+
+      // Log Action
+      const { data: competitor } = await supabase
+        .from('otm_competitors')
+        .select(`
+          category,
+          servers(name),
+          profiles(discord_username)
+        `)
+        .eq('id', competitorId)
+        .single()
+      
+      const { count: newCount } = await supabase
+        .from('otm_votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('competitor_id', competitorId)
+
+      const compName = (competitor as any)?.servers?.name || (competitor as any)?.profiles?.discord_username || 'Unknown Candidate'
+      
+      await logAction('OTM_VOTE', { 
+        voter: voterName || 'User', 
+        competitor: compName, 
+        newCount: newCount || 0 
+      }, userId, voterName, competitorId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['otmCompetitors'] })
       queryClient.invalidateQueries({ queryKey: ['userOTMVotes'] })
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
     }
   })
 }
@@ -619,7 +662,7 @@ export function useOTMVoteMutation() {
 export function useOTMUnvoteMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ userId, competitorId }: { userId: string; competitorId: string }) => {
+    mutationFn: async ({ userId, competitorId, voterName }: { userId: string; competitorId: string; voterName?: string }) => {
       const { error } = await supabase
         .from('otm_votes')
         .delete()
@@ -627,10 +670,35 @@ export function useOTMUnvoteMutation() {
         .eq('competitor_id', competitorId)
       
       if (error) throw error
+
+      // Log Action
+      const { data: competitor } = await supabase
+        .from('otm_competitors')
+        .select(`
+          category,
+          servers(name),
+          profiles(discord_username)
+        `)
+        .eq('id', competitorId)
+        .single()
+      
+      const { count: newCount } = await supabase
+        .from('otm_votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('competitor_id', competitorId)
+
+      const compName = (competitor as any)?.servers?.name || (competitor as any)?.profiles?.discord_username || 'Unknown Candidate'
+      
+      await logAction('OTM_UNVOTE', { 
+        voter: voterName || 'User', 
+        competitor: compName, 
+        newCount: newCount || 0 
+      }, userId, voterName, competitorId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['otmCompetitors'] })
       queryClient.invalidateQueries({ queryKey: ['userOTMVotes'] })
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
     }
   })
 }
@@ -729,6 +797,112 @@ export function useCreateCategoryRequestMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categoryRequests'] })
+    }
+  })
+}
+
+export function useCreateBlogPostMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ authorId, title, slug, category, content, image_url, is_featured, adminId, adminName }: any) => {
+      // If this post is being featured, unfeature all others first
+      if (is_featured) {
+        await supabase.from('blog_posts').update({ is_featured: false }).eq('is_featured', true)
+      }
+
+      const { error } = await supabase.from('blog_posts').insert([{
+        author_id: authorId,
+        title,
+        slug,
+        category: category || 'Event/News',
+        content,
+        image_url,
+        is_featured: !!is_featured,
+        status: 'published'
+      }])
+      if (error) throw error
+
+      await logAction('BLOG_POST_CREATED', { title }, adminId, adminName)
+      await sendLogNotification({
+        action: '📰 New Blog Post',
+        adminName: adminName,
+        details: `**${title}** has been published to the blog.`,
+        color: 0x3498db // Blue
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogPosts'] })
+    }
+  })
+}
+
+export function useUpdateBlogPostMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, title, slug, category, content, image_url, is_featured, old_image_url, adminId, adminName }: any) => {
+      // If this post is being featured, unfeature all others first
+      if (is_featured) {
+        await supabase.from('blog_posts').update({ is_featured: false }).eq('is_featured', true)
+      }
+
+      // 1. Update record
+      const { error } = await supabase.from('blog_posts').update({
+        title,
+        slug,
+        category,
+        content,
+        image_url,
+        is_featured: !!is_featured,
+        updated_at: new Date().toISOString()
+      }).eq('id', id)
+      
+      if (error) throw error
+
+      // 2. Cleanup old image if changed
+      if (old_image_url && image_url !== old_image_url) {
+        const getPath = (url: string) => {
+          if (!url || !url.includes('blog-images/')) return null
+          return url.split('blog-images/').pop()
+        }
+        const oldPath = getPath(old_image_url)
+        if (oldPath) {
+          await supabase.storage.from('blog-images').remove([oldPath])
+        }
+      }
+
+      await logAction('BLOG_POST_UPDATED', { title }, adminId, adminName, id)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogPosts'] })
+      queryClient.invalidateQueries({ queryKey: ['blogPost'] })
+    }
+  })
+}
+
+export function useDeleteBlogPostMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, image_url, adminId, adminName }: { id: string, image_url?: string | null, adminId?: string, adminName?: string }) => {
+      // 1. Cleanup image
+      if (image_url) {
+        const getPath = (url: string) => {
+          if (!url || !url.includes('blog-images/')) return null
+          return url.split('blog-images/').pop()
+        }
+        const path = getPath(image_url)
+        if (path) {
+          await supabase.storage.from('blog-images').remove([path])
+        }
+      }
+
+      // 2. Delete record
+      const { error } = await supabase.from('blog_posts').delete().eq('id', id)
+      if (error) throw error
+
+      await logAction('BLOG_POST_DELETED', { id }, adminId, adminName, id)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogPosts'] })
     }
   })
 }
@@ -1045,6 +1219,32 @@ export function useDeleteReportMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reports'] })
       queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
+    }
+  })
+}
+
+export function useToggleBlogPostLikeMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ postId, userId, hasLiked }: { postId: string, userId: string, hasLiked: boolean }) => {
+      if (hasLiked) {
+        // Remove like
+        const { error } = await supabase
+          .from('blog_post_likes')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', userId)
+        if (error) throw error
+      } else {
+        // Add like
+        const { error } = await supabase
+          .from('blog_post_likes')
+          .insert([{ post_id: postId, user_id: userId }])
+        if (error) throw error
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['blogPostLikes', variables.postId] })
     }
   })
 }

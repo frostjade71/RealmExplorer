@@ -29,6 +29,8 @@ import {
   AdminReportsPage,
   TeamPage,
   BlogPage,
+  AdminBlogPage,
+  BlogPostDetailPage,
   ProfilePage
 } from './pages/Pages'
 
@@ -63,6 +65,10 @@ export const router = createBrowserRouter([
       {
         path: '/blog',
         element: <BlogPage />,
+      },
+      {
+        path: '/blog/:slug',
+        element: <BlogPostDetailPage />,
       },
       {
         path: '/profile/:username',
@@ -116,9 +122,13 @@ export const router = createBrowserRouter([
             path: 'servers',
             element: <AdminServersPage />,
           },
+          { 
+            path: 'reports', 
+            element: <AdminReportsPage />, 
+          },
           {
-            path: 'reports',
-            element: <AdminReportsPage />,
+            path: 'blog',
+            element: <AdminBlogPage />,
           },
           // All below require Admin role
           {

@@ -69,35 +69,35 @@ export function AdminCategoryRequestsPage() {
 
   return (
     <AnimatedPage>
-      <div className="mb-10 flex items-end justify-between">
+      <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
             <PlusCircle className="text-realm-green w-4 h-4" />
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Staff Only</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">Category Requests</h1>
-          <p className="text-white/40 font-headline text-sm">Review user suggestions for new server categories.</p>
+          <p className="text-white/40 font-headline text-sm max-w-xl">Review user suggestions for new server categories.</p>
         </FramerIn>
         
         <FramerIn delay={0.1}>
-          <div className="flex items-center gap-6 bg-white/5 border border-white/10 px-6 py-4 rounded-2xl backdrop-blur-md">
-            <div className="text-center">
-              <div className="text-orange-500 font-pixel text-xl">
+          <div className="flex items-center justify-around lg:justify-start gap-4 sm:gap-6 bg-white/5 border border-white/10 px-4 sm:px-6 py-4 rounded-2xl backdrop-blur-md">
+            <div className="text-center min-w-[70px]">
+              <div className="text-orange-500 font-pixel text-xl leading-none mb-1">
                 {requests.filter(r => r.status === 'pending').length}
               </div>
-              <div className="text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">Pending</div>
+              <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">Pending</div>
             </div>
             <div className="w-px h-8 bg-white/10" />
-            <div className="text-center">
-              <div className="text-realm-green font-pixel text-xl">
+            <div className="text-center min-w-[70px]">
+              <div className="text-realm-green font-pixel text-xl leading-none mb-1">
                 {requests.filter(r => r.status === 'accepted').length}
               </div>
-              <div className="text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">Accepted</div>
+              <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">Accepted</div>
             </div>
             <div className="w-px h-8 bg-white/10" />
-            <div className="text-center">
-              <div className="text-white font-pixel text-xl">{requests.length}</div>
-              <div className="text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">Total</div>
+            <div className="text-center min-w-[70px]">
+              <div className="text-white font-pixel text-xl leading-none mb-1">{requests.length}</div>
+              <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">Total</div>
             </div>
           </div>
         </FramerIn>
@@ -120,7 +120,7 @@ export function AdminCategoryRequestsPage() {
           )}
         </div>
         
-        <div className="flex items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
+        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
           {[
             { id: 'pending', label: 'Pending' },
             { id: 'accepted', label: 'Accepted' },

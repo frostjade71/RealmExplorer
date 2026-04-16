@@ -34,7 +34,7 @@ export function AdminServersPage() {
       const matchesStatus = statusFilter === 'all' 
         ? true 
         : statusFilter === 'review' 
-          ? server.status.startsWith('Review') || server.status === 'pending'
+          ? server.status.startsWith('Review') || server.status === 'pending' || server.status.includes('Gallery')
           : server.status === statusFilter
 
       return matchesSearch && matchesStatus
@@ -129,33 +129,33 @@ export function AdminServersPage() {
 
   return (
     <AnimatedPage>
-      <div className="mb-10 flex items-end justify-between">
+      <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-realm-green text-sm">storage</span>
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Staff Only</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">Manage Servers</h1>
-          <p className="text-white/40 font-headline text-sm">Review and moderate user submissions for the community.</p>
+          <p className="text-white/40 font-headline text-sm max-w-xl">Review and moderate user submissions for the community.</p>
         </FramerIn>
         
         <FramerIn delay={0.1}>
-          <div className="flex items-center gap-6 bg-white/5 border border-white/10 px-6 py-4 rounded-2xl backdrop-blur-md">
-            <div className="text-center">
-              <div className="text-realm-green font-pixel text-xl">
-                {servers.filter(s => ['pending', 'Review Icon', 'Review Cover', 'Review Icon & Cover'].includes(s.status)).length}
+          <div className="flex items-center justify-around lg:justify-start gap-4 sm:gap-6 bg-white/5 border border-white/10 px-4 sm:px-6 py-4 rounded-2xl backdrop-blur-md">
+            <div className="text-center min-w-[70px]">
+              <div className="text-realm-green font-pixel text-xl leading-none mb-1">
+                {servers.filter(s => ['pending', 'Review Icon', 'Review Cover', 'Review Icon & Cover', 'Review Gallery', 'Review Icon & Gallery', 'Review Cover & Gallery', 'Review All Assets'].includes(s.status)).length}
               </div>
-              <div className="text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">To Review</div>
+              <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">To Review</div>
             </div>
             <div className="w-px h-8 bg-white/10" />
-            <div className="text-center">
-              <div className="text-blue-400 font-pixel text-xl">{servers.filter(s => s.status === 'emailed').length}</div>
-              <div className="text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">Emailed</div>
+            <div className="text-center min-w-[70px]">
+              <div className="text-blue-400 font-pixel text-xl leading-none mb-1">{servers.filter(s => s.status === 'emailed').length}</div>
+              <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">Emailed</div>
             </div>
             <div className="w-px h-8 bg-white/10" />
-            <div className="text-center">
-              <div className="text-white font-pixel text-xl">{servers.length}</div>
-              <div className="text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">Total</div>
+            <div className="text-center min-w-[70px]">
+              <div className="text-white font-pixel text-xl leading-none mb-1">{servers.length}</div>
+              <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">Total</div>
             </div>
           </div>
         </FramerIn>
@@ -178,7 +178,7 @@ export function AdminServersPage() {
           )}
         </div>
         
-        <div className="flex items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
+        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
           {[
             { id: 'review', label: 'Review' },
             { id: 'approved', label: 'Approved' },
@@ -283,7 +283,7 @@ export function AdminServersPage() {
                       server.status === 'approved' ? 'bg-realm-green/10 text-realm-green border border-realm-green/20' :
                       server.status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
                       server.status === 'emailed' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse' :
-                      server.status.startsWith('Review') ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20 animate-pulse' :
+                      (server.status.startsWith('Review') || server.status.includes('Gallery')) ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20 animate-pulse' :
                       'bg-orange-500/10 text-orange-500 border border-orange-500/20 animate-pulse'
                     }`}>
                       <span className="w-1 h-1 rounded-full bg-current" />

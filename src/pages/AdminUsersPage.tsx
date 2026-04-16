@@ -52,36 +52,36 @@ export function AdminUsersPage() {
 
   return (
     <AnimatedPage>
-      <div className="mb-10 flex items-end justify-between">
+      <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-realm-green text-sm">group</span>
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Community</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">User Registry</h1>
-          <p className="text-white/40 font-headline text-sm">Manage user accounts and staff roles.</p>
+          <p className="text-white/40 font-headline text-sm max-w-xl">Manage user accounts and staff roles.</p>
         </FramerIn>
 
         <FramerIn delay={0.1}>
-          <div className="flex items-center gap-4 bg-white/5 border border-white/10 px-6 py-4 rounded-2xl backdrop-blur-md">
-            <div className="flex -space-x-3">
+          <div className="flex items-center justify-between lg:justify-start gap-4 sm:gap-6 bg-white/5 border border-white/10 px-4 sm:px-6 py-4 rounded-2xl backdrop-blur-md">
+            <div className="flex -space-x-3 shrink-0">
               {users.slice(0, 5).map(user => (
                 <img 
                   key={user.id} 
                   src={user.discord_avatar || ''} 
-                  className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-800" 
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-zinc-950 bg-zinc-800" 
                   alt="" 
                 />
               ))}
               {users.length > 5 && (
-                <div className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-white/5 flex items-center justify-center text-[10px] font-bold text-white/40">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-zinc-950 bg-white/5 flex items-center justify-center text-[10px] font-bold text-white/40">
                   +{users.length - 5}
                 </div>
               )}
             </div>
             <div className="text-right">
-              <div className="text-white font-pixel text-lg leading-none">{users.length}</div>
-              <div className="text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest mt-1">Total Users</div>
+              <div className="text-white font-pixel text-lg sm:text-xl leading-none mb-1">{users.length}</div>
+              <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest leading-none">Total Users</div>
             </div>
           </div>
         </FramerIn>
@@ -104,7 +104,7 @@ export function AdminUsersPage() {
           )}
         </div>
         
-        <div className="flex items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
+        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
           {[
             { id: 'all', label: 'All' },
             { id: 'admin', label: 'Admins' },

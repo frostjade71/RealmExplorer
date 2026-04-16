@@ -27,7 +27,11 @@ export function ServerCard({
     emailed: { label: 'Emailed', bg: 'bg-blue-500/10', text: 'text-blue-400' },
     'Review Icon': { label: 'Review Icon', bg: 'bg-orange-500/10', text: 'text-orange-400' },
     'Review Cover': { label: 'Review Cover', bg: 'bg-orange-500/10', text: 'text-orange-400' },
-    'Review Icon & Cover': { label: 'Review Icon & Cover', bg: 'bg-orange-500/10', text: 'text-orange-400' }
+    'Review Icon & Cover': { label: 'Review Icon & Cover', bg: 'bg-orange-500/10', text: 'text-orange-400' },
+    'Review Gallery': { label: 'Review Gallery', bg: 'bg-orange-500/10', text: 'text-orange-400' },
+    'Review Icon & Gallery': { label: 'Review Icon & Gallery', bg: 'bg-orange-500/10', text: 'text-orange-400' },
+    'Review Cover & Gallery': { label: 'Review Cover & Gallery', bg: 'bg-orange-500/10', text: 'text-orange-400' },
+    'Review All Assets': { label: 'Review All Assets', bg: 'bg-orange-500/10', text: 'text-orange-400' }
   }[server.status as string] || { label: server.status, bg: 'bg-zinc-800', text: 'text-zinc-400' }
 
   return (

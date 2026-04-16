@@ -45,14 +45,14 @@ export function AdminSettingsPage() {
 
   return (
     <AnimatedPage>
-      <div className="mb-10 flex items-end justify-between">
+      <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-realm-green text-sm">settings</span>
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">System Settings</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">Global Settings</h1>
-          <p className="text-white/40 font-headline text-sm">Modify core platform parameters and manage server cooldowns.</p>
+          <p className="text-white/40 font-headline text-sm max-w-xl">Modify core platform parameters and manage server cooldowns.</p>
         </FramerIn>
       </div>
 

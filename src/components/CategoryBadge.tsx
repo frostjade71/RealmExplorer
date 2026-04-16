@@ -9,6 +9,7 @@ import kitpvpIcon from '../assets/category/95615-mace.png'
 import skyblockIcon from '../assets/category/41601-minecraftoaktree.png'
 import moddedIcon from '../assets/category/437888-bedrock.png'
 import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
+import skygenIcon from '../assets/category/89458-iron-block.png'
 
 const categoryStyles: Record<ServerCategory, { bg: string, text: string, icon: React.ReactNode }> = {
   factions: { 
@@ -35,6 +36,11 @@ const categoryStyles: Record<ServerCategory, { bg: string, text: string, icon: R
     bg: 'bg-purple-500/10', 
     text: 'text-purple-500', 
     icon: <img src={moddedIcon} alt="" className="w-3.5 h-3.5 object-contain" /> 
+  },
+  skygen: { 
+    bg: 'bg-amber-500/10', 
+    text: 'text-amber-500', 
+    icon: <img src={skygenIcon} alt="" className="w-3.5 h-3.5 object-contain" /> 
   },
   other: { 
     bg: 'bg-zinc-500/10', 

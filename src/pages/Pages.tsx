@@ -8,6 +8,8 @@ export { SubmitPage } from './SubmitPage'
 export { DashboardPage } from './DashboardPage'
 export { TeamPage } from './TeamPage'
 export { BlogPage } from './BlogPage'
+export { AdminBlogPage } from './AdminBlogPage'
+export { BlogPostDetailPage } from './BlogPostDetailPage'
 export { ProfilePage } from './ProfilePage'
 
 export function NotFoundPage() { return <div className="p-12 text-center text-white font-pixel">404 - Not Found</div> }

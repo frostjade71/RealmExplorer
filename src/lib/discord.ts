@@ -114,7 +114,19 @@ export async function sendStaffReviewNotification(params: {
     alertMessage = `**${serverName}** has updated their cover and needs reviewing !`;
   } else if (status === 'Review Icon & Cover') {
     alertTitle = '✨ New Assets Review';
-    alertMessage = `**${serverName}** has updated their assets and needs reviewing !`;
+    alertMessage = `**${serverName}** has updated their assets (icon & cover) and needs reviewing !`;
+  } else if (status === 'Review Gallery') {
+    alertTitle = '📸 New Gallery Review';
+    alertMessage = `**${serverName}** has updated their gallery and needs reviewing !`;
+  } else if (status === 'Review Icon & Gallery') {
+    alertTitle = '🖼️ New Assets Review';
+    alertMessage = `**${serverName}** has updated their icon and gallery and needs reviewing !`;
+  } else if (status === 'Review Cover & Gallery') {
+    alertTitle = '🎨 New Assets Review';
+    alertMessage = `**${serverName}** has updated their cover and gallery and needs reviewing !`;
+  } else if (status === 'Review All Assets') {
+    alertTitle = '✨ Complete Assets Review';
+    alertMessage = `**${serverName}** has updated all visual assets (icon, cover, & gallery) and needs reviewing !`;
   }
 
   const payload = {

@@ -20,6 +20,7 @@ import kitpvpIcon from '../assets/category/95615-mace.png'
 import skyblockIcon from '../assets/category/41601-minecraftoaktree.png'
 import moddedIcon from '../assets/category/437888-bedrock.png'
 import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
+import skygenIcon from '../assets/category/89458-iron-block.png'
 
 export function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -28,7 +29,14 @@ export function DirectoryPage() {
   const initialSearch = searchParams.get('q') || ''
   const sortBy = searchParams.get('sort') || 'newest'
 
+  const PAGE_SIZE = 24
+  const [page, setPage] = useState(1)
   const [localSearch, setLocalSearch] = useState(initialSearch)
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1)
+  }, [activeType, activeCategory, initialSearch, sortBy])
 
   // Sync local search when URL changes (e.g. back button)
   useEffect(() => {
@@ -47,12 +55,12 @@ export function DirectoryPage() {
     return () => clearTimeout(timer)
   }, [localSearch, initialSearch, searchParams, setSearchParams])
 
-  const { data: servers = [], isLoading: loading } = useServers({
+  const { data: servers = [], isLoading: loading, isFetching } = useServers({
     type: activeType || undefined,
     category: activeCategory,
     searchQuery: initialSearch,
     sortBy,
-    limit: 12
+    limit: PAGE_SIZE * page
   })
 
   const categories: { id: ServerCategory; label: string; icon: string | any; isImage?: boolean }[] = [
@@ -60,6 +68,7 @@ export function DirectoryPage() {
     { id: 'factions', label: 'Factions', icon: factionsIcon, isImage: true },
     { id: 'skyblock', label: 'Skyblock', icon: skyblockIcon, isImage: true },
     { id: 'kitpvp', label: 'KitPVP', icon: kitpvpIcon, isImage: true },
+    { id: 'skygen', label: 'SkyGen', icon: skygenIcon, isImage: true },
     { id: 'modded', label: 'Modded', icon: moddedIcon, isImage: true },
     { id: 'other', label: 'Other', icon: MoreHorizontal, isImage: false },
   ]
@@ -245,7 +254,7 @@ export function DirectoryPage() {
                 }
               }
             }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4"
           >
             {servers.map(server => (
               <motion.div
@@ -262,6 +271,30 @@ export function DirectoryPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {!loading && servers.length >= PAGE_SIZE * page && (
+        <FramerIn delay={0.4} className="mt-6 md:mt-8 flex justify-center pb-8">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setPage(p => p + 1)}
+            disabled={isFetching}
+            className="flex items-center gap-2 px-6 md:px-8 py-2 md:py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-500 hover:text-realm-green hover:border-realm-green/30 hover:bg-zinc-800 transition-all font-headline font-bold text-[10px] md:text-xs shadow-xl group disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isFetching ? (
+              <>
+                <LoadingSpinner size="sm" />
+                <span className="animate-pulse">Loading...</span>
+              </>
+            ) : (
+              <>
+                <span>Load More Servers</span>
+                <span className="material-symbols-outlined text-[14px] md:text-[16px] group-hover:translate-y-1 transition-transform">expand_more</span>
+              </>
+            )}
+          </motion.button>
+        </FramerIn>
+      )}
     </div>
   </AnimatedPage>
   )

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ThumbsUp, ChevronLeft, ChevronRight, Trophy, Sparkles, Star, Calendar, Eye } from 'lucide-react'
+import { ThumbsUp, ChevronLeft, ChevronRight, Trophy, Sparkles, Star, Calendar, Eye, Loader2 } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
@@ -12,6 +12,7 @@ import { RichText } from '../components/RichText'
 import type { OTMCategory } from '../types'
 import heroVideo from '../assets/hero/heroRE.mp4'
 import logo from '../assets/rerealm.webp'
+import esmeraldaIcon from '../assets/OTM/185424-esmeralda.png'
 import { slugify } from '../lib/urlUtils'
 
 const CATEGORIES: { id: OTMCategory; label: string; icon: any }[] = [
@@ -23,7 +24,7 @@ const CATEGORIES: { id: OTMCategory; label: string; icon: any }[] = [
 
 export function EventsPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const { data: winners } = useOTMWinners()
   const { data: competitors } = useOTMCompetitors()
   const { data: userServers = [] } = useUserServers(user?.id)
@@ -67,14 +68,14 @@ export function EventsPage() {
       <header className="relative pt-32 pb-20 px-8 overflow-hidden min-h-[60vh] flex flex-col items-center justify-center">
         {/* Cinematic Background */}
         <div className="absolute inset-0 z-0">
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {heroBackground.type === 'video' ? (
               <motion.video 
                 key="default-video"
                 initial={{ scale: 1.1, opacity: 0 }}
                 animate={{ scale: 1, opacity: 0.5 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
                 src={heroBackground.url} 
                 autoPlay 
                 loop 
@@ -88,7 +89,7 @@ export function EventsPage() {
                 initial={{ scale: 1.1, opacity: 0 }}
                 animate={{ scale: 1, opacity: 0.5 }}
                 exit={{ opacity: 0, scale: 1.05 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
                 className="absolute inset-0"
               >
                 <img 
@@ -104,16 +105,20 @@ export function EventsPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-green-950/70 z-10"></div>
         
         <div className="max-w-7xl mx-auto w-full relative z-20">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="popLayout">
             <motion.div 
               key={currentCategory.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.05 }}
-              transition={{ duration: 0.5, ease: "circOut" }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
               className="flex flex-col items-center text-center"
             >
-              <FramerIn>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
                 {/* Minecraft-style Badge */}
                 <div className="inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-4 py-1.5 mb-8 text-realm-green shadow-[2px_2px_0px_rgba(0,0,0,0.4)] backdrop-blur-md">
                   <Calendar className="w-3.5 h-3.5" />
@@ -121,9 +126,13 @@ export function EventsPage() {
                     {activeWinner?.month || categoryCompetitors?.[0]?.month || defaultMonth}
                   </span>
                 </div>
-              </FramerIn>
+              </motion.div>
               
-              <FramerIn delay={0.2}>
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
                 <h1 
                   className="font-pixel text-white text-3xl md:text-5xl leading-tight mb-8 drop-shadow-2xl"
                   style={{ textShadow: '0 4px 12px rgba(0,0,0,1), 0 0 40px rgba(0,0,0,0.4)' }}
@@ -131,11 +140,15 @@ export function EventsPage() {
                    {currentCategory.label.split(' ')[0]} <br/>
                    <span className="text-realm-green">{currentCategory.label.split(' ').slice(1).join(' ')}</span>
                 </h1>
-              </FramerIn>
+              </motion.div>
 
               {activeWinner ? (
-                <FramerIn delay={0.4} className="flex flex-col items-center">
-                  {/* Clickable Winner Group */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex flex-col items-center"
+                >
                   {/* Clickable Winner Group */}
                   <Link 
                     to={(() => {
@@ -169,16 +182,20 @@ export function EventsPage() {
                       <RichText content={activeWinner.description} />
                     </div>
                   )}
-                </FramerIn>
+                </motion.div>
               ) : (
-                <FramerIn delay={0.4}>
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
                   <div className="py-5 px-8 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-md">
                     <p className="text-lg font-pixel text-white/40">No Previous Winners</p>
                     <p className="text-white/20 font-headline text-xs mt-1 uppercase tracking-widest leading-none">
                       {currentCategory.id === 'developer' || currentCategory.id === 'builder' ? 'Coming Soon' : 'Selection in progress'}
                     </p>
                   </div>
-                </FramerIn>
+                </motion.div>
               )}
             </motion.div>
           </AnimatePresence>
@@ -212,7 +229,7 @@ export function EventsPage() {
           <p className="text-zinc-500 font-headline text-sm">Support your favorites and help them be the next OTM winner!</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {categoryCompetitors?.map((competitor, idx) => {
             const isPerson = competitor.category === 'developer' || competitor.category === 'builder'
             const displayName = isPerson 
@@ -243,7 +260,7 @@ export function EventsPage() {
                         }
                         className="block mb-4 group/link"
                       >
-                        <div className={`relative w-24 h-24 mx-auto border-4 border-realm-green bg-black/40 shadow-inner overflow-hidden group-hover:scale-105 transition-transform duration-300 ${isPerson ? 'rounded-full' : 'rounded-none'}`}>
+                        <div className={`relative w-28 h-28 md:w-32 md:h-32 mx-auto border-4 border-realm-green bg-black/40 shadow-inner overflow-hidden group-hover:scale-105 transition-transform duration-300 ${isPerson ? 'rounded-full' : 'rounded-none'}`}>
                           <img 
                             src={displayImage || (isPerson ? logo : 'https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&q=80&w=800')} 
                             alt={displayName || 'Competitor'}
@@ -255,7 +272,7 @@ export function EventsPage() {
                         </div>
                       </Link>
 
-                      <h3 className="text-[11px] font-pixel text-white mb-2 line-clamp-1 w-full drop-shadow-md">
+                      <h3 className="text-[12px] md:text-sm font-pixel text-white mb-3 line-clamp-1 w-full drop-shadow-md uppercase">
                         {displayName || 'Curated Candidate'}
                       </h3>
                       
@@ -263,11 +280,6 @@ export function EventsPage() {
                         <div className="flex items-center justify-between px-1 relative">
                           <span className="text-[8px] font-pixel text-white/30 uppercase tracking-[0.2em]">Votes</span>
                           <span className="text-xl font-pixel text-realm-green font-bold leading-none">{competitor.total_votes || 0}</span>
-                          {userVotes.includes(competitor.id) && (
-                            <div className="absolute -top-3 -right-1">
-                              <span className="bg-realm-green text-zinc-950 text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-lg">Voted</span>
-                            </div>
-                          )}
                         </div>
 
                         <button 
@@ -284,22 +296,19 @@ export function EventsPage() {
                               return
                             }
                             
-                            // Self-voting check
-                            if (!isPerson && competitor.server_id) {
-                              const isOwnServer = userServers.some(s => s.id === competitor.server_id)
-                              if (isOwnServer) {
-                                toast.error('Self-voting Restricted', { description: 'You cannot vote for your own server.' })
-                                return
-                              }
-                            } else if (isPerson && competitor.user_id === user.id) {
-                              toast.error('Self-voting Restricted', { description: 'You cannot vote for yourself.' })
-                              return
-                            }
 
                             if (userVotes.includes(competitor.id)) {
-                              unvoteMutation.mutate({ userId: user.id, competitorId: competitor.id })
+                              unvoteMutation.mutate({ 
+                                userId: user.id, 
+                                competitorId: competitor.id,
+                                voterName: profile?.discord_username || 'Unknown'
+                              })
                             } else {
-                              voteMutation.mutate({ userId: user.id, competitorId: competitor.id })
+                              voteMutation.mutate({ 
+                                userId: user.id, 
+                                competitorId: competitor.id,
+                                voterName: profile?.discord_username || 'Unknown'
+                              })
                             }
                           }}
                           className={`block w-full py-2.5 border-2 border-[#101010] font-pixel text-[9px] uppercase tracking-widest transition-all shadow-[2px_2px_0_rgba(0,0,0,0.4)] ${
@@ -308,9 +317,16 @@ export function EventsPage() {
                               : 'bg-white/5 text-white hover:bg-realm-green hover:text-zinc-950'
                           }`}
                         >
-                          {voteMutation.isPending || unvoteMutation.isPending 
-                            ? 'Processing...' 
-                            : userVotes.includes(competitor.id) ? 'Undo Vote' : 'Cast Vote'}
+                          {voteMutation.isPending || unvoteMutation.isPending ? (
+                            <div className="flex items-center justify-center">
+                              <Loader2 className="w-4 h-4 animate-spin text-realm-green" />
+                            </div>
+                          ) : userVotes.includes(competitor.id) ? (
+                              <div className="flex items-center justify-center gap-2">
+                                <img src={esmeraldaIcon} alt="" className="w-5 h-5" />
+                                <span>Voted</span>
+                              </div>
+                            ) : 'Cast Vote'}
                         </button>
                       </div>
                     </div>

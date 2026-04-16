@@ -4,13 +4,13 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useMemo } from 'react'
-import { Search, X, History, User, Info, Calendar, Trash2, ThumbsUp } from 'lucide-react'
+import { Search, X, History, User, Info, Calendar, Trash2, ThumbsUp, Sparkles } from 'lucide-react'
 import { useClearAuditLogsMutation, useClearVoteLogsMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { toast } from 'sonner'
 
-type LogTab = 'audit' | 'vote'
+type LogTab = 'audit' | 'vote' | 'otm'
 
 export function AdminAuditLogsPage() {
   const { profile } = useAuth()
@@ -44,10 +44,15 @@ export function AdminAuditLogsPage() {
 
   const filteredLogs = useMemo(() => {
     return logs.filter((log: any) => {
+      // If we are in the main 'audit' tab, exclude OTM logs
+      if (activeTab === 'audit' && log.action.startsWith('OTM_')) return false
+      // If we are in 'otm' tab, only include OTM logs
+      if (activeTab === 'otm' && !log.action.startsWith('OTM_')) return false
+      
       const content = `${log.action} ${log.discord_username} ${JSON.stringify(log.details)}`.toLowerCase()
       return content.includes(searchQuery.toLowerCase())
     })
-  }, [logs, searchQuery])
+  }, [logs, searchQuery, activeTab])
 
   const filteredVoteLogs = useMemo(() => {
     return voteLogs.filter((vote: any) => {
@@ -60,8 +65,8 @@ export function AdminAuditLogsPage() {
   }, [voteLogs, searchQuery])
 
   const getActionColor = (action: string) => {
-    if (action.includes('APPROVED')) return 'text-realm-green bg-realm-green/10 border-realm-green/20'
-    if (action.includes('REJECTED') || action.includes('RESET') || action.includes('CLEARED')) return 'text-red-500 bg-red-500/10 border-red-500/20'
+    if (action.includes('APPROVED') || action === 'OTM_VOTE') return 'text-realm-green bg-realm-green/10 border-realm-green/20'
+    if (action.includes('REJECTED') || action.includes('RESET') || action.includes('CLEARED') || action === 'OTM_UNVOTE') return 'text-red-500 bg-red-500/10 border-red-500/20'
     if (action.includes('LOGIN')) return 'text-blue-400 bg-blue-400/10 border-blue-400/20'
     if (action.includes('ROLE')) return 'text-purple-400 bg-purple-400/10 border-purple-400/20'
     return 'text-white/40 bg-white/5 border-white/10'
@@ -77,50 +82,54 @@ export function AdminAuditLogsPage() {
     ))
   }
 
-  const isLoading = activeTab === 'audit' ? loadingLogs : loadingVotes
-  const currentCount = activeTab === 'audit' ? logs.length : voteLogs.length
+  const isLoading = activeTab === 'vote' ? loadingVotes : loadingLogs
+  const currentCount = activeTab === 'audit' 
+    ? logs.filter((l: any) => !l.action.startsWith('OTM_')).length 
+    : activeTab === 'otm'
+      ? logs.filter((l: any) => l.action.startsWith('OTM_')).length
+      : voteLogs.length
 
   if (isLoading) return <LoadingSpinner />
 
   return (
     <AnimatedPage>
-      <div className="mb-10 flex items-end justify-between">
+      <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
             <History className="text-realm-green w-4 h-4" />
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold">System Integrity</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">Logs & Activity</h1>
-          <p className="text-white/40 font-headline text-sm">Review staff actions and community voting records.</p>
+          <p className="text-white/40 font-headline text-sm max-w-xl">Review staff actions and community voting records.</p>
         </FramerIn>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <FramerIn delay={0.1}>
             <button
               onClick={() => setIsClearModalOpen(true)}
               disabled={currentCount === 0}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all font-headline text-[10px] uppercase font-bold tracking-widest disabled:opacity-50 disabled:cursor-not-allowed group"
+              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all font-headline text-[10px] uppercase font-bold tracking-widest disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-              Clear {activeTab === 'audit' ? 'Audit' : 'Vote'} Logs
+              Clear {activeTab === 'audit' ? 'Audit' : 'Vote'}
             </button>
           </FramerIn>
 
           <FramerIn delay={0.15}>
-            <div className="bg-white/5 border border-white/10 px-6 py-4 rounded-2xl backdrop-blur-md">
-              <div className="text-right">
-                <div className="text-white font-pixel text-lg leading-none">{currentCount}</div>
-                <div className="text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest mt-1">Stored Events</div>
+            <div className="bg-white/5 border border-white/10 px-6 py-3 sm:py-4 rounded-2xl backdrop-blur-md">
+              <div className="text-left lg:text-right">
+                <div className="text-white font-pixel text-lg leading-none mb-1">{currentCount}</div>
+                <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest leading-none">Stored Events</div>
               </div>
             </div>
           </FramerIn>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mb-8 bg-white/5 p-1 rounded-2xl w-fit border border-white/10">
+      <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/5 p-1 rounded-2xl max-w-full lg:w-fit border border-white/10">
         <button
           onClick={() => { setActiveTab('audit'); setSearchQuery(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
             activeTab === 'audit' ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' : 'text-white/40 hover:text-white hover:bg-white/5'
           }`}
         >
@@ -128,8 +137,17 @@ export function AdminAuditLogsPage() {
           Audit Logs
         </button>
         <button
+          onClick={() => { setActiveTab('otm'); setSearchQuery(''); }}
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
+            activeTab === 'otm' ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' : 'text-white/40 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          OTM Vote Logs
+        </button>
+        <button
           onClick={() => { setActiveTab('vote'); setSearchQuery(''); }}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
             activeTab === 'vote' ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' : 'text-white/40 hover:text-white hover:bg-white/5'
           }`}
         >
@@ -171,9 +189,15 @@ export function AdminAuditLogsPage() {
             <thead>
               <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
                 <th className="px-6 py-5">Timestamp</th>
-                <th className="px-6 py-5">{activeTab === 'audit' ? 'Staff Member' : 'Voter'}</th>
-                <th className="px-6 py-5">{activeTab === 'audit' ? 'Action' : 'Server Name'}</th>
-                <th className="px-6 py-5">{activeTab === 'audit' ? 'Details' : 'Discord ID'}</th>
+                <th className="px-6 py-5">
+                  {activeTab === 'audit' ? 'Staff Member' : activeTab === 'otm' ? 'Voter' : 'Voter'}
+                </th>
+                <th className="px-6 py-5">
+                  {activeTab === 'audit' ? 'Action' : activeTab === 'otm' ? 'Event' : 'Server Name'}
+                </th>
+                <th className="px-6 py-5">
+                  {activeTab === 'audit' ? 'Details' : activeTab === 'otm' ? 'Summary' : 'Discord ID'}
+                </th>
               </tr>
             </thead>
             <AnimatePresence mode="wait">
@@ -184,7 +208,7 @@ export function AdminAuditLogsPage() {
                 exit={{ opacity: 0, y: -10 }}
                 className="divide-y divide-white/[0.03]"
               >
-                {activeTab === 'audit' ? (
+                {activeTab === 'audit' || activeTab === 'otm' ? (
                   filteredLogs.map((log: any) => (
                     <motion.tr key={log.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-6 py-5 whitespace-nowrap">
@@ -213,9 +237,19 @@ export function AdminAuditLogsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-5">
-                        <div className="space-y-1">
-                          {formatDetails(log.details)}
-                        </div>
+                        {activeTab === 'otm' ? (
+                          <div className="text-sm font-headline">
+                            <span className="text-realm-green font-bold">{log.details.voter || log.discord_username}</span>
+                            <span className="text-white/40"> has {log.action === 'OTM_VOTE' ? 'Voted' : 'unvoted'} </span>
+                            <span className="text-white font-bold">{log.details.competitor}</span>
+                            <span className="text-white/40">, </span>
+                            <code className="bg-white/5 px-1.5 py-0.5 rounded text-[10px] text-realm-green font-mono border border-white/10">now {log.details.newCount}</code>
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            {formatDetails(log.details)}
+                          </div>
+                        )}
                       </td>
                     </motion.tr>
                   ))

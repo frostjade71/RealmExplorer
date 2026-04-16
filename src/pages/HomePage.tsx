@@ -20,6 +20,7 @@ import kitpvpIcon from '../assets/category/95615-mace.png'
 import skyblockIcon from '../assets/category/41601-minecraftoaktree.png'
 import moddedIcon from '../assets/category/437888-bedrock.png'
 import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
+import skygenIcon from '../assets/category/89458-iron-block.png'
 
 // Category Backgrounds
 import factionsBg from '../assets/homepage/factionsbg.jpg'
@@ -27,6 +28,7 @@ import kitpvpBg from '../assets/homepage/kitpvpbg.jpg'
 import moddedBg from '../assets/homepage/modded.jpg'
 import skyblockBg from '../assets/homepage/skyblockbg.jpg'
 import smpBg from '../assets/homepage/smpbg.jpg'
+import skygenBg from '../assets/homepage/skygen.webp'
 
 function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toString() }: { 
   value: number, 
@@ -89,6 +91,7 @@ export function HomePage() {
     { id: 'kitpvp', name: 'KitPvP', icon: kitpvpIcon, bg: kitpvpBg, desc: 'Fast-paced combat with specialized loadouts.' },
     { id: 'skyblock', name: 'Skyblock', icon: skyblockIcon, bg: skyblockBg, desc: 'Start from nothing on a floating island.' },
     { id: 'modded', name: 'Modded', icon: moddedIcon, bg: moddedBg, desc: 'Modded high-end servers for players to experience.' },
+    { id: 'skygen', name: 'SkyGen', icon: skygenIcon, bg: skygenBg, desc: 'Evolutionary sky-based generator survival.' },
   ]
 
   return (

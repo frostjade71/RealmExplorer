@@ -16,7 +16,7 @@ export function AdminOverviewPage() {
   const [latency, setLatency] = useState<number | null>(null)
   const [dbStatus, setDbStatus] = useState<'online' | 'offline' | 'checking'>('checking')
 
-  const pendingServers = servers.filter(s => ['pending', 'Review Icon', 'Review Cover', 'Review Icon & Cover'].includes(s.status)).length
+  const pendingServers = servers.filter(s => ['pending', 'Review Icon', 'Review Cover', 'Review Icon & Cover', 'Review Gallery', 'Review Icon & Gallery', 'Review Cover & Gallery', 'Review All Assets'].includes(s.status)).length
   const pendingCatRequests = catRequests.filter(r => r.status === 'pending').length
   const totalVotes = servers.reduce((acc, s) => acc + (s.votes || 0), 0)
 
@@ -54,8 +54,8 @@ export function AdminOverviewPage() {
             <span className="material-symbols-outlined text-realm-green text-sm">dashboard</span>
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Staff Dashboard</span>
           </div>
-          <h1 className="text-4xl font-pixel text-white mb-4">Welcome, {profile?.discord_username || 'Staff'}</h1>
-          <div className="flex items-center gap-4 text-white/40 font-headline text-sm max-w-2xl leading-relaxed">
+          <h1 className="text-3xl md:text-4xl font-pixel text-white mb-4">Welcome, {profile?.discord_username || 'Staff'}</h1>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-white/40 font-headline text-xs md:text-sm max-w-2xl leading-relaxed">
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${dbStatus === 'online' ? 'bg-realm-green animate-pulse' : 'bg-red-500'}`} />
               <span className="uppercase tracking-widest text-[10px] font-bold">Database {dbStatus}</span>
@@ -66,7 +66,7 @@ export function AdminOverviewPage() {
                 <span className="uppercase tracking-widest text-[10px] font-bold">{latency}ms Response</span>
               </div>
             )}
-            <div className="text-white/20">|</div>
+            <div className="hidden sm:block text-white/20">|</div>
             <p>
               You have <span className="text-orange-500 font-bold">{pendingServers + pendingCatRequests} tasks</span> to review.
             </p>

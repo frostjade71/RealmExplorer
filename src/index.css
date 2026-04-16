@@ -125,3 +125,15 @@ input[type=number] {
     padding-bottom: 4rem !important;
   }
 }
+
+/* Typography Spacing Fixes */
+.prose p:empty::after,
+.prose p > br:only-child::after {
+  content: "\00A0";
+  vertical-align: middle;
+}
+
+.prose p {
+  margin-top: 1.25em !important;
+  margin-bottom: 1.25em !important;
+}
