@@ -1,4 +1,3 @@
-import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { useBlogPostLikes } from '../hooks/queries'
 import { useToggleBlogPostLikeMutation } from '../hooks/mutations'

@@ -375,7 +375,7 @@ export function ServerDetailPage() {
                 <div className="flex flex-col gap-1 w-full sm:w-auto">
                    <div className="text-[8px] md:text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Join Realm</div>
                     <motion.a 
-                    href={server.verify_discord ? server.website_url : (server.ip_or_code?.startsWith('http') ? server.ip_or_code : `https://realms.gg/${server.ip_or_code}`)}
+                    href={server.verify_discord ? (server.website_url ?? undefined) : (server.ip_or_code?.startsWith('http') ? server.ip_or_code : `https://realms.gg/${server.ip_or_code}`)}
                     target="_blank"
                     rel="noreferrer"
                     whileTap={{ scale: 0.98 }}
