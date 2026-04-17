@@ -8,6 +8,7 @@ import { LoadingSpinner } from '../components/FeedbackStates'
 import heroVideo from '../assets/hero/heroRE.mp4'
 import logo from '../assets/rerealm.webp'
 import { slugify } from '../lib/urlUtils'
+import { useIsMobile } from '../hooks/useMediaQuery'
 import firstPlaceIcon from '../assets/leaderboards/5336-1st.png'
 import secondPlaceIcon from '../assets/leaderboards/6308-2nd.png'
 import thirdPlaceIcon from '../assets/leaderboards/4162-3rd.png'
@@ -47,6 +48,7 @@ function RankTrend({ current, previous }: { current: number, previous?: number |
 }
 
 export function LeaderboardsPage() {
+  const isMobile = useIsMobile()
   const { data: topVoted = [], isLoading: loadingVotes } = useServers({ sortBy: 'votes', limit: 13 })
   const { data: topRated = [], isLoading: loadingRated } = useServers({ sortBy: 'rating', limit: 12 })
 
@@ -66,23 +68,23 @@ export function LeaderboardsPage() {
   return (
     <AnimatedPage>
       {/* Hero Section */}
-      <header className="relative pt-32 pb-16 px-8 overflow-hidden min-h-[50vh] flex flex-col items-center justify-center">
+      <header className="relative pt-32 pb-16 px-8 overflow-hidden min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         <motion.video 
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.5 }}
+          initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
+          animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
           src={heroVideo} 
           autoPlay 
           loop 
           muted 
           playsInline
-          className="absolute inset-0 w-full h-full object-cover z-0 block"
+          className="absolute inset-0 w-full h-full object-cover z-0 block will-change-[opacity,transform]"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10"></div>
         
-        <div className="max-w-7xl mx-auto w-full relative z-20 flex flex-col items-center">
+        <div className="max-w-7xl mx-auto w-full relative z-20 flex flex-col items-center will-change-transform">
             <FramerIn>
-                <div className="inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] backdrop-blur-md">
+                <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
                      <img src={medalGif} alt="Medalla Icon" className="w-5 h-5 object-contain" />
                     <span className="font-pixel text-[9px] tracking-widest uppercase">Top Servers</span>
                 </div>
@@ -109,7 +111,7 @@ export function LeaderboardsPage() {
                                 />
                                 <Medal className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 w-3 h-3 md:w-6 md:h-6 text-zinc-400 drop-shadow-lg" />
                             </div>
-                            <div className="h-14 md:h-20 w-full bg-gradient-to-b from-zinc-400/20 to-zinc-400/5 backdrop-blur-md border-t-2 border-zinc-400/30 rounded-t-sm md:rounded-t-md flex flex-col items-center justify-center p-1 md:p-2">
+                            <div className={`h-14 md:h-20 w-full bg-gradient-to-b from-zinc-400/20 to-zinc-400/5 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'} border-t-2 border-zinc-400/30 rounded-t-sm md:rounded-t-md flex flex-col items-center justify-center p-1 md:p-2`}>
                                 <span className="text-white font-pixel text-[6px] md:text-[9px] text-center line-clamp-1 mb-0.5">{podium[1].name}</span>
                                 <div className="flex items-center gap-1 md:gap-1.5 text-zinc-400 font-headline text-[5px] md:text-[8px] uppercase tracking-widest font-bold">
                                     <ThumbsUp className="w-1.5 h-1.5 md:w-2 md:h-2" />
@@ -133,7 +135,7 @@ export function LeaderboardsPage() {
                                 />
                                 <Crown className="absolute -top-6 md:-top-10 left-1/2 -translate-x-1/2 w-5 h-5 md:w-8 md:h-8 text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
                             </div>
-                            <div className="h-20 md:h-28 w-full bg-gradient-to-b from-yellow-500/30 to-yellow-500/5 backdrop-blur-md border-t-2 border-yellow-500/40 rounded-t-md md:rounded-t-lg flex flex-col items-center justify-center p-2 md:p-4">
+                            <div className={`h-20 md:h-28 w-full bg-gradient-to-b from-yellow-500/30 to-yellow-500/5 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'} border-t-2 border-yellow-500/40 rounded-t-md md:rounded-t-lg flex flex-col items-center justify-center p-2 md:p-4`}>
                                 <span className="text-white font-pixel text-[8px] md:text-xs text-center line-clamp-1 mb-1 md:mb-1.5">{podium[0].name}</span>
                                 <div className="flex items-center gap-1 md:gap-2 text-yellow-500 font-headline text-[7px] md:text-[9px] uppercase tracking-widest font-black">
                                     <ThumbsUp className="w-2 h-2 md:w-3 md:h-3" />
@@ -157,7 +159,7 @@ export function LeaderboardsPage() {
                                 />
                                 <Medal className="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 w-2.5 h-2.5 md:w-5 md:h-5 text-orange-700 drop-shadow-lg" />
                             </div>
-                            <div className="h-10 md:h-14 w-full bg-gradient-to-b from-orange-700/20 to-orange-700/5 backdrop-blur-md border-t-2 border-orange-700/30 rounded-t-sm md:rounded-t-md flex flex-col items-center justify-center p-1 md:p-1.5">
+                            <div className={`h-10 md:h-14 w-full bg-gradient-to-b from-orange-700/20 to-orange-700/5 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'} border-t-2 border-orange-700/30 rounded-t-sm md:rounded-t-md flex flex-col items-center justify-center p-1 md:p-1.5`}>
                                 <span className="text-white font-pixel text-[5px] md:text-[8px] text-center line-clamp-1">{podium[2].name}</span>
                                 <div className="flex items-center gap-0.5 md:gap-1 text-orange-700 font-headline text-[5px] md:text-[7px] uppercase tracking-widest font-bold">
                                     <ThumbsUp className="w-1 md:w-1.5 h-1 md:h-1.5" />

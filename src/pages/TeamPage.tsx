@@ -4,11 +4,13 @@ import { motion } from 'framer-motion'
 import { useTeamMembers, useUserProfile, useAdminUsers } from '../hooks/queries'
 import { TeamMemberCard } from '../components/TeamMemberCard'
 import { LoadingSpinner } from '../components/FeedbackStates'
+import { useIsMobile } from '../hooks/useMediaQuery'
 import heroVideo from '../assets/hero/heroRE.mp4'
 import steveIcon from '../assets/about/87389-steve.png'
 import ownerIcon from '../assets/about/16739-owner-gradient.png'
 
 export function TeamPage() {
+  const isMobile = useIsMobile()
   const { data: teamMembers = [], isLoading } = useTeamMembers()
   const { data: visionProfile } = useUserProfile('ad2be47b-b12e-4fc5-ab5a-e8af75c76d36')
   const { data: devProfile } = useUserProfile('4642ada9-a0be-4ad6-bd7a-b5990ad952b2')
@@ -19,25 +21,25 @@ export function TeamPage() {
   return (
     <AnimatedPage>
       {/* Hero Section */}
-      <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[50vh] flex flex-col items-center justify-center">
+      <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}
         <motion.video 
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.4 }}
+          initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
+          animate={isMobile ? { opacity: 0.4 } : { scale: 1, opacity: 0.4 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
           src={heroVideo} 
           autoPlay 
           loop 
           muted 
           playsInline
-          className="absolute inset-0 w-full h-full object-cover z-0 block"
+          className="absolute inset-0 w-full h-full object-cover z-0 block will-change-[opacity,transform]"
         />
         {/* Overlays */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-zinc-950 z-10"></div>
         
-        <div className="max-w-7xl mx-auto relative z-20 flex flex-col items-center text-center">
+        <div className="max-w-7xl mx-auto relative z-20 flex flex-col items-center text-center will-change-transform">
           <FramerIn delay={0.2}>
-            <div className="inline-flex items-center gap-1.5 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-2.5 py-0.5 mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] backdrop-blur-md">
+            <div className={`inline-flex items-center gap-1.5 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-2.5 py-0.5 mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
               <img src={steveIcon} alt="Steve Icon" className="w-4 h-4 object-contain" />
               <span className="font-pixel text-[8px] tracking-widest uppercase">The People Behind</span>
             </div>

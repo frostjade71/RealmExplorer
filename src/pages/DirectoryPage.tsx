@@ -8,6 +8,7 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, X, MoreHorizontal, Sparkles, Clock, Globe, History } from 'lucide-react'
+import { useIsMobile } from '../hooks/useMediaQuery'
 import directoryHero from '../assets/hero/directoryhero.jpg'
 
 // Type Icons
@@ -23,6 +24,7 @@ import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
 import skygenIcon from '../assets/category/89458-iron-block.png'
 
 export function DirectoryPage() {
+  const isMobile = useIsMobile()
   const [searchParams, setSearchParams] = useSearchParams()
   const activeType = searchParams.get('type') as ServerType | null
   const activeCategory = searchParams.get('category') as ServerCategory | null
@@ -90,23 +92,24 @@ export function DirectoryPage() {
     setSearchParams(searchParams)
   }
 
+
   return (
     <AnimatedPage>
       <header className="relative pt-32 pb-16 md:pb-20 px-8 overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}
         <motion.img 
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.5 }}
+          initial={isMobile ? { opacity: 0.5 } : { scale: 1.1, opacity: 0 }}
+          animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
           src={directoryHero} 
           alt="Directory Background" 
-          className="absolute inset-0 w-full h-full object-cover z-0 block"
+          className="absolute inset-0 w-full h-full object-cover z-0 block will-change-[opacity,transform]"
           fetchPriority="high"
         />
         {/* Dark Cinematic Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10 pointer-events-none"></div>
         
-        <div className="max-w-7xl mx-auto w-full relative z-20 flex flex-col items-center text-center">
+        <div className="max-w-7xl mx-auto w-full relative z-20 flex flex-col items-center text-center will-change-transform">
           <FramerIn>
             <h1 className="text-3xl md:text-5xl font-pixel text-white mb-4 md:mb-6 drop-shadow-2xl">
               {activeType ? `${activeType.charAt(0).toUpperCase() + activeType.slice(1)} Explorer` : 'Realm Explorer'}
@@ -116,7 +119,7 @@ export function DirectoryPage() {
             </p>
           </FramerIn>
           
-          <FramerIn delay={0.2} className="flex gap-1.5 md:gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 backdrop-blur-md">
+          <FramerIn delay={0.2} className={`flex gap-1.5 md:gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
             {[
               { id: null, label: 'All', icon: <Globe className="w-3.5 h-3.5 md:w-4 h-4" /> },
               { id: 'server' as const, label: 'Servers', icon: <img src={serverGif} alt="" className="w-3.5 h-3.5 md:w-4 h-4 object-contain rounded-sm" /> },

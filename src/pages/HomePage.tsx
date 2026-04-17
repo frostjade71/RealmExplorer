@@ -6,6 +6,7 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn, FramerInList } from '../components/FramerIn'
 import { motion, useSpring, useTransform } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import { useIsMobile } from '../hooks/useMediaQuery'
 import { CategoryRequestModal } from '../components/CategoryRequestModal'
 import { useCreateCategoryRequestMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
@@ -54,14 +55,13 @@ function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toSt
 }
 
 export function HomePage() {
+  const isMobile = useIsMobile()
   const { data: featured = [], isLoading: loadingFeatured } = useServers({ featured: true, limit: 4 })
   const { data: stats, isLoading: loadingStats } = useGlobalStats()
   const { user, signInWithDiscord } = useAuth()
   const navigate = useNavigate()
   const createRequestMutation = useCreateCategoryRequestMutation()
   const [isModalOpen, setIsModalOpen] = useState(false)
-
-  if (loadingFeatured || loadingStats) return <LoadingSpinner />
 
   const handleRequestSubmit = async (subject: string, description: string) => {
     if (!user) return
@@ -83,6 +83,8 @@ export function HomePage() {
     }
   }
 
+  if (loadingFeatured || loadingStats) return <LoadingSpinner />
+
   const safeStats = stats || { servers: 450, users: 12000 }
 
   const categories = [
@@ -99,22 +101,22 @@ export function HomePage() {
       <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[50vh] md:min-h-[65vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}
         <motion.video 
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.5 }}
+          initial={isMobile ? { opacity: 0.5 } : { scale: 1.1, opacity: 0 }}
+          animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
           src={heroVideo} 
           autoPlay 
           loop 
           muted 
           playsInline
-          className="absolute inset-0 w-full h-full object-cover z-0 block"
+          className="absolute inset-0 w-full h-full object-cover z-0 block will-change-[opacity,transform]"
         />
         {/* Dark Radial Gradient Overlay for focus and legibility */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10"></div>
         
-        <div className="max-w-7xl mx-auto relative z-20 flex flex-col items-center text-center">
+        <div className="max-w-7xl mx-auto relative z-20 flex flex-col items-center text-center will-change-transform">
           <FramerIn delay={0.2}>
-            <div className="inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] backdrop-blur-md">
+            <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
               <img src={mcGif} alt="Minecraft Icon" className="w-5 h-5 object-contain" />
               <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase">The Website is now in RC Phase</span>
             </div>
@@ -147,7 +149,7 @@ export function HomePage() {
                     signInWithDiscord()
                   }
                 }}
-                className="bg-white/5 border border-white/10 hover:border-white/30 backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all text-[12px] md:text-sm flex items-center justify-center gap-2 group"
+                className={`bg-white/5 border border-white/10 hover:border-white/30 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-sm'} text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all text-[12px] md:text-sm flex items-center justify-center gap-2 group`}
               >
                 List your Server
                 <span className="material-symbols-outlined text-[16px] md:text-[18px] group-hover:scale-110 transition-transform">add_circle</span>
@@ -200,7 +202,7 @@ export function HomePage() {
                 </div>
 
                 <div className="relative z-10">
-                  <div className="w-8 h-8 md:w-10 md:h-10 bg-white/10 backdrop-blur-md rounded-lg flex items-center justify-center mb-3 md:mb-4 group-hover:bg-realm-green transition-all duration-300">
+                  <div className={`w-8 h-8 md:w-10 md:h-10 bg-white/10 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'} rounded-lg flex items-center justify-center mb-3 md:mb-4 group-hover:bg-realm-green transition-all duration-300`}>
                     <img src={c.icon} alt={c.name} className="w-5 h-5 md:w-6 md:h-6 object-contain" />
                   </div>
                   <h3 className="font-pixel text-sm md:text-base mb-1 text-white drop-shadow-md">{c.name}</h3>

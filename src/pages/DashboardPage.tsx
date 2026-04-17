@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useIsMobile } from '../hooks/useMediaQuery'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useUserServers } from '../hooks/queries'
@@ -13,6 +14,7 @@ import { RoleSelectionModal } from '../components/RoleSelectionModal'
 
 
 export function DashboardPage() {
+  const isMobile = useIsMobile()
   const { user } = useAuth()
   const navigate = useNavigate()
   
@@ -48,7 +50,7 @@ export function DashboardPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setDeleteId(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              className={`absolute inset-0 bg-black/80 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -134,7 +136,7 @@ export function DashboardPage() {
               }
             }
           }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 will-change-transform"
         >
           {servers.map(server => (
             <motion.div 

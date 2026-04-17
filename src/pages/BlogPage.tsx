@@ -8,11 +8,13 @@ import { format } from 'date-fns'
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { BlogLikeButton } from '../components/BlogLikeButton'
+import { useIsMobile } from '../hooks/useMediaQuery'
 import blogBg from '../assets/blog/blogbg.jpg'
 
 const CATEGORIES = ['All', 'Server Spotlight', 'Event/News', 'Changelog'] as const
 
 export function BlogPage() {
+  const isMobile = useIsMobile()
   const { data: posts = [], isLoading } = useBlogPosts({ status: 'published' })
   const [activeCategory, setActiveCategory] = useState<typeof CATEGORIES[number]>('All')
   const featuredPost = posts.find(p => p.is_featured)
@@ -33,19 +35,19 @@ export function BlogPage() {
       <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}
         <motion.img 
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.4 }}
+          initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
+          animate={isMobile ? { opacity: 0.4 } : { scale: 1, opacity: 0.4 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
           src={blogBg} 
-          className="absolute inset-0 w-full h-full object-cover z-0 block"
+          className="absolute inset-0 w-full h-full object-cover z-0 block will-change-[opacity,transform]"
           alt="Blog Background"
         />
         {/* Dark Radial Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10"></div>
         
-        <div className="max-w-7xl mx-auto relative z-20 flex flex-col items-center text-center">
+        <div className="max-w-7xl mx-auto relative z-20 flex flex-col items-center text-center will-change-transform">
           <FramerIn delay={0.2}>
-            <div className="inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] backdrop-blur-md">
+            <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
               <Rss className="w-4 h-4 text-[#85fc7e]" />
               <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase">Official Feed</span>
             </div>

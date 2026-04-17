@@ -16,12 +16,14 @@ import { RatingModal } from '../components/RatingModal'
 import { ReportModal } from '../components/ReportModal'
 import { RichText } from '../components/RichText'
 import { toast } from 'sonner'
+import { useIsMobile } from '../hooks/useMediaQuery'
 
 // Type Icons
 import serverTypeIcon from '../assets/category/gif/6128-minecraft.gif'
 import realmTypeIcon from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
 
 export function ServerDetailPage() {
+  const isMobile = useIsMobile()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -187,6 +189,7 @@ export function ServerDetailPage() {
     )
   }
 
+
   if (loading) return <LoadingSpinner />
   if (!server) return <EmptyState title="Not Found" message="This server or realm does not exist or was removed." />
 
@@ -196,10 +199,10 @@ export function ServerDetailPage() {
       <FramerIn delay={0.1} className="w-full h-32 md:h-64 bg-zinc-950 rounded-t-lg overflow-hidden relative border border-zinc-800">
         {server.banner_url ? (
            <motion.img 
-            initial={{ scale: 1.1, opacity: 0 }}
-            animate={{ scale: 1, opacity: 0.8 }}
+            initial={isMobile ? { opacity: 0.8 } : { scale: 1.1, opacity: 0 }}
+            animate={isMobile ? { opacity: 0.8 } : { scale: 1, opacity: 0.8 }}
             transition={{ duration: 0.8 }}
-            src={server.banner_url} alt="Banner" className="w-full h-full object-cover" 
+            src={server.banner_url} alt="Banner" className="w-full h-full object-cover will-change-[opacity,transform]" 
             fetchPriority="high"
            />
         ) : (
@@ -208,8 +211,8 @@ export function ServerDetailPage() {
       </FramerIn>
 
       {/* Header Info */}
-      <FramerIn delay={0.2} className="bg-zinc-950 border-x border-b border-zinc-800 rounded-b-lg p-5 md:p-8 mb-4 md:mb-4 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative -mt-4 shadow-xl">
-        <div className="w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-md overflow-hidden flex-shrink-0 border-4 border-zinc-950 -mt-10 md:-mt-12 z-10 shadow-lg">
+      <FramerIn delay={0.2} className="bg-zinc-950 border-x border-b border-zinc-800 rounded-b-lg p-5 md:p-8 mb-4 md:mb-4 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative -mt-4 shadow-xl will-change-transform">
+        <div className="w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-md overflow-hidden flex-shrink-0 border-4 border-zinc-950 -mt-10 md:-mt-12 z-10 shadow-lg will-change-transform">
 
           {server.icon_url ? (
             <img src={server.icon_url} alt="Icon" className="w-full h-full object-cover" />
@@ -499,7 +502,7 @@ export function ServerDetailPage() {
                     animate="center"
                     exit="exit"
                     transition={{
-                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      x: isMobile ? { duration: 0.3, ease: "easeOut" } : { type: "spring", stiffness: 300, damping: 30 },
                       opacity: { duration: 0.2 },
                     }}
                     className="w-full h-full object-cover will-change-transform"
@@ -511,20 +514,20 @@ export function ServerDetailPage() {
                   <>
                     <button
                       onClick={() => paginate(-1)}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-realm-green hover:text-zinc-950 hover:border-realm-green shadow-xl backdrop-blur-sm"
+                      className={`absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-realm-green hover:text-zinc-950 hover:border-realm-green shadow-xl ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}
                     >
                       <ChevronLeft className="w-6 h-6" />
                     </button>
                     <button
                       onClick={() => paginate(1)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-realm-green hover:text-zinc-950 hover:border-realm-green shadow-xl backdrop-blur-sm"
+                      className={`absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all hover:bg-realm-green hover:text-zinc-950 hover:border-realm-green shadow-xl ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}
                     >
                       <ChevronRight className="w-6 h-6" />
                     </button>
                   </>
                 )}
 
-                <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/60 border border-white/10 rounded-lg backdrop-blur-md text-[10px] font-pixel text-white/60">
+                <div className={`absolute bottom-4 right-4 px-3 py-1 bg-black/60 border border-white/10 rounded-lg ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'} text-[10px] font-pixel text-white/60`}>
                   {activeImageIndex + 1} / {gallery.length}
                 </div>
               </div>

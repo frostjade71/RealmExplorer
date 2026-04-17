@@ -2,22 +2,24 @@ import { Users, Code, Globe, Swords, Cloud, Box, ShieldAlert, Cpu, MessageSquare
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn, FramerInList } from '../components/FramerIn'
 import { motion } from 'framer-motion'
+import { useIsMobile } from '../hooks/useMediaQuery'
 import aboutHero from '../assets/aboutRE.png'
 import minecraftGif from '../assets/category/gif/6128-minecraft.gif'
 import ironPickaxe from '../assets/category/708066-iron-pickaxe (1).png'
 
 export function AboutPage() {
+  const isMobile = useIsMobile()
   return (
     <AnimatedPage>
       {/* Cinematic Hero */}
       <header className="relative w-full h-auto md:h-[60vh] flex flex-col items-center justify-center overflow-hidden bg-zinc-950">
         <motion.img 
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+          initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
+          animate={isMobile ? { opacity: 1 } : { scale: 1, opacity: 1 }}
           transition={{ duration: 1.5 }}
           src={aboutHero} 
           alt="About Hero" 
-          className="w-full h-full object-contain md:object-cover z-0"
+          className="w-full h-full object-contain md:object-cover z-0 will-change-[opacity,transform]"
           fetchPriority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-zinc-950/60 z-10"></div>

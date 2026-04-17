@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
 import { RichText } from '../components/RichText'
 import type { OTMCategory } from '../types'
+import { useIsMobile } from '../hooks/useMediaQuery'
 import heroVideo from '../assets/hero/heroRE.mp4'
 import logo from '../assets/rerealm.webp'
 import esmeraldaIcon from '../assets/OTM/185424-esmeralda.png'
@@ -23,6 +24,7 @@ const CATEGORIES: { id: OTMCategory; label: string; icon: any }[] = [
 ]
 
 export function EventsPage() {
+  const isMobile = useIsMobile()
   const [currentIndex, setCurrentIndex] = useState(0)
   const { user, profile } = useAuth()
   const { data: winners } = useOTMWinners()
@@ -72,25 +74,25 @@ export function EventsPage() {
             {heroBackground.type === 'video' ? (
               <motion.video 
                 key="default-video"
-                initial={{ scale: 1.1, opacity: 0 }}
-                animate={{ scale: 1, opacity: 0.5 }}
+                initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
+                animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                transition={isMobile ? { duration: 0.8, ease: "easeOut" } : { duration: 1.2, ease: "easeOut" }}
                 src={heroBackground.url} 
                 autoPlay 
                 loop 
                 muted 
                 playsInline
-                className="absolute inset-0 w-full h-full object-cover block"
+                className="absolute inset-0 w-full h-full object-cover block will-change-[opacity,transform]"
               />
             ) : (
               <motion.div
                 key={heroBackground.key}
-                initial={{ scale: 1.1, opacity: 0 }}
-                animate={{ scale: 1, opacity: 0.5 }}
-                exit={{ opacity: 0, scale: 1.05 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="absolute inset-0"
+                initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
+                animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
+                exit={{ opacity: 0, scale: isMobile ? 1 : 1.05 }}
+                transition={isMobile ? { duration: 0.8, ease: "easeOut" } : { duration: 1.2, ease: "easeOut" }}
+                className="absolute inset-0 will-change-[opacity,transform]"
               >
                 <img 
                   src={heroBackground.url}
@@ -104,23 +106,26 @@ export function EventsPage() {
         {/* Dark Cinematic Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-green-950/70 z-10"></div>
         
-        <div className="max-w-7xl mx-auto w-full relative z-20">
+        <div className="max-w-7xl mx-auto w-full relative z-20 will-change-transform">
           <AnimatePresence mode="popLayout">
             <motion.div 
               key={currentCategory.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: isMobile ? 10 : 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              exit={{ opacity: 0, y: isMobile ? -10 : -20 }}
+              transition={{ 
+                duration: isMobile ? 0.3 : 0.4, 
+                ease: "easeOut" 
+              }}
               className="flex flex-col items-center text-center"
             >
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: isMobile ? 5 : 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
               >
                 {/* Minecraft-style Badge */}
-                <div className="inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-4 py-1.5 mb-8 text-realm-green shadow-[2px_2px_0px_rgba(0,0,0,0.4)] backdrop-blur-md">
+                <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-4 py-1.5 mb-8 text-realm-green shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
                   <Calendar className="w-3.5 h-3.5" />
                   <span className="font-pixel text-[10px] tracking-widest uppercase">
                     {activeWinner?.month || categoryCompetitors?.[0]?.month || defaultMonth}
@@ -129,7 +134,7 @@ export function EventsPage() {
               </motion.div>
               
               <motion.div 
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: isMobile ? 5 : 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
@@ -144,7 +149,7 @@ export function EventsPage() {
 
               {activeWinner ? (
                 <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: isMobile ? 5 : 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                   className="flex flex-col items-center"
@@ -189,7 +194,7 @@ export function EventsPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <div className="py-5 px-8 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-md">
+                  <div className={`py-5 px-8 rounded-2xl border border-white/10 bg-black/40 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
                     <p className="text-lg font-pixel text-white/40">No Previous Winners</p>
                     <p className="text-white/20 font-headline text-xs mt-1 uppercase tracking-widest leading-none">
                       {currentCategory.id === 'developer' || currentCategory.id === 'builder' ? 'Coming Soon' : 'Selection in progress'}

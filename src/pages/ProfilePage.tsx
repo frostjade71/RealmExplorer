@@ -11,11 +11,13 @@ import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch } fro
 import { RoleBadge } from '../components/RoleBadge'
 import { EditProfileModal } from '../components/EditProfileModal'
 import { EditBioModal } from '../components/EditBioModal'
+import { useIsMobile } from '../hooks/useMediaQuery'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import type { SocialLink } from '../types'
 
 export function ProfilePage() {
+  const isMobile = useIsMobile()
   const { username } = useParams<{ username: string }>()
   const { data: profile, isLoading: profileLoading, error: profileError } = useProfileByUsername(username)
   const { data: servers = [], isLoading: serversLoading } = useUserServers(profile?.id, 'approved')
@@ -113,12 +115,12 @@ export function ProfilePage() {
       <div className="relative h-[15vh] md:h-[20vh] w-full overflow-hidden">
         {bannerUrl ? (
           <motion.img 
-            initial={{ scale: 1.1, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
+            animate={isMobile ? { opacity: 1 } : { scale: 1, opacity: 1 }}
             transition={{ duration: 1 }}
             src={bannerUrl} 
             alt="Profile Banner" 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover will-change-[opacity,transform]"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-zinc-900 via-zinc-950 to-black relative">
@@ -207,7 +209,7 @@ export function ProfilePage() {
               )}
 
               {/* Personal Links Card */}
-              <div className="bg-zinc-900/50 border border-white/5 rounded-lg p-4 backdrop-blur-xl group/sidebar relative">
+              <div className={`bg-zinc-900/50 border border-white/5 rounded-lg p-4 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-xl'} group/sidebar relative will-change-transform`}>
                 <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
                   <h3 className="font-pixel text-[8px] text-zinc-400 uppercase tracking-widest">
                     Personal Links
