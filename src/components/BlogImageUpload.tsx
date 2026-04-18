@@ -59,7 +59,8 @@ export function BlogImageUpload({ label, onUpload, value }: BlogImageUploadProps
         .from('blog-images')
         .upload(filePath, webpBlob, {
           contentType: 'image/webp',
-          upsert: true
+          upsert: true,
+          cacheControl: 'public, max-age=31536000, immutable' // 1 year immutable cache
         })
 
       if (uploadError) throw uploadError

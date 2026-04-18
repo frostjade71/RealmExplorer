@@ -90,7 +90,7 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square' }: 
         .upload(filePath, webpBlob, {
           contentType: 'image/webp',
           upsert: true,
-          cacheControl: '31536000' // 1 year cache
+          cacheControl: 'public, max-age=31536000, immutable' // 1 year immutable cache
         })
 
       if (uploadError) throw uploadError
