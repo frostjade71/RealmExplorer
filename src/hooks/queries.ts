@@ -14,7 +14,9 @@ import type {
   SiteSetting,
   CategoryRequest,
   Report,
-  BlogPost
+  BlogPost,
+  OTMCategory,
+  OTMConfig
 } from '../types'
 
 export function useServers(params?: {
@@ -38,7 +40,7 @@ export function useServers(params?: {
       if (params?.sortBy === 'votes') {
         query = query.order('votes', { ascending: false })
       } else if (params?.sortBy === 'rating') {
-        query = query.order('average_rating', { ascending: false })
+        query = query.order('weighted_rating', { ascending: false })
       } else if (params?.sortBy === 'oldest') {
         query = query.order('created_at', { ascending: true })
       } else {
@@ -255,21 +257,56 @@ export function useOTMWinners() {
   })
 }
 
-export function useOTMCompetitors() {
+export function useOTMCompetitors(category: OTMCategory, enabled: boolean = true) {
   return useQuery({
-    queryKey: ['otmCompetitors'],
+    queryKey: ['otmCompetitors', category],
+    enabled,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('otm_competitors')
-        .select('*, servers(*), profiles(*), otm_votes(count)')
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      
-      // Map the nested count object to a total_votes property
-      return (data as any[]).map(c => ({
-        ...c,
-        total_votes: c.otm_votes?.[0]?.count || 0
-      })) as unknown as OTMCompetitor[]
+      if (category === 'realm' || category === 'server') {
+        const { data, error } = await supabase
+          .from('servers')
+          .select('*, otm_votes(count)')
+          .eq('status', 'approved')
+          .eq('type', category)
+          .order('created_at', { ascending: false })
+        
+        if (error) throw error
+        
+        return (data as any[]).map(s => ({
+          id: s.id,
+          category,
+          server_id: s.id,
+          user_id: null,
+          total_votes: s.otm_votes?.[0]?.count || 0,
+          created_at: s.created_at,
+          servers: {
+            name: s.name,
+            description: s.description,
+            icon_url: s.icon_url,
+            slug: s.slug,
+            banner_url: s.banner_url
+          }
+        })) as unknown as OTMCompetitor[]
+      } else {
+        // Developers/Builders
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*, otm_votes(count)')
+          .not('discord_username', 'is', null)
+          .order('created_at', { ascending: false })
+        
+        if (error) throw error
+
+        return (data as any[]).map(p => ({
+          id: p.id,
+          category,
+          server_id: null,
+          user_id: p.id,
+          total_votes: p.otm_votes?.[0]?.count || 0,
+          created_at: p.created_at,
+          profiles: p as Profile
+        })) as unknown as OTMCompetitor[]
+      }
     }
   })
 }
@@ -281,11 +318,37 @@ export function useUserOTMVotes(userId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('otm_votes')
-        .select('competitor_id')
+        .select('server_id, target_user_id, created_at')
         .eq('user_id', userId!)
       
       if (error) throw error
-      return (data || []).map((v: any) => v.competitor_id) as string[]
+      return (data || []).map((v: any) => ({
+        id: v.server_id || v.target_user_id,
+        created_at: v.created_at
+      }))
+    }
+  })
+}
+
+export function useOTMSettings() {
+  return useQuery({
+    queryKey: ['otmSettings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('key', 'otm_global_config')
+        .maybeSingle()
+      
+      if (error) throw error
+      
+      const defaultConfig: OTMConfig = {
+        competition_status: { realm: true, server: true, developer: true, builder: true },
+        next_start_times: { realm: null, server: null, developer: null, builder: null }
+      }
+
+      if (!data) return defaultConfig
+      return { ...defaultConfig, ...(data.value as any) } as OTMConfig
     }
   })
 }

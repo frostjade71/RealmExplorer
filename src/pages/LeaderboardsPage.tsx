@@ -6,7 +6,7 @@ import { FramerIn } from '../components/FramerIn'
 import { Link } from 'react-router-dom'
 import { LoadingSpinner } from '../components/FeedbackStates'
 import heroVideo from '../assets/hero/heroRE.mp4'
-import logo from '../assets/rerealm.webp'
+// logo imported from public/logoRE.png as /logoRE.png
 import { slugify } from '../lib/urlUtils'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import firstPlaceIcon from '../assets/leaderboards/5336-1st.png'
@@ -201,7 +201,7 @@ export function LeaderboardsPage() {
                                  idx === 2 ? <Medal className="w-3 md:w-4 h-3 md:h-4 text-orange-700" /> :
                                  <span className="font-pixel text-zinc-700 text-[8px] md:text-[10px]">{idx + 1}</span>}
                             </div>
-                            <img src={server.icon_url || logo} className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover border border-white/10" alt={server.name} />
+                            <img src={server.icon_url || "/logoRE.png"} className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover border border-white/10" alt={server.name} />
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-white font-pixel text-[9px] md:text-[11px] group-hover:text-realm-green transition-colors truncate">{server.name}</h3>
                                 <p className="text-zinc-500 font-headline text-[7px] md:text-[9px] uppercase tracking-widest mt-0.5">{server.type}</p>
@@ -248,7 +248,7 @@ export function LeaderboardsPage() {
                                  idx === 2 ? <Medal className="w-3 md:w-4 h-3 md:h-4 text-orange-700" /> :
                                  <span className="font-pixel text-zinc-700 text-[8px] md:text-[10px]">{idx + 1}</span>}
                             </div>
-                            <img src={server.icon_url || logo} className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover border border-white/10" alt={server.name} />
+                            <img src={server.icon_url || "/logoRE.png"} className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover border border-white/10" alt={server.name} />
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-white font-pixel text-[9px] md:text-[11px] group-hover:text-yellow-500 transition-colors truncate">{server.name}</h3>
                                 <p className="text-zinc-500 font-headline text-[7px] md:text-[9px] uppercase tracking-widest mt-0.5">{server.type}</p>

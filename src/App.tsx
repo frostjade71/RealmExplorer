@@ -4,11 +4,13 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from "@vercel/speed-insights/react"
 
 import { Toaster } from 'sonner'
+import { DevEgressWarning } from './components/DevEgressWarning'
 
 function App() {
   return (
     <>
       <RouterProvider router={router} />
+      <DevEgressWarning />
       <Analytics />
       <SpeedInsights />
       <Toaster 

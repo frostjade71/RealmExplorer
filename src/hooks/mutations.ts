@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import type { ServerStatus, UserRole } from '../types'
+import type { ServerStatus, UserRole, OTMCategory, OTMConfig } from '../types'
 import { logAction } from '../lib/audit'
 import { 
   sendApprovalNotification, 
@@ -542,114 +542,84 @@ export function useDeleteOTMWinnerMutation() {
   })
 }
 
-export function useAddOTMCompetitorMutation() {
+export function useUpdateOTMSettingsMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ adminId, adminName, ...competitor }: any) => {
-      // Clean up for DB
-      const { vote_url, profiles, ...cleanCompetitor } = competitor
+    mutationFn: async (config: OTMConfig) => {
       const { error } = await supabase
-        .from('otm_competitors')
-        .insert([cleanCompetitor])
+        .from('site_settings')
+        .upsert({ key: 'otm_global_config', value: config as any }, { onConflict: 'key' })
       if (error) throw error
-
-      // Log Action
-      await logAction(
-        'OTM_COMPETITOR_ADDED',
-        { month: cleanCompetitor.month, category: cleanCompetitor.category },
-        adminId,
-        adminName,
-        cleanCompetitor.server_id
-      )
-
-      // Notification
-      const { data: server } = await supabase.from('servers').select('owner_id, name').eq('id', competitor.server_id)
-        .single()
-      if (server && server.owner_id) {
-        await supabase.from('notifications').insert({
-          user_id: server.owner_id,
-          type: 'otm_competitor',
-          title: 'OTM Competitor!',
-          message: `Your ${server.name} is now a Competitor for ${competitor.category} OTM. Good Luck!`,
-          related_id: competitor.server_id as any
-        } as any)
-      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['otmCompetitors'] })
+      queryClient.invalidateQueries({ queryKey: ['otmSettings'] })
     }
   })
 }
 
-export function useUpdateOTMCompetitorMutation() {
+export function useResetOTMVotesMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, servers, profiles, vote_url, ...data }: any) => {
-      const { error } = await supabase
-        .from('otm_competitors')
-        .update(data)
-        .eq('id', id)
+    mutationFn: async ({ adminId, adminName }: { adminId: string; adminName: string }) => {
+      const { error } = await supabase.from('otm_votes').delete().neq('id', '00000000-0000-0000-0000-000000000000')
       if (error) throw error
+
+      await logAction('OTM_VOTES_RESET', {}, adminId, adminName)
+      await sendLogNotification({
+        action: '🧹 OTM Votes Reset',
+        adminName: adminName,
+        details: 'All historical OTM votes have been permanently cleared.',
+        color: 0x95a5a6
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['otmCompetitors'] })
+      queryClient.invalidateQueries({ queryKey: ['userOTMVotes'] })
     }
   })
 }
 
-export function useDeleteOTMCompetitorMutation() {
+export function useResetOTMCooldownsMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('otm_competitors')
-        .delete()
-        .eq('id', id)
+    mutationFn: async ({ adminId, adminName }: { adminId: string; adminName: string }) => {
+      const { error } = await supabase.rpc('reset_otm_cooldowns' as any)
       if (error) throw error
+
+      await logAction('OTM_COOLDOWNS_RESET', { scope: 'global' }, adminId, adminName)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['otmCompetitors'] })
+      queryClient.invalidateQueries({ queryKey: ['userOTMVotes'] })
     }
   })
 }
+
+// Remove useDeleteOTMCompetitorMutation as well
 
 export function useOTMVoteMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ userId, competitorId, voterName }: { userId: string; competitorId: string; voterName?: string }) => {
+    mutationFn: async ({ userId, serverId, targetUserId, category, voterName }: { userId: string; serverId?: string | null; targetUserId?: string | null; category: OTMCategory; voterName?: string }) => {
       const { error } = await supabase
         .from('otm_votes')
-        .insert({ user_id: userId, competitor_id: competitorId })
+        .insert({ 
+          user_id: userId, 
+          server_id: serverId || null, 
+          target_user_id: targetUserId || null,
+          category 
+        } as any)
       
       if (error) {
-        if (error.code === '23505') throw new Error('Already voted for this competitor')
-        if (error.code === 'P0001') throw new Error(error.message)
+        if (error.code === '23505') throw new Error('Already voted recently')
         throw error
       }
 
       // Log Action
-      const { data: competitor } = await supabase
-        .from('otm_competitors')
-        .select(`
-          category,
-          servers(name),
-          profiles(discord_username)
-        `)
-        .eq('id', competitorId)
-        .single()
-      
-      const { count: newCount } = await supabase
-        .from('otm_votes')
-        .select('*', { count: 'exact', head: true })
-        .eq('competitor_id', competitorId)
-
-      const compName = (competitor as any)?.servers?.name || (competitor as any)?.profiles?.discord_username || 'Unknown Candidate'
-      
       await logAction('OTM_VOTE', { 
         voter: voterName || 'User', 
-        competitor: compName, 
-        newCount: newCount || 0 
-      }, userId, voterName, competitorId)
+        target: serverId || targetUserId,
+        category
+      }, userId, voterName)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['otmCompetitors'] })
@@ -659,49 +629,7 @@ export function useOTMVoteMutation() {
   })
 }
 
-export function useOTMUnvoteMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async ({ userId, competitorId, voterName }: { userId: string; competitorId: string; voterName?: string }) => {
-      const { error } = await supabase
-        .from('otm_votes')
-        .delete()
-        .eq('user_id', userId)
-        .eq('competitor_id', competitorId)
-      
-      if (error) throw error
-
-      // Log Action
-      const { data: competitor } = await supabase
-        .from('otm_competitors')
-        .select(`
-          category,
-          servers(name),
-          profiles(discord_username)
-        `)
-        .eq('id', competitorId)
-        .single()
-      
-      const { count: newCount } = await supabase
-        .from('otm_votes')
-        .select('*', { count: 'exact', head: true })
-        .eq('competitor_id', competitorId)
-
-      const compName = (competitor as any)?.servers?.name || (competitor as any)?.profiles?.discord_username || 'Unknown Candidate'
-      
-      await logAction('OTM_UNVOTE', { 
-        voter: voterName || 'User', 
-        competitor: compName, 
-        newCount: newCount || 0 
-      }, userId, voterName, competitorId)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['otmCompetitors'] })
-      queryClient.invalidateQueries({ queryKey: ['userOTMVotes'] })
-      queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
-    }
-  })
-}
+// Removed useOTMUnvoteMutation as per overhaul (fixed voting with cooldown)
 
 export function useMarkNotificationReadMutation() {
   const queryClient = useQueryClient()

@@ -44,6 +44,7 @@ export interface Server {
   featured: boolean
   votes: number
   average_rating: number
+  weighted_rating: number
   rating_count: number
   social_links: SocialLink[] | null
   submitter_role: string | null
@@ -102,9 +103,10 @@ export interface OTMCompetitor {
   created_at: string
   servers?: {
     name: string
-    description: string
-    icon_url: string
-    slug: string
+    description: string | null
+    icon_url: string | null
+    slug: string | null
+    banner_url?: string | null
   }
   profiles?: Profile
 }
@@ -112,7 +114,9 @@ export interface OTMCompetitor {
 export interface OTMVote {
   id: string
   user_id: string
-  competitor_id: string
+  server_id: string | null
+  target_user_id: string | null
+  category: OTMCategory
   created_at: string
 }
 
@@ -151,6 +155,21 @@ export interface SiteSetting {
   key: string
   value: any
   updated_at: string
+}
+
+export interface OTMConfig {
+  competition_status: {
+    realm: boolean
+    server: boolean
+    developer: boolean
+    builder: boolean
+  }
+  next_start_times: {
+    realm: string | null
+    server: string | null
+    developer: string | null
+    builder: string | null
+  }
 }
 
 export interface Report {

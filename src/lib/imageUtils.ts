@@ -1,18 +1,38 @@
 /**
- * Converts a File or Blob image to WebP format.
+ * Converts a File or Blob image to WebP format with optional resizing.
  * @param file The original image file
- * @param quality Quality from 0 to 1 (default 0.8)
+ * @param quality Quality from 0 to 1 (default 0.7)
+ * @param maxWidth Optional maximum width
+ * @param maxHeight Optional maximum height
  * @returns A Promise that resolves to a new Blob in WebP format
  */
-export async function convertToWebP(file: File | Blob, quality: number = 0.8): Promise<Blob> {
+export async function convertToWebP(
+  file: File | Blob, 
+  quality: number = 0.7,
+  maxWidth?: number,
+  maxHeight?: number
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        // Calculate new dimensions if max limits are provided
+        if (maxWidth && width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+        if (maxHeight && height > maxHeight) {
+          width = (maxHeight / height) * width;
+          height = maxHeight;
+        }
+
         const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
+        canvas.width = width;
+        canvas.height = height;
         
         const ctx = canvas.getContext('2d');
         if (!ctx) {
@@ -20,7 +40,8 @@ export async function convertToWebP(file: File | Blob, quality: number = 0.8): P
           return;
         }
 
-        ctx.drawImage(img, 0, 0);
+        // Draw with the new dimensions
+        ctx.drawImage(img, 0, 0, width, height);
         
         canvas.toBlob(
           (blob) => {

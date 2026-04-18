@@ -8,13 +8,20 @@ import { toast } from 'sonner'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { useAuth } from '../contexts/AuthContext'
 import { logAction } from '../lib/audit'
+import { useResetOTMVotesMutation, useResetOTMCooldownsMutation } from '../hooks/mutations'
 
 export function AdminSettingsPage() {
   const [loading, setLoading] = useState(false)
+  const [loadingOTM, setLoadingOTM] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [showOTMConfirm, setShowOTMConfirm] = useState(false)
+  const [showOTMCooldownConfirm, setShowOTMCooldownConfirm] = useState(false)
+  const [loadingOTMCooldown, setLoadingOTMCooldown] = useState(false)
   const { profile } = useAuth()
   const queryClient = useQueryClient()
+  const resetOTMVotes = useResetOTMVotesMutation()
+  const resetOTMCooldowns = useResetOTMCooldownsMutation()
 
   const handleResetCooldowns = async () => {
     setLoading(true)
@@ -41,6 +48,46 @@ export function AdminSettingsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleResetOTMVotes = async () => {
+    setLoadingOTM(true)
+    resetOTMVotes.mutate({ 
+      adminId: profile?.id || '', 
+      adminName: profile?.discord_username || 'Admin' 
+    }, {
+      onSuccess: () => {
+        toast.success('OTM Votes Reset', {
+          description: 'All historical OTM votes have been cleared.'
+        })
+        setShowOTMConfirm(false)
+        setLoadingOTM(false)
+      },
+      onError: (err: any) => {
+        toast.error('Reset Failed', { description: err.message })
+        setLoadingOTM(false)
+      }
+    })
+  }
+
+  const handleResetOTMCooldowns = async () => {
+    setLoadingOTMCooldown(true)
+    resetOTMCooldowns.mutate({ 
+      adminId: profile?.id || '', 
+      adminName: profile?.discord_username || 'Admin' 
+    }, {
+      onSuccess: () => {
+        toast.success('OTM Cooldowns Reset', {
+          description: 'All users can now vote for OTM categories again immediately.'
+        })
+        setShowOTMCooldownConfirm(false)
+        setLoadingOTMCooldown(false)
+      },
+      onError: (err: any) => {
+        toast.error('Reset Failed', { description: err.message })
+        setLoadingOTMCooldown(false)
+      }
+    })
   }
 
   return (
@@ -111,15 +158,77 @@ export function AdminSettingsPage() {
           </div>
         </FramerIn>
 
-        <FramerIn delay={0.3}>
-          <div className="bg-white/[0.02] border border-dashed border-white/5 rounded-3xl p-6 flex flex-col items-center justify-center text-center group hover:bg-white/[0.04] transition-colors min-h-[200px]">
-            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-               <span className="material-symbols-outlined text-white/20 text-xl">construction</span>
+        <FramerIn delay={0.25}>
+          <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden group backdrop-blur-md h-full">
+            <div className="absolute -top-10 -right-10 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700 pointer-events-none text-red-500">
+              <span className="material-symbols-outlined text-[120px]">delete_forever</span>
             </div>
-            <h3 className="text-white/40 font-pixel text-sm mb-2">More Features Coming</h3>
-            <p className="text-white/20 font-headline text-[10px] uppercase font-bold tracking-widest max-w-[200px]">
-              New management tools are being regularly added to the dashboard.
-            </p>
+            
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                  <span className="material-symbols-outlined text-red-500">cleaning_services</span>
+                </div>
+                <div>
+                  <h2 className="text-lg font-pixel text-white">OTM Votes</h2>
+                  <p className="text-[10px] font-headline text-red-500/60 uppercase tracking-widest font-bold">Historical Wipe</p>
+                </div>
+              </div>
+              
+              <p className="text-white/40 font-headline text-xs mb-6 leading-relaxed flex-grow">
+                This will <strong className="text-red-400">permanently delete</strong> every OTM vote ever cast. Use this only when starting a new major cycle or clearing test data.
+              </p>
+
+              <button
+                onClick={() => setShowOTMConfirm(true)}
+                disabled={loadingOTM}
+                className="w-full py-3 px-6 rounded-xl font-headline font-bold flex items-center justify-center gap-2 transition-all duration-500 shadow-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs hover:bg-red-500 hover:text-white"
+              >
+                {loadingOTM ? (
+                  <span className="material-symbols-outlined animate-spin text-sm">sync</span>
+                ) : (
+                  <span className="material-symbols-outlined text-sm">delete_sweep</span>
+                )}
+                {loadingOTM ? 'Clearing Votes...' : 'Reset OTM Votes'}
+              </button>
+            </div>
+          </div>
+        </FramerIn>
+
+        <FramerIn delay={0.3}>
+          <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden group backdrop-blur-md h-full">
+            <div className="absolute -top-10 -right-10 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700 pointer-events-none text-realm-green">
+              <span className="material-symbols-outlined text-[120px]">timer_off</span>
+            </div>
+            
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-realm-green/10 flex items-center justify-center border border-realm-green/20">
+                  <span className="material-symbols-outlined text-realm-green">history_toggle_off</span>
+                </div>
+                <div>
+                  <h2 className="text-lg font-pixel text-white">OTM Cooldowns</h2>
+                  <p className="text-[10px] font-headline text-realm-green uppercase tracking-widest font-bold">Category Lock Reset</p>
+                </div>
+              </div>
+              
+              <p className="text-white/40 font-headline text-xs mb-6 leading-relaxed flex-grow">
+                This will reset the 24-hour OTM voting window for <strong className="text-white">all players</strong> without deleting their previous votes.
+              </p>
+
+              <button
+                onClick={() => setShowOTMCooldownConfirm(true)}
+                disabled={loadingOTMCooldown}
+                className="w-full py-3 px-6 rounded-xl font-headline font-bold flex items-center justify-center gap-2 transition-all duration-500 shadow-xl bg-white/5 border border-white/10 text-white text-xs hover:bg-realm-green hover:text-zinc-950"
+              >
+                {loadingOTMCooldown ? (
+                  <span className="material-symbols-outlined animate-spin text-sm">sync</span>
+                ) : (
+                  <span className="material-symbols-outlined text-sm">timer_10_alt_1</span>
+                )}
+                {loadingOTMCooldown ? 'Resetting...' : 'Reset OTM Cooldowns'}
+              </button>
+            </div>
           </div>
         </FramerIn>
       </div>
@@ -133,6 +242,28 @@ export function AdminSettingsPage() {
         confirmLabel="Reset All"
         isDangerous
         isLoading={loading}
+      />
+
+      <ConfirmationModal
+        isOpen={showOTMConfirm}
+        onClose={() => setShowOTMConfirm(false)}
+        onConfirm={handleResetOTMVotes}
+        title="Reset OTM Votes?"
+        message="This will permanently delete every OTM vote cast on the platform. This is irreversible."
+        confirmLabel="Reset All Votes"
+        isDangerous
+        isLoading={loadingOTM}
+      />
+
+      <ConfirmationModal
+        isOpen={showOTMCooldownConfirm}
+        onClose={() => setShowOTMCooldownConfirm(false)}
+        onConfirm={handleResetOTMCooldowns}
+        title="Reset OTM Cooldowns?"
+        message="This will allow all users to vote for OTM categories again immediately. Their previous votes will still be counted."
+        confirmLabel="Reset Cooldowns"
+        isDangerous
+        isLoading={loadingOTMCooldown}
       />
     </AnimatedPage>
   )

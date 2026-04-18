@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { AlertTriangle, HardDrive, ExternalLink, RefreshCw } from 'lucide-react'
 
 export function AdminOverviewPage() {
   const { profile, isAdmin } = useAuth()
@@ -15,10 +16,25 @@ export function AdminOverviewPage() {
   
   const [latency, setLatency] = useState<number | null>(null)
   const [dbStatus, setDbStatus] = useState<'online' | 'offline' | 'checking'>('checking')
+  const [topFiles, setTopFiles] = useState<any[]>([])
+  const [loadingStorage, setLoadingStorage] = useState(false)
 
   const pendingServers = servers.filter(s => ['pending', 'Review Icon', 'Review Cover', 'Review Icon & Cover', 'Review Gallery', 'Review Icon & Gallery', 'Review Cover & Gallery', 'Review All Assets'].includes(s.status)).length
   const pendingCatRequests = catRequests.filter(r => r.status === 'pending').length
   const totalVotes = servers.reduce((acc, s) => acc + (s.votes || 0), 0)
+
+  const fetchStorageHealth = async () => {
+    setLoadingStorage(true)
+    try {
+      const { data, error } = await supabase.rpc('get_top_storage_consumers' as any)
+      if (error) throw error
+      setTopFiles((data as any[]) || [])
+    } catch (e) {
+      console.error('Failed to fetch storage health:', e)
+    } finally {
+      setLoadingStorage(false)
+    }
+  }
 
   useEffect(() => {
     const checkHealth = async () => {
@@ -35,6 +51,7 @@ export function AdminOverviewPage() {
     }
 
     checkHealth()
+    fetchStorageHealth()
     const interval = setInterval(checkHealth, 30000)
     return () => clearInterval(interval)
   }, [])
@@ -137,8 +154,9 @@ export function AdminOverviewPage() {
           </div>
         </FramerIn>
 
-        <FramerIn delay={0.5}>
-          <div className="bg-gradient-to-br from-realm-green/10 to-transparent border border-realm-green/20 rounded-3xl p-8 relative overflow-hidden h-full">
+        <FramerIn delay={0.5} className="space-y-8">
+          {/* Quick Actions */}
+          <div className="bg-gradient-to-br from-realm-green/10 to-transparent border border-realm-green/20 rounded-3xl p-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-[0.05] pointer-events-none">
               <span className="material-symbols-outlined text-[120px]">bolt</span>
             </div>
@@ -166,21 +184,65 @@ export function AdminOverviewPage() {
                     <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">settings_input_component</span>
                     <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">General Settings</span>
                   </Link>
-                  <Link to="/admin/category-requests" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group relative">
-                    <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">add_circle</span>
-                    <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">Category Requests</span>
-                    {pendingCatRequests > 0 && (
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-orange-500 text-zinc-950 text-[10px] font-pixel px-1.5 py-0.5 rounded-md animate-pulse">
-                        {pendingCatRequests}
-                      </span>
-                    )}
-                  </Link>
-                  <Link to="/admin/audit-logs" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
-                    <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">history</span>
-                    <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">Audit Logs</span>
-                  </Link>
                 </>
               )}
+            </div>
+          </div>
+
+          {/* Storage Health Audit */}
+          <div className="bg-zinc-900/40 border border-white/5 rounded-3xl overflow-hidden backdrop-blur-md">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+              <h3 className="font-pixel text-white text-[10px] uppercase tracking-widest flex items-center gap-2">
+                <HardDrive className="w-3.5 h-3.5 text-realm-green" />
+                Storage Egress Health
+              </h3>
+              <button 
+                onClick={fetchStorageHealth}
+                disabled={loadingStorage}
+                className="hover:rotate-180 transition-transform duration-500"
+              >
+                <RefreshCw className={`w-3 h-3 text-white/20 ${loadingStorage ? 'animate-spin text-realm-green' : ''}`} />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+               {topFiles.length > 0 ? (
+                 <div className="space-y-3">
+                    {topFiles.map((file, i) => {
+                      const isDanger = file.size_kb > 500
+                      const isWarning = file.size_kb > 250
+                      return (
+                        <div key={i} className="flex items-center justify-between group">
+                          <div className="flex flex-col min-w-0 flex-1 pr-4">
+                            <span className="text-[10px] text-white/60 font-mono truncate">{file.name.split('/').pop()}</span>
+                            <div className="flex items-center gap-2 mt-1">
+                               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded leading-none ${
+                                 isDanger ? 'bg-red-500 text-white' : 
+                                 isWarning ? 'bg-orange-500 text-zinc-950' : 
+                                 'bg-zinc-800 text-zinc-400'
+                               }`}>
+                                 {Math.round(file.size_kb)} KB
+                               </span>
+                               {isWarning && <AlertTriangle className={`w-3 h-3 ${isDanger ? 'text-red-500' : 'text-orange-500'}`} />}
+                            </div>
+                          </div>
+                          <a 
+                            href={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${file.bucket_id}/${file.name}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-2 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-realm-green hover:text-zinc-950"
+                          >
+                             <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        </div>
+                      )
+                    })}
+                 </div>
+               ) : (
+                 <div className="py-4 text-center text-white/20 text-[10px] italic">No storage data available.</div>
+               )}
+               <p className="text-[8px] text-white/20 uppercase tracking-tighter leading-tight mt-4 border-t border-white/5 pt-4">
+                 Files {'>'} 250KB hit your egress limits quickly. Convert to WebP and resize images before uploading.
+               </p>
             </div>
           </div>
         </FramerIn>

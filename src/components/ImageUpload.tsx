@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { convertToWebP } from '../lib/imageUtils'
 import { useAuth } from '../contexts/AuthContext'
 import { Image as ImageIcon, Upload, X, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion'
 
 interface ImageUploadProps {
@@ -57,10 +58,26 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square' }: 
         currentUploadPath.current = null
       }
 
-      // Convert to WebP
+      // Convert to WebP with resizing based on aspect ratio
       setUploadProgress(20)
-      const webpBlob = await convertToWebP(file)
       
+      // Resizing rules: 
+      // Icons (square) -> Max 512x512
+      // Banners (video) -> Max 1280x720
+      const webpBlob = await convertToWebP(
+        file, 
+        0.7, 
+        aspectRatio === 'square' ? 512 : 1280,
+        aspectRatio === 'square' ? 512 : 720
+      )
+      
+      // Warn if even the optimized file is large (> 300KB)
+      if (webpBlob.size > 300 * 1024) {
+        toast.warning('Large Image', { 
+          description: `This image is still ${Math.round(webpBlob.size / 1024)}KB after optimization. Consider a simpler file to save user data.`
+        })
+      }
+
       // Create a unique file path: user_id/timestamp-filename.webp
       const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.webp`
       const filePath = `${user.id}/${fileName}`
@@ -72,7 +89,8 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square' }: 
         .from('server-assets')
         .upload(filePath, webpBlob, {
           contentType: 'image/webp',
-          upsert: true
+          upsert: true,
+          cacheControl: '31536000' // 1 year cache
         })
 
       if (uploadError) throw uploadError

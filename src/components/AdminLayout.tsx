@@ -128,7 +128,7 @@ export function AdminLayout() {
           </Link>
           <div className="mt-4 px-4 py-2 bg-white/5 border border-white/5 rounded-lg">
             <p className="text-[10px] font-pixel text-white/20 uppercase tracking-widest">System Version</p>
-            <p className="text-xs font-headline font-bold text-realm-green">v0.9.1-RC</p>
+            <p className="text-xs font-headline font-bold text-realm-green">v0.9.6-RC</p>
           </div>
         </div>
       </aside>

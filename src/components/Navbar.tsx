@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Star, Users, BookOpen, ShieldCheck } from 'lucide-react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { NotificationDropdown } from './NotificationDropdown'
-import logo from '../assets/rerealm.webp'
+// logo imported from public/logoRE.png as /logoRE.png
 
 export function Navbar() {
   const { user, profile, signInWithDiscord, signOut, isModerator } = useAuth()
@@ -77,12 +77,12 @@ export function Navbar() {
             <motion.div 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.9 }}
-              className="w-10 h-10 bg-primary-container rounded-lg shadow-inner flex items-center justify-center overflow-hidden"
+              className="w-14 h-14 flex items-center justify-center"
             >
               <img 
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-contain" 
                 alt="RE logo" 
-                src={logo} 
+                src="/logoRE.png" 
               />
             </motion.div>
             <span className="text-xs font-pixel text-white hidden sm:block">Realm Explorer</span>
@@ -293,8 +293,8 @@ export function Navbar() {
                     className="flex items-center gap-2 group"
                   >
                     <img 
-                      src={logo} 
-                      className="w-8 h-8 rounded-lg shadow-lg border border-white/10" 
+                      src="/logoRE.png" 
+                      className="w-12 h-12 object-contain" 
                       alt="RE Logo" 
                     />
                   </Link>
