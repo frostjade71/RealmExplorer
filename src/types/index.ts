@@ -170,6 +170,12 @@ export interface OTMConfig {
     developer: string | null
     builder: string | null
   }
+  end_times: {
+    realm: string | null
+    server: string | null
+    developer: string | null
+    builder: string | null
+  }
 }
 
 export interface Report {

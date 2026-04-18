@@ -37,7 +37,9 @@ export function AdminEventsPage() {
   // Modals and Editing State
   const [editingWinner, setEditingWinner] = useState<OTMWinner | null>(null)
   const [schedulingCategory, setSchedulingCategory] = useState<OTMCategory | null>(null)
+  const [schedulingEndCategory, setSchedulingEndCategory] = useState<OTMCategory | null>(null)
   const [nextStartTime, setNextStartTime] = useState('')
+  const [endTime, setEndTime] = useState('')
 
   // Winner Form State (Add)
   const [winnerForm, setWinnerForm] = useState<{
@@ -131,6 +133,24 @@ export function AdminEventsPage() {
       }
     })
   }
+  
+  const handleSetEndTimeConfirm = () => {
+    if (!schedulingEndCategory || !settings) return
+
+    const newConfig: OTMConfig = {
+      ...settings,
+      end_times: { ...settings.end_times, [schedulingEndCategory]: endTime || null }
+    }
+
+    updateSettings.mutate(newConfig, {
+      onSuccess: () => {
+        toast.success(`${schedulingEndCategory.toUpperCase()} End Date Updated`, {
+          description: endTime ? `Competition will end on ${new Date(endTime).toLocaleString()}` : 'End date cleared.'
+        })
+        setSchedulingEndCategory(null)
+      }
+    })
+  }
 
   if (loadingServers || loadingWinners || loadingSettings || loadingUsers) return <LoadingSpinner />
 
@@ -174,16 +194,34 @@ export function AdminEventsPage() {
                         </span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleToggleCompetition(cat)}
-                      className={`p-2.5 rounded-xl border transition-all ${
-                        isActive 
-                        ? 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white' 
-                        : 'bg-realm-green/10 border-realm-green/20 text-realm-green hover:bg-realm-green hover:text-zinc-950'
-                      }`}
-                    >
-                      <Power className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1.5 transition-all">
+                      {isActive && (
+                        <button
+                          onClick={() => {
+                            setSchedulingEndCategory(cat)
+                            setEndTime(settings?.end_times?.[cat] || '')
+                          }}
+                          className={`p-2.5 rounded-xl border transition-all ${
+                            settings?.end_times?.[cat] 
+                            ? 'bg-realm-green border-realm-green text-zinc-950 shadow-[0_0_10px_rgba(78,196,78,0.3)]' 
+                            : 'bg-white/5 border-white/10 text-white/40 hover:text-realm-green hover:border-realm-green/30'
+                          }`}
+                          title="Set End Date"
+                        >
+                          <Timer className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleToggleCompetition(cat)}
+                        className={`p-2.5 rounded-xl border transition-all ${
+                          isActive 
+                          ? 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white' 
+                          : 'bg-realm-green/10 border-realm-green/20 text-realm-green hover:bg-realm-green hover:text-zinc-950'
+                        }`}
+                      >
+                        <Power className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 )
               })}
@@ -337,6 +375,58 @@ export function AdminEventsPage() {
           </div>
         </FramerIn>
       </div>
+
+      <AnimatePresence>
+        {schedulingEndCategory && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+             <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-zinc-950 border border-white/10 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden p-8"
+            >
+              <div className="flex flex-col items-center text-center">
+                 <div className="w-16 h-16 rounded-2xl bg-realm-green/10 flex items-center justify-center mb-6">
+                    <Timer className="w-8 h-8 text-realm-green" />
+                 </div>
+                 <h2 className="text-xl font-pixel text-white mb-2 uppercase">Competition End Timer</h2>
+                 <p className="text-zinc-500 font-headline text-xs mb-8 leading-relaxed">
+                   Set a date for the current {schedulingEndCategory} OTM competition to end. This will show a live countdown to the voters.
+                 </p>
+ 
+                 <div className="w-full space-y-4 mb-8">
+                    <div className="text-left">
+                       <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5 ml-1">Competition End Date</label>
+                       <input 
+                        type="datetime-local" 
+                        value={endTime}
+                        onChange={e => setEndTime(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm focus:outline-none focus:border-realm-green appearance-none color-scheme-dark"
+                       />
+                       <p className="mt-2 text-[9px] text-zinc-600 font-headline italic">Leaving this empty will remove the countdown timer from the public page.</p>
+                    </div>
+                 </div>
+ 
+                 <div className="grid grid-cols-2 gap-3 w-full">
+                    <button 
+                      onClick={() => setSchedulingEndCategory(null)}
+                      className="py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-headline font-bold text-sm hover:bg-white/10 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={handleSetEndTimeConfirm}
+                      disabled={updateSettings.isPending}
+                      className="py-4 rounded-2xl bg-realm-green text-zinc-950 font-headline font-bold text-sm hover:shadow-[0_0_20px_rgba(78,196,78,0.2)] transition-all disabled:opacity-50"
+                    >
+                      {updateSettings.isPending ? 'Saving...' : 'Set End Date'}
+                    </button>
+                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Scheduler Modal */}
       <AnimatePresence>

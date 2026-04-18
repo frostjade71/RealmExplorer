@@ -344,7 +344,8 @@ export function useOTMSettings() {
       
       const defaultConfig: OTMConfig = {
         competition_status: { realm: true, server: true, developer: true, builder: true },
-        next_start_times: { realm: null, server: null, developer: null, builder: null }
+        next_start_times: { realm: null, server: null, developer: null, builder: null },
+        end_times: { realm: null, server: null, developer: null, builder: null }
       }
 
       if (!data) return defaultConfig

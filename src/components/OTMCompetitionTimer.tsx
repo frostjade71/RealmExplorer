@@ -5,15 +5,22 @@ import mcIcon from '../assets/OTM/9e8def35f04e0f96840b5d16e8a247f5f59b81be.webp'
 
 interface OTMCompetitionTimerProps {
   category: string
-  nextStartTime: string
+  targetTime: string
+  label?: string
+  variant?: 'locked' | 'compact'
 }
 
-export function OTMCompetitionTimer({ category, nextStartTime }: OTMCompetitionTimerProps) {
+export function OTMCompetitionTimer({ 
+  category, 
+  targetTime, 
+  label = 'Next competition starts in...', 
+  variant = 'locked' 
+}: OTMCompetitionTimerProps) {
   const [timeLeft, setTimeLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(null)
 
   useEffect(() => {
     const calculateTime = () => {
-      const target = new Date(nextStartTime).getTime()
+      const target = new Date(targetTime).getTime()
       const now = new Date().getTime()
       const diff = target - now
 
@@ -33,15 +40,45 @@ export function OTMCompetitionTimer({ category, nextStartTime }: OTMCompetitionT
     calculateTime()
     const timer = setInterval(calculateTime, 1000)
     return () => clearInterval(timer)
-  }, [nextStartTime])
+  }, [targetTime])
 
-  if (!timeLeft) return (
-    <div className="flex flex-col items-center justify-center p-12 text-center bg-zinc-900/40 border border-white/5 rounded-3xl backdrop-blur-md">
-      <Timer className="w-12 h-12 text-realm-green/40 mb-4 animate-pulse" />
-      <h3 className="font-pixel text-white text-lg">Competition Starting Soon</h3>
-      <p className="text-zinc-500 font-headline text-sm mt-2">The voting session for this category is currently in preparation.</p>
-    </div>
-  )
+  if (!timeLeft) {
+    if (variant === 'compact') return null
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-center bg-zinc-900/40 border border-white/5 rounded-3xl backdrop-blur-md">
+        <Timer className="w-12 h-12 text-realm-green/40 mb-4 animate-pulse" />
+        <h3 className="font-pixel text-white text-lg">Competition Starting Soon</h3>
+        <p className="text-zinc-500 font-headline text-sm mt-2">The voting session for this category is currently in preparation.</p>
+      </div>
+    )
+  }
+
+  if (variant === 'compact') {
+    return (
+      <div className="flex items-center gap-3 transition-all">
+        <div className="flex items-center gap-2">
+          <Timer className="w-3.5 h-3.5 text-realm-green animate-pulse" />
+          <span className="text-[10px] font-pixel text-white/60 tracking-widest uppercase truncate max-w-[80px] sm:max-w-none">Closes in:</span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {[
+            { label: 'd', value: timeLeft.d },
+            { label: 'h', value: timeLeft.h },
+            { label: 'm', value: timeLeft.m },
+            { label: 's', value: timeLeft.s }
+          ].filter(u => variant === 'compact' ? (u.label !== 'd' || u.value > 0) : true).map((unit) => (
+            <div key={unit.label} className="flex items-center gap-0.5">
+              <span className="text-xs font-pixel text-white">
+                {unit.value.toString().padStart(2, '0')}
+              </span>
+              <span className="text-[7px] font-headline text-zinc-500 uppercase font-bold">{unit.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="relative p-8 md:p-12 rounded-xl bg-zinc-950/40 border border-white/5 overflow-hidden flex flex-col items-center justify-center text-center shadow-2xl backdrop-blur-lg max-w-2xl mx-auto">
@@ -63,7 +100,7 @@ export function OTMCompetitionTimer({ category, nextStartTime }: OTMCompetitionT
         </div>
 
         <h3 className="text-xl md:text-2xl font-pixel text-white mb-8 drop-shadow-2xl">
-          Next competition starts in...
+          {label}
         </h3>
 
         <div className="grid grid-cols-4 gap-4 md:gap-8 max-w-2xl">

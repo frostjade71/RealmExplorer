@@ -314,45 +314,68 @@ export function EventsPage() {
           <div className="space-y-2">
             <h2 className="text-2xl font-pixel text-white uppercase tracking-wide">Vote Your Next OTM!</h2>
             <p className="text-zinc-500 font-headline text-sm">Support your favorites and help them be the next OTM winner!</p>
+            {/* Mobile Timer - Below Description */}
+            <div className="lg:hidden mt-4">
+              {isCompetitionActive && settings?.end_times?.[currentCategory.id] && (
+                <OTMCompetitionTimer 
+                  category={currentCategory.id} 
+                  targetTime={settings.end_times[currentCategory.id]!} 
+                  variant="compact"
+                />
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-            {/* Search Bar - Full width on mobile, fixed width on desktop */}
-            <div className="relative group w-full sm:flex-1 lg:w-[260px] lg:flex-none order-2 sm:order-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 group-focus-within:text-realm-green transition-colors" />
-              <input 
-                type="text" 
-                placeholder={`search ${currentCategory.id}...`} 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#1a1a1b] border-2 border-[#101010] pl-9 pr-8 py-2 md:py-2.5 text-[10px] md:text-sm text-white placeholder-zinc-600 placeholder:text-[8px] md:placeholder:text-[10px] outline-none focus:border-realm-green/50 transition-all font-pixel uppercase tracking-widest shadow-[2px_2px_0_rgba(0,0,0,0.4)]"
-              />
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+          <div className="flex flex-col items-end gap-3 lg:gap-4 w-full lg:w-auto">
+            {/* Desktop Timer - Above Search Bar */}
+            <div className="hidden lg:block">
+              {isCompetitionActive && settings?.end_times?.[currentCategory.id] && (
+                <OTMCompetitionTimer 
+                  category={currentCategory.id} 
+                  targetTime={settings.end_times[currentCategory.id]!} 
+                  variant="compact"
+                />
               )}
             </div>
 
-            {/* Navigation Arrows */}
-            <div className="flex items-center gap-2 order-1 sm:order-2 ml-auto sm:ml-0">
-               <button 
-                onClick={prevSlide}
-                className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-realm-green hover:text-zinc-950 transition-[background-color,color,transform] text-white/40 hover:scale-110 active:scale-95 group shadow-lg"
-                title="Previous Category"
-               >
-                 <ChevronLeft className="w-5 h-5" />
-               </button>
-               <button 
-                onClick={nextSlide}
-                className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-realm-green hover:text-zinc-950 transition-[background-color,color,transform] text-white/40 hover:scale-110 active:scale-95 group shadow-lg"
-                title="Next Category"
-               >
-                 <ChevronRight className="w-5 h-5" />
-               </button>
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+              {/* Search Bar - Full width on mobile, fixed width on desktop */}
+              <div className="relative group w-full sm:flex-1 lg:w-[260px] lg:flex-none order-2 sm:order-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 group-focus-within:text-realm-green transition-colors" />
+                <input 
+                  type="text" 
+                  placeholder={`search ${currentCategory.id}...`} 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#1a1a1b] border-2 border-[#101010] pl-9 pr-8 py-2 md:py-2.5 text-[10px] md:text-sm text-white placeholder-zinc-600 placeholder:text-[8px] md:placeholder:text-[10px] outline-none focus:border-realm-green/50 transition-all font-pixel uppercase tracking-widest shadow-[2px_2px_0_rgba(0,0,0,0.4)]"
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Navigation Arrows */}
+              <div className="flex items-center gap-2 order-1 sm:order-2 ml-auto sm:ml-0">
+                 <button 
+                  onClick={prevSlide}
+                  className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-realm-green hover:text-zinc-950 transition-[background-color,color,transform] text-white/40 hover:scale-110 active:scale-95 group shadow-lg"
+                  title="Previous Category"
+                 >
+                   <ChevronLeft className="w-5 h-5" />
+                 </button>
+                 <button 
+                  onClick={nextSlide}
+                  className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-realm-green hover:text-zinc-950 transition-[background-color,color,transform] text-white/40 hover:scale-110 active:scale-95 group shadow-lg"
+                  title="Next Category"
+                 >
+                   <ChevronRight className="w-5 h-5" />
+                 </button>
+              </div>
             </div>
           </div>
         </div>
@@ -387,7 +410,7 @@ export function EventsPage() {
         ) : !isCompetitionActive ? (
           <OTMCompetitionTimer 
             category={currentCategory.id} 
-            nextStartTime={nextStartTime || ''} 
+            targetTime={nextStartTime || ''} 
           />
         ) : (
           <>
