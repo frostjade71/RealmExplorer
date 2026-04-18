@@ -105,7 +105,7 @@ export function LeaderboardsPage() {
                             <div className="relative mb-2 md:mb-4">
                                 <img src={secondPlaceIcon} className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="2nd Place Icon" />
                                 <img 
-                                    src={podium[1].icon_url || logo} 
+                                    src={podium[1].icon_url || "/logoRE.png"} 
                                     className="w-10 h-10 md:w-16 md:h-16 rounded-sm md:rounded-lg border-2 md:border-4 border-zinc-400 object-cover shadow-2xl group-hover:scale-110 transition-transform"
                                     alt="2nd Place"
                                 />
@@ -129,7 +129,7 @@ export function LeaderboardsPage() {
                             <div className="relative mb-3 md:mb-6">
                                 <img src={firstPlaceIcon} className="absolute -top-4 -left-4 md:-top-8 md:-left-8 w-8 h-8 md:w-16 md:h-16 z-30 object-contain drop-shadow-xl" alt="1st Place Icon" />
                                 <img 
-                                    src={podium[0].icon_url || logo} 
+                                    src={podium[0].icon_url || "/logoRE.png"} 
                                     className="w-14 h-14 md:w-24 md:h-24 rounded-md md:rounded-xl border-2 md:border-4 border-yellow-500 object-cover shadow-[0_0_50px_rgba(234,179,8,0.3)] group-hover:scale-110 transition-transform"
                                     alt="1st Place"
                                 />
@@ -153,7 +153,7 @@ export function LeaderboardsPage() {
                             <div className="relative mb-2 md:mb-4">
                                 <img src={thirdPlaceIcon} className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="3rd Place Icon" />
                                 <img 
-                                    src={podium[2].icon_url || logo} 
+                                    src={podium[2].icon_url || "/logoRE.png"} 
                                     className="w-8 h-8 md:w-14 md:h-14 rounded-sm md:rounded-lg border-2 md:border-4 border-orange-700 object-cover shadow-2xl group-hover:scale-110 transition-transform"
                                     alt="3rd Place"
                                 />

@@ -407,7 +407,7 @@ export function EventsPage() {
                     : competitor.servers?.icon_url
                   
                   const id = competitor.server_id || competitor.user_id
-                  const cooldown = getCooldownStatus(id)
+                  const cooldown = getCooldownStatus(id || '')
 
                   return (
                     <FramerIn key={id} delay={idx * 0.05}>
