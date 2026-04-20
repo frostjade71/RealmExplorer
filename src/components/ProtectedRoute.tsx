@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { LoadingSpinner } from './FeedbackStates'
 import type { UserRole } from '../types'
 
 interface ProtectedRouteProps {
@@ -9,7 +10,7 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ requiredRole }: ProtectedRouteProps) {
   const { session, loading, isAdmin, isModerator } = useAuth()
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <LoadingSpinner />
   
   if (!session) return <Navigate to="/" replace />
 

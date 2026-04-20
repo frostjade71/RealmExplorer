@@ -1,14 +1,22 @@
-import { Loader2 } from 'lucide-react'
+import { BlobLoader } from './BlobLoader'
 
 export function LoadingSpinner({ size = 'lg', inline = false }: { size?: 'sm' | 'md' | 'lg', inline?: boolean }) {
   if (inline || size === 'sm') {
-    return <Loader2 className={`${size === 'sm' ? 'w-4 h-4' : 'w-6 h-6'} text-realm-green animate-spin`} />
+    return (
+      <div className="inline-flex items-center justify-center scale-50">
+        <BlobLoader size="sm" />
+      </div>
+    )
   }
 
   return (
     <div className="flex flex-col items-center justify-center p-12 min-h-[50vh]">
-      <Loader2 className={`${size === 'lg' ? 'w-12 h-12' : 'w-8 h-8'} text-realm-green animate-spin mb-4`} />
-      <span className="font-pixel text-xs text-zinc-400 tracking-widest animate-pulse">GENERATING CHUNKS...</span>
+      <div className="mb-8">
+        <BlobLoader size={size} />
+      </div>
+      <span className="font-pixel text-xs text-zinc-400 tracking-[0.2em] animate-pulse">
+        GENERATING CHUNKS...
+      </span>
     </div>
   )
 }
