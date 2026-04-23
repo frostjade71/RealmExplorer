@@ -23,6 +23,7 @@ import {
   AdminOverviewPage,
   AdminEventsPage,
   LeaderboardsPage,
+  OTMStandingsPage,
   AdminAuditLogsPage,
   AdminCategoryRequestsPage,
   AdminEditAboutPage,
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
       {
         path: '/leaderboards',
         element: <LeaderboardsPage />,
+      },
+      {
+        path: '/otm-standings',
+        element: <OTMStandingsPage />,
       },
       {
         path: '/about',

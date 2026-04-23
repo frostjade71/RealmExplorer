@@ -64,10 +64,10 @@ export function NotificationDropdown() {
   return (
     <div className="relative" ref={dropdownRef}>
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-colors group"
+        className="relative p-2 transition-all group"
       >
         <Bell className={`w-5 h-5 ${unreadCount > 0 ? 'text-realm-green' : 'text-white/60 group-hover:text-white'}`} />
         {unreadCount > 0 && (

@@ -22,6 +22,8 @@ import { useIsMobile } from '../hooks/useMediaQuery'
 import serverTypeIcon from '../assets/category/gif/6128-minecraft.gif'
 import realmTypeIcon from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
 
+import { MetaTags } from '../components/MetaTags'
+
 export function ServerDetailPage() {
   const isMobile = useIsMobile()
   const { slug } = useParams<{ slug: string }>()
@@ -193,7 +195,19 @@ export function ServerDetailPage() {
   if (loading) return <LoadingSpinner />
   if (!server) return <EmptyState title="Not Found" message="This server or realm does not exist or was removed." />
 
+  const metaDescription = server.description 
+    ? server.description.substring(0, 160).replace(/[#*`]/g, '') + '...' 
+    : `Join ${server.name} on Realm Explorer. Explore ${server.category} Minecraft servers and realms.`;
+
   return (
+    <>
+    <MetaTags 
+      title={server.name}
+      description={metaDescription}
+      image={server.banner_url || server.icon_url || undefined}
+      url={`/server/${server.slug || server.id}`}
+      type="website"
+    />
     <AnimatedPage className="max-w-5xl mx-auto w-full px-4 md:px-8 py-8 md:py-12">
       {/* Banner */}
       <FramerIn delay={0.1} className="w-full h-32 md:h-64 bg-zinc-950 rounded-t-lg overflow-hidden relative border border-zinc-800">
@@ -677,6 +691,8 @@ export function ServerDetailPage() {
         </div>
       </FramerIn>
 
+    </AnimatedPage>
+
       <RatingModal 
         isOpen={isRatingModalOpen}
         onClose={() => setIsRatingModalOpen(false)}
@@ -694,6 +710,6 @@ export function ServerDetailPage() {
         onSubmit={handleReportSubmit}
         isSubmitting={reportMutation.isPending}
       />
-    </AnimatedPage>
+    </>
   )
 }

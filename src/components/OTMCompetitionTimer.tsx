@@ -7,7 +7,7 @@ interface OTMCompetitionTimerProps {
   category: string
   targetTime: string
   label?: string
-  variant?: 'locked' | 'compact'
+  variant?: 'locked' | 'compact' | 'minimal'
 }
 
 export function OTMCompetitionTimer({ 
@@ -43,7 +43,7 @@ export function OTMCompetitionTimer({
   }, [targetTime])
 
   if (!timeLeft) {
-    if (variant === 'compact') return null
+    if (variant === 'compact' || variant === 'minimal') return null
     return (
       <div className="flex flex-col items-center justify-center p-12 text-center bg-zinc-900/40 border border-white/5 rounded-3xl backdrop-blur-md">
         <Timer className="w-12 h-12 text-realm-green/40 mb-4 animate-pulse" />
@@ -53,22 +53,42 @@ export function OTMCompetitionTimer({
     )
   }
 
+  if (variant === 'minimal') {
+    return (
+      <div className="flex items-center gap-2 whitespace-nowrap">
+        {[
+          { label: 'd', value: timeLeft.d },
+          { label: 'h', value: timeLeft.h },
+          { label: 'm', value: timeLeft.m },
+          { label: 's', value: timeLeft.s }
+        ].filter(u => (u.label !== 'd' || u.value > 0)).map((unit) => (
+          <div key={unit.label} className="flex items-center gap-0.5 shrink-0 whitespace-nowrap">
+            <span className="text-[10px] font-pixel text-white">
+              {unit.value.toString().padStart(2, '0')}
+            </span>
+            <span className="text-[7px] font-headline text-zinc-500 uppercase font-bold">{unit.label}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   if (variant === 'compact') {
     return (
-      <div className="flex items-center gap-3 transition-all">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3 transition-all whitespace-nowrap">
+        <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
           <Timer className="w-3.5 h-3.5 text-realm-green animate-pulse" />
-          <span className="text-[10px] font-pixel text-white/60 tracking-widest uppercase truncate max-w-[80px] sm:max-w-none">Closes in:</span>
+          <span className="text-[10px] font-pixel text-white/60 tracking-widest uppercase">Closes in:</span>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
           {[
             { label: 'd', value: timeLeft.d },
             { label: 'h', value: timeLeft.h },
             { label: 'm', value: timeLeft.m },
             { label: 's', value: timeLeft.s }
           ].filter(u => variant === 'compact' ? (u.label !== 'd' || u.value > 0) : true).map((unit) => (
-            <div key={unit.label} className="flex items-center gap-0.5">
+            <div key={unit.label} className="flex items-center gap-0.5 shrink-0 whitespace-nowrap">
               <span className="text-xs font-pixel text-white">
                 {unit.value.toString().padStart(2, '0')}
               </span>

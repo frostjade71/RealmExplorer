@@ -7,10 +7,17 @@ import aboutHero from '../assets/aboutRE.png'
 import minecraftGif from '../assets/category/gif/6128-minecraft.gif'
 import ironPickaxe from '../assets/category/708066-iron-pickaxe (1).png'
 
+import { MetaTags } from '../components/MetaTags'
+
 export function AboutPage() {
   const isMobile = useIsMobile()
   return (
     <AnimatedPage>
+      <MetaTags 
+        title="About Realm Explorer"
+        description="Learn more about Realm Explorer, the ultimate hub for Minecraft Server and Realm discovery. Our mission is to unify the community and provide a safe space for players and creators."
+        url="/about"
+      />
       {/* Cinematic Hero */}
       <header className="relative w-full h-auto md:h-[60vh] flex flex-col items-center justify-center overflow-hidden bg-zinc-950">
         <motion.img 

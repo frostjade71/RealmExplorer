@@ -12,6 +12,8 @@ import remarkGfm from 'remark-gfm'
 import { BlogLikeButton } from '../components/BlogLikeButton'
 import { toast } from 'sonner'
 
+import { MetaTags } from '../components/MetaTags'
+
 export function BlogPostDetailPage() {
   const { slug } = useParams()
   const { data: post, isLoading } = useBlogPost(slug)
@@ -47,8 +49,20 @@ export function BlogPostDetailPage() {
     )
   }
 
+  const metaDescription = post.content 
+    ? post.content.substring(0, 160).replace(/[#*`]/g, '') + '...' 
+    : `Read ${post.title} on the Realm Explorer blog.`;
+
   return (
-    <AnimatedPage>
+    <>
+      <MetaTags 
+        title={post.title}
+        description={metaDescription}
+        image={post.image_url || undefined}
+        url={`/blog/${post.slug}`}
+        type="article"
+      />
+      <AnimatedPage>
       <div className="max-w-4xl mx-auto px-6 py-12 md:py-20">
         <FramerIn>
           <Link 
@@ -173,5 +187,6 @@ export function BlogPostDetailPage() {
         </FramerIn>
       </div>
     </AnimatedPage>
+    </>
   )
 }

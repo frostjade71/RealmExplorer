@@ -41,7 +41,7 @@ export function ConfirmationModal({
             className={`relative w-full max-w-sm overflow-hidden ${
               isPixel 
                 ? 'bg-[#313233] border-4 border-[#101010] shadow-[8px_8px_0_rgba(0,0,0,0.5)] rounded-none' 
-                : 'bg-zinc-950 border border-white/10 rounded-3xl shadow-2xl'
+                : 'bg-zinc-950 border border-white/10 rounded-xl shadow-2xl'
             }`}
           >
             {/* Pixel Variant Bevels */}
@@ -57,7 +57,7 @@ export function ConfirmationModal({
                 <div className={`flex items-center justify-center border ${
                   isPixel
                     ? `w-10 h-10 border-2 border-[#101010] shadow-[2px_2px_0_rgba(0,0,0,0.3)] ${isDangerous ? 'bg-red-500 text-white' : 'bg-realm-green text-zinc-950'}`
-                    : `w-12 h-12 rounded-2xl ${isDangerous ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-realm-green/10 border-realm-green/20 text-realm-green'}`
+                    : `w-12 h-12 rounded-xl ${isDangerous ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-realm-green/10 border-realm-green/20 text-realm-green'}`
                 }`}>
                   <AlertCircle className={isPixel ? 'w-5 h-5' : 'w-6 h-6'} />
                 </div>

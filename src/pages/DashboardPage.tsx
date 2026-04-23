@@ -90,7 +90,7 @@ export function DashboardPage() {
 
       <FramerIn delay={0.1} className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="font-pixel text-base md:text-lg text-white mb-2 uppercase tracking-wide">Your Listings</h1>
+          <h1 className="font-pixel text-xs md:text-lg text-white mb-2 uppercase tracking-wide">Your Listings</h1>
           <div className="h-px w-full bg-zinc-800"></div>
         </div>
         

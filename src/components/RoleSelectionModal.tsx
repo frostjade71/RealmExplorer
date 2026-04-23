@@ -43,7 +43,7 @@ export function RoleSelectionModal({ isOpen, onClose, onSelect }: RoleSelectionM
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden"
           >
             <div className="p-6 border-b border-zinc-800 flex justify-between items-center relative z-10 bg-zinc-900">
               <h2 className="font-pixel text-white text-sm md:text-lg uppercase tracking-widest">What's your Role in This Server?</h2>

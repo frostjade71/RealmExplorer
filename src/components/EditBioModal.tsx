@@ -11,6 +11,8 @@ interface EditBioModalProps {
   initialBio: string | null
 }
 
+import { createPortal } from 'react-dom'
+
 export function EditBioModal({ isOpen, onClose, profileId, initialBio }: EditBioModalProps) {
   const [bio, setBio] = useState(initialBio || '')
   const updateMutation = useUpdateProfileMutation()
@@ -44,28 +46,28 @@ export function EditBioModal({ isOpen, onClose, profileId, initialBio }: EditBio
     )
   }
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
           />
           
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl"
+            className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden"
           >
-            <div className="flex items-center justify-between p-6 border-b border-zinc-800">
+            <div className="flex items-center justify-between p-6 border-b border-zinc-800 bg-black/20">
               <div className="flex items-center gap-3">
                 <div>
-                  <h3 className="font-pixel text-lg text-white">Edit Bio</h3>
+                  <h3 className="font-pixel text-lg text-white uppercase tracking-wider">Edit Bio</h3>
                 </div>
               </div>
               <button 
@@ -103,14 +105,14 @@ export function EditBioModal({ isOpen, onClose, profileId, initialBio }: EditBio
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 py-3 px-4 rounded-lg font-headline font-bold text-zinc-500 hover:text-white transition-colors"
+                  className="flex-1 py-3 px-4 rounded-lg font-headline font-bold text-zinc-500 hover:text-white transition-colors text-[10px] md:text-xs uppercase tracking-widest"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={updateMutation.isPending}
-                  className="flex-1 bg-realm-green text-realm-green-dark py-3 px-4 rounded-lg font-headline font-bold hover:bg-[#85fc7e] transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 bg-realm-green text-realm-green-dark py-3 px-4 rounded-lg font-headline font-bold hover:bg-[#85fc7e] transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 text-[10px] md:text-xs uppercase tracking-widest"
                 >
                   {updateMutation.isPending ? (
                     'Saving...'
@@ -126,6 +128,7 @@ export function EditBioModal({ isOpen, onClose, profileId, initialBio }: EditBio
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }

@@ -1,10 +1,10 @@
-import { BlobLoader } from './BlobLoader'
+import { ChunkLoader } from './ChunkLoader'
 
 export function LoadingSpinner({ size = 'lg', inline = false }: { size?: 'sm' | 'md' | 'lg', inline?: boolean }) {
   if (inline || size === 'sm') {
     return (
       <div className="inline-flex items-center justify-center scale-50">
-        <BlobLoader size="sm" />
+        <ChunkLoader />
       </div>
     )
   }
@@ -12,7 +12,7 @@ export function LoadingSpinner({ size = 'lg', inline = false }: { size?: 'sm' | 
   return (
     <div className="flex flex-col items-center justify-center p-12 min-h-[50vh]">
       <div className="mb-8">
-        <BlobLoader size={size} />
+        <ChunkLoader />
       </div>
       <span className="font-pixel text-xs text-zinc-400 tracking-[0.2em] animate-pulse">
         GENERATING CHUNKS...

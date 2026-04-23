@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useGlobalStats } from '../hooks/queries'
 import { useEffect, useState, useRef } from 'react'
-import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Star, Users, BookOpen, ShieldCheck } from 'lucide-react'
+import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Star, Users, BookOpen, ShieldCheck, Medal, ChevronsUp } from 'lucide-react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { NotificationDropdown } from './NotificationDropdown'
 // logo imported from public/logoRE.png as /logoRE.png
@@ -39,7 +39,8 @@ export function Navbar() {
       path: '/events', 
       icon: <Calendar className="w-4 h-4" />,
       children: [
-        { label: 'OTM', path: '/events', icon: <Star className="w-4 h-4" /> },
+        { label: 'OTM', path: '/events', icon: <Medal className="w-4 h-4" /> },
+        { label: 'OTM Standings', path: '/otm-standings', icon: <ChevronsUp className="w-4 h-4" /> },
         { label: 'Leaderboards', path: '/leaderboards', icon: <Trophy className="w-4 h-4" /> },
       ]
     },
@@ -367,7 +368,7 @@ export function Navbar() {
                       Login with Discord
                     </button>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <Link 
                         to={`/profile/${profile?.discord_username}`}
                         onClick={() => setMobileMenuOpen(false)}
@@ -386,7 +387,7 @@ export function Navbar() {
                         </div>
                       </Link>
                       
-                      <div className={`grid ${isModerator ? 'grid-cols-2' : 'grid-cols-1'} gap-2`}>
+                      <div className={`grid ${isModerator ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5`}>
                         <Link 
                           to="/dashboard"
                           onClick={() => setMobileMenuOpen(false)}
@@ -412,7 +413,7 @@ export function Navbar() {
                             setMobileMenuOpen(false)
                             signOut()
                           }}
-                          className="flex w-full items-center justify-center gap-3 px-4 py-2 rounded-lg font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors mt-2"
+                          className="flex w-full items-center justify-center gap-3 px-4 py-2 rounded-lg font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors"
                         >
                           <LogOut className="w-3.5 h-3.5" />
                           Sign Out

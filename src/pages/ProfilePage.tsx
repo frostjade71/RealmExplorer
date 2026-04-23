@@ -16,6 +16,8 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import type { SocialLink } from '../types'
 
+import { MetaTags } from '../components/MetaTags'
+
 export function ProfilePage() {
   const isMobile = useIsMobile()
   const { username } = useParams<{ username: string }>()
@@ -109,8 +111,20 @@ export function ProfilePage() {
         : `https://cdn.discordapp.com/banners/${profile.discord_id}/${profile.discord_banner}.png?size=1024`)
     : null
 
+  const metaDescription = profile.bio 
+    ? profile.bio.substring(0, 160) 
+    : `View ${profile.discord_username}'s profile on Realm Explorer. Discover their Minecraft server listings and community contributions.`;
+
   return (
-    <AnimatedPage>
+    <>
+      <MetaTags 
+        title={`${profile.discord_username}'s Profile`}
+        description={metaDescription}
+        image={profile.discord_avatar || undefined}
+        url={`/profile/${profile.discord_username}`}
+        type="profile"
+      />
+      <AnimatedPage>
       {/* Profile Header / Banner */}
       <div className="relative h-[15vh] md:h-[20vh] w-full overflow-hidden">
         {bannerUrl ? (
@@ -337,5 +351,6 @@ export function ProfilePage() {
         </>
       )}
     </AnimatedPage>
+    </>
   )
 }

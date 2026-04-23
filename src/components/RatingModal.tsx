@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star, X, Send } from 'lucide-react'
 
@@ -33,30 +34,43 @@ export function RatingModal({
     onSubmit(rating, comment)
   }
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+          />
+
+          {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="bg-zinc-950 border border-zinc-800 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+            className="relative bg-zinc-950 border border-white/10 w-full max-w-md rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
           >
-            <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
-              <h2 className="font-pixel text-white text-lg">{initialRating > 0 ? 'Edit Rating' : 'Rate Server'}</h2>
+            {/* Header */}
+            <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
+              <h2 className="font-pixel text-white text-base md:text-lg uppercase tracking-wider">
+                {initialRating > 0 ? 'Edit Rating' : 'Rate Server'}
+              </h2>
               <button 
                 onClick={onClose}
-                className="text-zinc-500 hover:text-white transition-colors"
+                className="text-white/20 hover:text-white transition-colors p-2"
                 disabled={isSubmitting || isRemoving}
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div className="flex flex-col items-center gap-4">
-                <p className="text-zinc-400 font-headline text-sm uppercase tracking-widest">Select Rating</p>
+            <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto scrollbar-none">
+              <div className="flex flex-col items-center gap-4 bg-white/5 p-6 rounded-xl border border-white/5">
+                <p className="text-white/40 font-headline text-[10px] uppercase tracking-widest font-bold">Select Rating</p>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((num) => (
                     <motion.button
@@ -71,17 +85,17 @@ export function RatingModal({
                       disabled={isSubmitting || isRemoving}
                     >
                       <Star 
-                        className={`w-8 h-8 transition-colors ${
+                        className={`w-8 h-8 md:w-10 md:h-10 transition-colors ${
                           (hoverRating || rating) >= num 
                             ? 'text-yellow-400 fill-yellow-400' 
-                            : 'text-zinc-700'
+                            : 'text-zinc-800'
                         }`} 
                       />
                     </motion.button>
                   ))}
                 </div>
                 {rating > 0 && (
-                  <p className="text-yellow-400 font-bold text-sm">
+                  <p className="text-yellow-400 font-bold text-xs uppercase tracking-[0.2em] font-pixel mt-1">
                     {rating === 1 && "Poor"}
                     {rating === 2 && "Fair"}
                     {rating === 3 && "Good"}
@@ -92,25 +106,25 @@ export function RatingModal({
               </div>
 
               <div className="space-y-2">
-                <label className="text-zinc-400 font-headline text-xs uppercase tracking-widest block">Your Message</label>
+                <label className="text-white/40 font-headline text-[10px] uppercase tracking-widest block font-bold">Your Message</label>
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   disabled={isSubmitting || isRemoving}
                   placeholder="Tell others what you think of this server..."
-                  className="w-full h-32 bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white font-body text-sm focus:outline-none focus:ring-2 focus:ring-realm-green/50 placeholder:text-zinc-600 resize-none transition-all disabled:opacity-50"
+                  className="w-full h-32 bg-white/5 border border-white/10 rounded-xl p-4 text-white font-body text-sm focus:outline-none focus:ring-2 focus:ring-realm-green/50 placeholder:text-white/10 resize-none transition-all disabled:opacity-50"
                 />
               </div>
 
               <div className="flex flex-col gap-3">
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
                   type="submit"
                   disabled={rating === 0 || isSubmitting || isRemoving}
-                  className={`w-full py-4 rounded-xl font-headline font-bold flex items-center justify-center gap-2 transition-all ${
+                  className={`w-full py-4 rounded-xl font-headline font-bold flex items-center justify-center gap-2 transition-all uppercase tracking-widest text-[10px] ${
                     rating === 0 || isSubmitting || isRemoving
-                      ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+                      ? 'bg-zinc-900 text-white/20 cursor-not-allowed border border-white/5'
                       : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e] shadow-lg shadow-green-500/20'
                   }`}
                 >
@@ -118,7 +132,7 @@ export function RatingModal({
                     <div className="w-5 h-5 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
                   ) : (
                     <>
-                      <Send className="w-4 h-4" />
+                      <Send className="w-3.5 h-3.5" />
                       {initialRating > 0 ? 'Update Rating' : 'Submit Rating'}
                     </>
                   )}
@@ -126,12 +140,12 @@ export function RatingModal({
 
                 {initialRating > 0 && onRemove && (
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                     type="button"
                     onClick={onRemove}
                     disabled={isSubmitting || isRemoving}
-                    className="w-full py-4 rounded-xl font-headline font-bold flex items-center justify-center gap-3 text-red-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                    className="w-full py-4 rounded-xl font-headline font-bold flex items-center justify-center gap-3 text-red-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed group uppercase tracking-widest text-[10px]"
                   >
                     {isRemoving ? (
                       <div className="w-5 h-5 border-2 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
@@ -148,6 +162,8 @@ export function RatingModal({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }
+

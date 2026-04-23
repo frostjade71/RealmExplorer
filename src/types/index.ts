@@ -107,6 +107,7 @@ export interface OTMCompetitor {
     icon_url: string | null
     slug: string | null
     banner_url?: string | null
+    type?: string | null
   }
   profiles?: Profile
 }

@@ -18,6 +18,8 @@ interface EditProfileModalProps {
   initialLinks: SocialLink[]
 }
 
+import { createPortal } from 'react-dom'
+
 export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: EditProfileModalProps) {
   const [links, setLinks] = useState<ReorderableSocialLink[]>([])
   const updateMutation = useUpdateProfileMutation()
@@ -95,29 +97,29 @@ export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: E
     )
   }
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
           />
           
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl"
+            className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
           >
-            <div className="flex items-center justify-between p-6 border-b border-zinc-800">
+            <div className="flex items-center justify-between p-6 border-b border-zinc-800 shrink-0">
               <div className="flex items-center gap-3">
                 <div>
-                  <h3 className="font-pixel text-lg text-white">Personal Links</h3>
-                  <p className="text-xs text-zinc-500 font-headline">Manage your social presence</p>
+                  <h3 className="font-pixel text-lg text-white uppercase tracking-wider">Personal Links</h3>
+                  <p className="text-[10px] text-zinc-500 font-headline uppercase tracking-widest font-bold">Manage your social presence</p>
                 </div>
               </div>
               <button 
@@ -129,7 +131,7 @@ export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: E
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6">
+            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto scrollbar-none flex-grow">
               <div className="space-y-4 mb-8">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-headline">
@@ -149,7 +151,7 @@ export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: E
                   axis="y" 
                   values={links} 
                   onReorder={setLinks}
-                  className="space-y-3 min-h-[120px] pb-12 px-1"
+                  className="space-y-3 min-h-[120px] pb-32 px-1"
                 >
                   {links.map((link) => (
                     <Reorder.Item 
@@ -159,7 +161,7 @@ export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: E
                       animate={{ opacity: 1, x: 0 }}
                       className="flex gap-2 items-center group"
                     >
-                      <div className="cursor-grab active:cursor-grabbing p-1 text-zinc-700 hover:text-zinc-400 transition-colors">
+                      <div className="cursor-grab active:cursor-grabbing p-1 text-zinc-700 hover:text-zinc-400 transition-colors shrink-0">
                         <GripVertical className="w-4 h-4" />
                       </div>
 
@@ -168,7 +170,7 @@ export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: E
                           value={link.platform}
                           onChange={(val) => handleUpdateLink(link.localId, 'platform', val as SocialPlatform)}
                           options={socialOptions}
-                          className="w-auto md:w-48 flex-shrink-0"
+                          className="w-auto md:w-36 flex-shrink-0"
                           hideLabelMobile={true}
                         />
                         <div className="h-4 w-px bg-zinc-800 mx-1 flex-shrink-0" />
@@ -206,34 +208,42 @@ export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: E
                     </div>
                   )}
                 </div>
+              </form>
 
-              <div className="flex items-center gap-2 md:gap-3 pt-6 border-t border-zinc-800 focus-within:z-10">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 py-3 px-2 md:px-4 rounded-lg font-headline font-bold text-[10px] md:text-xs text-zinc-500 hover:text-white transition-colors whitespace-nowrap"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={updateMutation.isPending}
-                  className="flex-[2] bg-realm-green text-realm-green-dark py-3 px-2 md:px-4 rounded-lg font-headline font-bold text-[10px] md:text-xs hover:bg-[#85fc7e] transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5 whitespace-nowrap"
-                >
-                  {updateMutation.isPending ? (
-                    'Saving...'
-                  ) : (
-                    <>
-                      <Save className="w-3.5 h-3.5" />
-                      Save Changes
-                    </>
-                  )}
-                </button>
+              <div className="p-6 border-t border-zinc-800 bg-black/20 shrink-0">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 py-3 px-2 md:px-4 rounded-lg font-headline font-bold text-[10px] md:text-xs text-zinc-500 hover:text-white transition-colors whitespace-nowrap"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      // Trigger form submit manually since button is outside form now for layout
+                      const form = (e.currentTarget.closest('.relative') as HTMLElement).querySelector('form');
+                      if (form) form.requestSubmit();
+                    }}
+                    disabled={updateMutation.isPending}
+                    className="flex-[2] bg-realm-green text-realm-green-dark py-3 px-2 md:px-4 rounded-lg font-headline font-bold text-[10px] md:text-xs hover:bg-[#85fc7e] transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5 whitespace-nowrap"
+                  >
+                    {updateMutation.isPending ? (
+                      'Saving...'
+                    ) : (
+                      <>
+                        <Save className="w-3.5 h-3.5" />
+                        Save Changes
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-            </form>
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }

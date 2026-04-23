@@ -23,6 +23,8 @@ import moddedIcon from '../assets/category/437888-bedrock.png'
 import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
 import skygenIcon from '../assets/category/89458-iron-block.png'
 
+import { MetaTags } from '../components/MetaTags'
+
 export function DirectoryPage() {
   const isMobile = useIsMobile()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -92,9 +94,25 @@ export function DirectoryPage() {
     setSearchParams(searchParams)
   }
 
+  const pageTitle = activeCategory 
+    ? `Best ${activeCategory.toUpperCase()} ${activeType === 'realm' ? 'Realms' : 'Servers'}` 
+    : activeType === 'realm' 
+      ? 'Browse Minecraft Realms' 
+      : activeType === 'server' 
+        ? 'Browse Minecraft Servers' 
+        : 'Browse All Realms & Servers';
+
+  const pageDescription = activeCategory 
+    ? `Discover the top-rated ${activeCategory} Minecraft ${activeType || 'servers and realms'}. Vote for your favorites and join the community.` 
+    : `Explore our directory of the best Minecraft ${activeType || 'servers and realms'}. Find your next adventure on Realm Explorer.`;
 
   return (
     <AnimatedPage>
+      <MetaTags 
+        title={pageTitle}
+        description={pageDescription}
+        url={`/servers${window.location.search}`}
+      />
       <header className="relative pt-32 pb-16 md:pb-20 px-8 overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}
         <motion.img 

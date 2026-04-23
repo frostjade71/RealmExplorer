@@ -6,9 +6,11 @@ import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Toaster } from 'sonner'
 import { DevEgressWarning } from './components/DevEgressWarning'
 
+import { HelmetProvider } from 'react-helmet-async'
+
 function App() {
   return (
-    <>
+    <HelmetProvider>
       <RouterProvider router={router} />
       <DevEgressWarning />
       <Analytics />
@@ -28,7 +30,7 @@ function App() {
           },
         }}
       />
-    </>
+    </HelmetProvider>
   )
 }
 

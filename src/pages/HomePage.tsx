@@ -54,6 +54,8 @@ function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toSt
   )
 }
 
+import { MetaTags } from '../components/MetaTags'
+
 export function HomePage() {
   const isMobile = useIsMobile()
   const { data: featured = [], isLoading: loadingFeatured } = useServers({ featured: true, limit: 4 })
@@ -98,6 +100,10 @@ export function HomePage() {
 
   return (
     <AnimatedPage>
+      <MetaTags 
+        title="Find & Promote Minecraft Servers"
+        description="Discover the best Minecraft Servers and Realms. Vote for your favorites, list your community, and find your next adventure on the most modern discovery platform."
+      />
       <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[50vh] md:min-h-[65vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}
         <motion.video 
