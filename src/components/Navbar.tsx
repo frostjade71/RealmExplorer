@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useGlobalStats } from '../hooks/queries'
 import { useEffect, useState, useRef } from 'react'
-import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Star, Users, BookOpen, ShieldCheck, Medal, ChevronsUp } from 'lucide-react'
+import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Users, BookOpen, ShieldCheck, Medal, ChevronsUp } from 'lucide-react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { NotificationDropdown } from './NotificationDropdown'
 // logo imported from public/logoRE.png as /logoRE.png
