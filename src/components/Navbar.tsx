@@ -41,10 +41,16 @@ export function Navbar() {
       children: [
         { label: 'OTM', path: '/events', icon: <Medal className="w-4 h-4" /> },
         { label: 'OTM Standings', path: '/otm-standings', icon: <ChevronsUp className="w-4 h-4" /> },
+      ]
+    },
+    { 
+      label: 'Servers', 
+      path: '/servers', 
+      icon: <Globe className="w-4 h-4" />,
+      children: [
         { label: 'Leaderboards', path: '/leaderboards', icon: <Trophy className="w-4 h-4" /> },
       ]
     },
-    { label: 'Servers', path: '/servers', icon: <Globe className="w-4 h-4" /> },
     { 
       label: 'About', 
       path: '/about', 
