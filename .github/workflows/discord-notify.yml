@@ -1,0 +1,28 @@
+name: Discord Push Notification
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify:
+    name: Notify Discord
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Notification
+        uses: appleboy/discord-action@master
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
+          username: "RealmExplorer Bot"
+          avatar_url: "https://raw.githubusercontent.com/frostjade71/RealmExplorer/main/public/favicon.ico"
+          message: |
+            **🚀 New Commit Pushed!**
+            **Repository:** `${{ github.repository }}`
+            **Branch:** `${{ github.ref_name }}`
+            **Author:** `${{ github.actor }}`
+            
+            **Commit Message:**
+            > ${{ github.event.head_commit.message }}
+            
+            [🔗 View Changes](${{ github.event.head_commit.url }})
