@@ -143,7 +143,7 @@ export function HomePage() {
           
           <FramerIn delay={0.8}>
             <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-10 md:mb-12">
-              <Link to="/servers" className="bg-[#006e15] hover:bg-[#85fc7e] text-white hover:text-[#002202] px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all flex items-center gap-2.5 group shadow-xl shadow-green-900/10 text-[12px] md:text-sm">
+              <Link to="/servers" className="bg-[#006e15] hover:brightness-110 text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all flex items-center gap-2.5 group shadow-xl shadow-green-900/10 text-[12px] md:text-sm">
                 Browse Servers
                 <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform text-sm">arrow_forward</span>
               </Link>
