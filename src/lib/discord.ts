@@ -220,7 +220,11 @@ export async function sendErrorNotification(params: {
   if (!LOGS_WEBHOOK_URL) return;
 
   const { error, context, userEmail } = params;
-  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorMessage = error instanceof Error
+    ? error.message
+    : (typeof error === 'object' && error !== null && 'message' in error)
+      ? String((error as any).message)
+      : String(error);
 
   const payload = {
     username: 'Realm Explorer | Severe Error',
