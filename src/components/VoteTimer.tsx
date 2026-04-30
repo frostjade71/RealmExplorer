@@ -5,9 +5,10 @@ import { Timer } from 'lucide-react'
 interface VoteTimerProps {
   lastVoteTime: string
   onFinish?: () => void
+  variant?: 'default' | 'compact'
 }
 
-export function VoteTimer({ lastVoteTime, onFinish }: VoteTimerProps) {
+export function VoteTimer({ lastVoteTime, onFinish, variant = 'default' }: VoteTimerProps) {
   const [timeLeft, setTimeLeft] = useState<string>('')
 
   useEffect(() => {
@@ -39,6 +40,14 @@ export function VoteTimer({ lastVoteTime, onFinish }: VoteTimerProps) {
 
     return () => clearInterval(timer)
   }, [lastVoteTime, onFinish])
+
+  if (variant === 'compact') {
+    return (
+      <span className="text-[9px] font-pixel text-zinc-500/80">
+        {timeLeft}
+      </span>
+    )
+  }
 
   return (
     <AnimatePresence>

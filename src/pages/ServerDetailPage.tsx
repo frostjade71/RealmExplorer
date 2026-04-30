@@ -271,7 +271,21 @@ export function ServerDetailPage() {
                       }`}
                     >
                       <ArrowUpSquare className={`w-4 h-4 md:w-5 h-5 ${alreadyVoted || !isApproved ? 'text-zinc-600' : ''}`} />
-                      {voteMutation.isPending ? 'Voting...' : !isApproved ? 'Pending' : alreadyVoted ? 'Voted' : 'Vote'}
+                      <div className="flex items-center gap-2 leading-tight">
+                        <span className="text-xs md:text-sm">
+                          {voteMutation.isPending ? 'Voting...' : !isApproved ? 'Pending' : alreadyVoted ? 'Voted' : 'Vote'}
+                        </span>
+                        {alreadyVoted && voteStatus?.lastVoteTime && (
+                          <VoteTimer 
+                            lastVoteTime={voteStatus.lastVoteTime} 
+                            variant="compact"
+                            onFinish={() => {
+                                refetchVoteStatus()
+                                refetchServer()
+                            }}
+                          />
+                        )}
+                      </div>
                     </motion.button>
                     <motion.button 
                       whileHover={isApproved ? { scale: 1.1 } : {}}
@@ -288,19 +302,6 @@ export function ServerDetailPage() {
                     </motion.button>
                   </div>
                   
-                  {alreadyVoted && voteStatus?.lastVoteTime && (
-                    <div className="mt-1">
-                      <VoteTimer 
-                        lastVoteTime={voteStatus.lastVoteTime} 
-                        onFinish={() => {
-                            refetchVoteStatus()
-                            refetchServer()
-                        }}
-                      />
-                    </div>
-                  )}
-
-
                 </div>
             ) : (
               <div className="text-[10px] md:text-xs font-headline text-zinc-500 border border-zinc-800 px-3 md:px-4 py-1.5 md:py-2 rounded-md w-full text-center md:w-auto">Login to Vote</div>
