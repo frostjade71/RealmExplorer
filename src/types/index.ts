@@ -67,15 +67,8 @@ export interface ServerRating {
   profiles?: Profile
 }
 
-export interface ServerMessage {
-  id: string
-  server_id: string
-  sender_id: string | null
-  subject: string
-  message: string
-  type: 'contact' | 'rejection'
-  created_at: string
-}
+
+
 
 export type OTMCategory = 'realm' | 'server' | 'developer' | 'builder'
 

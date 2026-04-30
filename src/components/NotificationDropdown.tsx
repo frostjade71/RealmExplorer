@@ -55,6 +55,9 @@ export function NotificationDropdown() {
           : n.message
       })
       setIsOpen(false)
+    } else if (n.type === 'staff_outreach' || n.type === 'rejection') {
+      window.open('https://discord.com/channels/@me', '_blank')
+      setIsOpen(false)
     } else if (n.related_id) {
       navigate(`/server/${n.related_id}`)
       setIsOpen(false)
@@ -172,9 +175,9 @@ export function NotificationDropdown() {
                           <p className={`text-[11px] leading-relaxed ${!n.is_read ? 'text-white/70 font-medium' : 'text-white/40'}`}>
                             {n.message}
                           </p>
-                          {n.related_id && (
+                          {(n.related_id || n.type === 'staff_outreach' || n.type === 'rejection') && (
                              <div className="mt-2 flex items-center gap-1 text-[9px] font-bold text-realm-green/60 uppercase tracking-widest group-hover:text-realm-green transition-colors">
-                               {n.type === 'server_rating' ? 'View Rating' : 'View'} <ExternalLink className="w-2.5 h-2.5" />
+                               {(n.type === 'staff_outreach' || n.type === 'rejection') ? 'Open Discord' : n.type === 'server_rating' ? 'View Rating' : 'View'} <ExternalLink className="w-2.5 h-2.5" />
                              </div>
                           )}
                         </div>

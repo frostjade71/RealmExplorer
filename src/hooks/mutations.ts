@@ -191,18 +191,12 @@ export function useUpdateServerStatusMutation() {
         })
       }
 
-      // 3. If approved, cleanup messages
-      if (status === 'approved') {
-        const { error: msgError } = await supabase.from('server_messages').delete().eq('server_id', id)
-        if (msgError) console.error('Failed to cleanup messages:', msgError)
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminServers'] })
       queryClient.invalidateQueries({ queryKey: ['servers'] })
       queryClient.invalidateQueries({ queryKey: ['userServers'] })
       queryClient.invalidateQueries({ queryKey: ['server'] })
-      queryClient.invalidateQueries({ queryKey: ['serverMessages'] })
     },
     onError: (error, variables) => {
       sendErrorNotification({
@@ -387,7 +381,6 @@ export function useSendMessageMutation() {
   return useMutation({
     mutationFn: async ({ 
       serverId, 
-      senderId, 
       subject, 
       message, 
       type,
@@ -395,50 +388,82 @@ export function useSendMessageMutation() {
       adminName 
     }: { 
       serverId: string; 
-      senderId: string; 
       subject: string; 
       message: string; 
       type: 'contact' | 'rejection';
       adminId?: string | null;
       adminName?: string | null;
     }) => {
-      // 1. Upsert the message (one per server)
-      const { error: msgError } = await supabase
-        .from('server_messages')
-        .upsert({ 
-          server_id: serverId, 
-          sender_id: senderId, 
-          subject, 
-          message, 
-          type 
-        }, { onConflict: 'server_id' })
-      
-      if (msgError) throw msgError
+      // 1. Get server data and owner's discord_id for DM
+      const { data: server } = await supabase
+        .from('servers')
+        .select('owner_id, name, status, slug, icon_url')
+        .eq('id', serverId)
+        .single()
 
-      // 2. Update server status
-      const newStatus: ServerStatus = type === 'rejection' ? 'rejected' : 'emailed'
-      const { error: statusError } = await supabase.from('servers').update({ status: newStatus }).eq('id', serverId)
-      
-      if (statusError) throw statusError
+      let ownerDiscordId: string | null = null
+      if (server?.owner_id) {
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('discord_id')
+          .eq('id', server.owner_id)
+          .single()
+        ownerDiscordId = ownerProfile?.discord_id || null
+      }
 
-      // 3. Create Notification
-      const { data: server } = await supabase.from('servers').select('owner_id, name, status').eq('id', serverId).single()
+      // 2. Send Discord DM via Edge Function
+      let dmSent = false
+      if (ownerDiscordId) {
+        try {
+          const { data: dmResult, error: dmError } = await supabase.functions.invoke('send-discord-dm', {
+            body: {
+              discord_id: ownerDiscordId,
+              subject,
+              message,
+              type,
+              server_name: server?.name || 'Unknown Server',
+              server_slug: server?.slug || '',
+              admin_name: adminName || 'Realm Explorer Staff',
+              icon_url: server?.icon_url
+            }
+          })
+          if (dmError) {
+            console.error('Edge function error:', dmError)
+          } else {
+            dmSent = dmResult?.dm_sent === true
+            if (!dmSent) {
+              console.warn('DM not delivered:', dmResult)
+            }
+          }
+        } catch (err) {
+          console.error('Failed to invoke send-discord-dm:', err)
+        }
+      }
+
+      // 3. Update server status (only for rejections — contact keeps server public)
+      const newStatus: ServerStatus | null = type === 'rejection' ? 'rejected' : null
+      if (newStatus) {
+        const { error: statusError } = await supabase.from('servers').update({ status: newStatus }).eq('id', serverId)
+        if (statusError) throw statusError
+      }
+
+      // 4. Create in-app notification (always, as fallback)
       if (server && server.owner_id) {
         let title = type === 'rejection' ? 'Listing Rejected' : 'New Staff Message'
         let messageBody = type === 'rejection' 
-          ? `Your server "${server.name}" listing was rejected. Please check your messages.` 
-          : `A staff member sent a message regarding "${server.name}".`
+          ? `Your server "${server.name}" listing was rejected. Check your Discord DMs for details.` 
+          : `A staff member sent a message regarding "${server.name}". Check your Discord DMs.`
 
         if (type === 'rejection') {
           if (server.status === 'Review Icon') {
             title = 'Icon Rejected'
-            messageBody = `Your new icon for "${server.name}" was rejected. Please check your messages.`
+            messageBody = `Your new icon for "${server.name}" was rejected. Check your Discord DMs for details.`
           } else if (server.status === 'Review Cover') {
             title = 'Cover Rejected'
-            messageBody = `Your new cover for "${server.name}" was rejected. Please check your messages.`
+            messageBody = `Your new cover for "${server.name}" was rejected. Check your Discord DMs for details.`
           } else if (server.status === 'Review Icon & Cover') {
             title = 'Assets Rejected'
-            messageBody = `Your icon and cover for "${server.name}" were rejected. Please check your messages.`
+            messageBody = `Your icon and cover for "${server.name}" were rejected. Check your Discord DMs for details.`
           }
         }
 
@@ -451,10 +476,10 @@ export function useSendMessageMutation() {
         } as any)
       }
 
-      // 4. Log Action
+      // 5. Log Action
       await logAction(
         type === 'rejection' ? 'SERVER_REJECTED' : 'SERVER_CONTACTED',
-        { serverName: server?.name, subject },
+        { serverName: server?.name, subject, dmSent },
         adminId,
         adminName,
         serverId
@@ -463,14 +488,15 @@ export function useSendMessageMutation() {
       await sendLogNotification({
         action: type === 'rejection' ? '❌ Server Listing Rejected' : '📧 Staff Outreach Sent',
         adminName: adminName,
-        details: `**${server?.name}** status changed to **${newStatus}** (previously: \`${server?.status}\`).\n\n**Subject:** ${subject}\n*Note: User has been notified.*`,
-        color: type === 'rejection' ? 0xe67e22 : 0x3498db // Orange for rejection, Blue for contact
+        details: type === 'rejection'
+          ? `**${server?.name}** status changed to **rejected** (previously: \`${server?.status}\`).\n\n**Subject:** ${subject}\n**Discord DM:** ${dmSent ? '✅ Delivered' : '⚠️ Failed (in-app notification sent as fallback)'}`
+          : `Staff message sent to **${server?.name}** owner.\n\n**Subject:** ${subject}\n**Discord DM:** ${dmSent ? '✅ Delivered' : '⚠️ Failed (in-app notification sent as fallback)'}`,
+        color: type === 'rejection' ? 0xe67e22 : 0x3498db
       })
 
-      return serverId
+      return { serverId, dmSent }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['serverMessages'] })
       queryClient.invalidateQueries({ queryKey: ['adminServers'] })
       queryClient.invalidateQueries({ queryKey: ['server'] })
       queryClient.invalidateQueries({ queryKey: ['userServers'] })

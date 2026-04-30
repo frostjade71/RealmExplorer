@@ -226,22 +226,8 @@ export function useServerRatings(serverId: string | undefined) {
   })
 }
 
-export function useServerMessages(serverId: string | undefined) {
-  return useQuery({
-    queryKey: ['serverMessages', serverId],
-    enabled: !!serverId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('server_messages')
-        .select('*, profiles(*)')
-        .eq('server_id', serverId!)
-        .order('created_at', { ascending: false })
-      
-      if (error) throw error
-      return data
-    }
-  })
-}
+
+
 
 export function useOTMWinners() {
   return useQuery({

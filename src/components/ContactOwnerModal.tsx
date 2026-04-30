@@ -98,11 +98,19 @@ export function ContactOwnerModal({
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl text-orange-400">
+              <div className={`flex items-start gap-3 p-4 rounded-xl ${
+                type === 'rejection' 
+                  ? 'bg-red-500/10 border border-red-500/20 text-red-400' 
+                  : 'bg-blue-500/10 border border-blue-500/20 text-blue-400'
+              }`}>
                 <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
                 <p className="text-xs font-headline leading-relaxed">
-                  <span className="font-bold uppercase tracking-wider block mb-0.5 text-[10px]">Important Note</span>
-                  This server will be pulled out from the server directory until it is accepted.
+                  <span className="font-bold uppercase tracking-wider block mb-0.5 text-[10px]">
+                    {type === 'rejection' ? 'Rejection Notice' : 'Direct Message'}
+                  </span>
+                  {type === 'rejection' 
+                    ? 'This message will be sent to the owner\'s Discord DMs. The server will be pulled from the directory until the issue is resolved.'
+                    : 'This message will be sent directly to the owner\'s Discord DMs via the Realm Explorer bot.'}
                 </p>
               </div>
             </form>

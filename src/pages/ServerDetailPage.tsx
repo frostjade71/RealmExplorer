@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useServer, useUserVoteStatus, useServerRatings, useServerMessages } from '../hooks/queries'
+import { useServer, useUserVoteStatus, useServerRatings } from '../hooks/queries'
 import { useVoteMutation, useSubmitRatingMutation, useSubmitReportMutation, useDeleteRatingMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { CategoryBadge } from '../components/CategoryBadge'
@@ -43,7 +43,7 @@ export function ServerDetailPage() {
 
   const { data: voteStatus, isLoading: checkingVote, refetch: refetchVoteStatus } = useUserVoteStatus(user?.id, server?.id)
   const { data: ratings } = useServerRatings(server?.id)
-  const { data: messages = [] } = useServerMessages(server?.id)
+
   const voteMutation = useVoteMutation()
   const ratingMutation = useSubmitRatingMutation()
   const deleteRatingMutation = useDeleteRatingMutation()
@@ -300,63 +300,7 @@ export function ServerDetailPage() {
                     </div>
                   )}
 
-                  {/* Staff Messages (visible to owner or staff) */}
-                  {messages.length > 0 && (
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="w-full mt-4 space-y-3"
-                    >
-                      {messages.map((msg: any) => (
-                        <div key={msg.id} className={`p-4 rounded-lg border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
-                          msg.type === 'rejection' 
-                            ? 'bg-red-500/10 border-red-500/20' 
-                            : 'bg-blue-500/10 border-blue-500/20'
-                        }`}>
-                          <div className="flex-grow w-full">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="material-symbols-outlined text-sm opacity-60">
-                                {msg.type === 'rejection' ? 'error' : 'mail'}
-                              </span>
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
-                                {msg.type === 'rejection' ? 'Rejection Reason' : 'Staff Feedback'}
-                              </span>
-                            </div>
-                            <div className="font-bold text-white text-xs mb-1">{msg.subject}</div>
-                            <p className="text-white/60 text-xs leading-relaxed italic">"{msg.message}"</p>
-                            <div className="text-[9px] text-white/20 mt-2 font-mono">
-                              {new Date(msg.created_at).toLocaleString()}
-                            </div>
-                          </div>
 
-                          {/* Sender Info (Bottom on mobile, Right on desktop) */}
-                          {msg.profiles && (
-                            <div className="flex items-center gap-3 sm:pl-4 sm:border-l border-white/5 flex-shrink-0 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 mt-2 sm:mt-0">
-                              <div className="flex-grow sm:text-right">
-                                <div className="text-white text-[10px] font-bold leading-tight">
-                                  {msg.profiles.discord_username || 'Staff Member'}
-                                </div>
-                                <div className={`text-[8px] font-bold uppercase tracking-wider ${
-                                  msg.profiles.role === 'admin' ? 'text-red-400' : 'text-realm-green'
-                                }`}>
-                                  {msg.profiles.role}
-                                </div>
-                              </div>
-                              <div className="w-8 h-8 rounded-md overflow-hidden border border-white/10 bg-zinc-900">
-                                {msg.profiles.discord_avatar ? (
-                                  <img src={msg.profiles.discord_avatar} alt="Avatar" className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-[10px] text-white/20 font-bold uppercase">
-                                    {msg.profiles.discord_username?.substring(0, 1) || 'S'}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </motion.div>
-                  )}
                 </div>
             ) : (
               <div className="text-[10px] md:text-xs font-headline text-zinc-500 border border-zinc-800 px-3 md:px-4 py-1.5 md:py-2 rounded-md w-full text-center md:w-auto">Login to Vote</div>

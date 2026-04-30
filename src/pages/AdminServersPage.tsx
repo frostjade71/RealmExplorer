@@ -79,10 +79,9 @@ export function AdminServersPage() {
     if (!modalConfig.server || !profile) return
 
     try {
-      // 1. Send the message
-      await sendMessageMutation.mutateAsync({
+      // 1. Send the message (now via Discord DM)
+      const result = await sendMessageMutation.mutateAsync({
         serverId: modalConfig.server.id,
-        senderId: profile.id,
         subject,
         message,
         type: modalConfig.type,
@@ -93,9 +92,16 @@ export function AdminServersPage() {
       // 2. If it's a rejection, update the status
       if (modalConfig.type === 'rejection') {
         handleUpdateStatus(modalConfig.server.id, 'rejected')
+      }
+
+      // 3. Show feedback based on DM delivery
+      if (result?.dmSent) {
+        toast.success(modalConfig.type === 'rejection' ? 'Server Rejected' : 'Message Sent', {
+          description: `Discord DM delivered to ${modalConfig.server.name} owner.`
+        })
       } else {
-        toast.success('Message Sent', {
-          description: `Direct message sent to ${modalConfig.server.name} owner.`
+        toast.warning(modalConfig.type === 'rejection' ? 'Server Rejected (DM Failed)' : 'Message Sent (DM Failed)', {
+          description: `Could not deliver Discord DM. An in-app notification was sent as fallback.`
         })
       }
 
@@ -105,6 +111,7 @@ export function AdminServersPage() {
       toast.error('Action Failed', { description: error.message || 'An error occurred.' })
     }
   }
+
 
   const handleDeleteConfirm = () => {
     if (!serverToDelete || !profile) return
