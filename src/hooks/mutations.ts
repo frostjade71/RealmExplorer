@@ -260,7 +260,7 @@ export function useSubmitServerMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (formData: any) => {
-      const { error } = await supabase.from('servers').insert([{ ...formData, last_edited_at: new Date().toISOString() }])
+      const { error } = await supabase.from('servers').insert([{ ...formData, status: 'pending', last_edited_at: new Date().toISOString() }])
       if (error) throw error
     },
     onSuccess: (_, variables) => {

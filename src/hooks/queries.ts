@@ -31,7 +31,7 @@ export function useServers(params?: {
   return useQuery({
     queryKey: ['servers', params],
     queryFn: async () => {
-      let query = supabase.from('servers').select('*').eq('status', 'approved')
+      let query = supabase.from('public_servers').select('*').eq('status', 'approved')
 
       if (params?.type) query = query.eq('type', params.type)
       if (params?.category) query = query.eq('category', params.category)
@@ -63,26 +63,19 @@ export function useServer(idOrSlug: string | undefined) {
     queryKey: ['server', idOrSlug],
     enabled: !!idOrSlug,
     queryFn: async () => {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug!)
-      
-      let query = supabase.from('servers').select('*')
-      
-      if (isUuid) {
-        query = query.eq('id', idOrSlug!)
-      } else {
-        query = query.eq('slug', idOrSlug!)
-      }
-
-      const { data: server, error } = await query.single()
+      // Use secure RPC that returns full server details (including connection info)
+      // for a single server only — prevents bulk scraping of IPs/codes
+      const { data, error } = await supabase.rpc('get_server_details', {
+        server_slug: idOrSlug!
+      })
       if (error) throw error
-      
-      let ownerInfo: Profile | null = null
-      if (server) {
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', server.owner_id as string).single()
-        if (profile) ownerInfo = profile as unknown as Profile
-      }
+      if (!data) throw new Error('Server not found')
 
-      return { server: server as unknown as Server, owner: ownerInfo }
+      const result = data as unknown as { server: Server; owner: Profile | null }
+      return {
+        server: result.server,
+        owner: result.owner
+      }
     }
   })
 }
@@ -145,7 +138,7 @@ export function useGlobalStats() {
   return useQuery({
     queryKey: ['globalStats'],
     queryFn: async () => {
-      const { count: serverCount } = await supabase.from('servers').select('*', { count: 'exact', head: true }).eq('status', 'approved')
+      const { count: serverCount } = await supabase.from('public_servers').select('*', { count: 'exact', head: true }).eq('status', 'approved')
       const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true })
       return { servers: serverCount || 450, users: userCount || 12000 }
     }
@@ -251,7 +244,7 @@ export function useOTMCompetitors(category: OTMCategory, enabled: boolean = true
     queryFn: async () => {
       if (category === 'realm' || category === 'server') {
         const { data, error } = await supabase
-          .from('servers')
+          .from('public_servers')
           .select('*, otm_votes(count)')
           .eq('status', 'approved')
           .eq('type', category)
@@ -593,8 +586,8 @@ export function useEntityBadges(targetId: string | undefined, targetType: 'user'
       // 2. Fetch automatic badges if it's a server
       if (targetType === 'server') {
         const [topVotesResult, topRatingsResult, serverResult, autoBadgesResult] = await Promise.all([
-          supabase.from('servers').select('id').eq('status', 'approved').order('votes', { ascending: false }).limit(1).maybeSingle(),
-          supabase.from('servers').select('id').eq('status', 'approved').order('weighted_rating', { ascending: false }).limit(1).maybeSingle(),
+          supabase.from('public_servers').select('id').eq('status', 'approved').order('votes', { ascending: false }).limit(1).maybeSingle(),
+          supabase.from('public_servers').select('id').eq('status', 'approved').order('weighted_rating', { ascending: false }).limit(1).maybeSingle(),
           supabase.from('servers').select('created_at').eq('id', targetId!).single(),
           supabase.from('badges').select('*').eq('type', 'automatic')
         ])

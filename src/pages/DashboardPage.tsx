@@ -20,6 +20,7 @@ export function DashboardPage() {
   const navigate = useNavigate()
   
   const { data: servers = [], isLoading: loading } = useUserServers(user?.id)
+  const hasReachedLimit = servers.length >= 2
   const deleteMutation = useDeleteServerMutation()
   
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -120,14 +121,24 @@ export function DashboardPage() {
             <div className="h-px w-full bg-zinc-800"></div>
           </div>
           
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0 self-end sm:self-auto">
+          <motion.div whileHover={hasReachedLimit ? {} : { scale: 1.05 }} whileTap={hasReachedLimit ? {} : { scale: 0.95 }} className="flex-shrink-0 self-end sm:self-auto relative group/limit">
             <button 
-              onClick={() => setIsRoleModalOpen(true)}
-              className="flex items-center gap-2 bg-[#4EC44E] text-[#002202] px-5 py-2.5 rounded-lg font-headline font-bold hover:bg-[#85fc7e] transition-all shadow-lg shadow-green-500/20 text-xs md:text-sm"
+              onClick={() => !hasReachedLimit && setIsRoleModalOpen(true)}
+              disabled={hasReachedLimit}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm ${
+                hasReachedLimit
+                  ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed opacity-60'
+                  : 'bg-[#4EC44E] text-[#002202] hover:bg-[#85fc7e] shadow-lg shadow-green-500/20'
+              }`}
             >
               <PlusCircle className="w-4 h-4 md:w-5 h-5" />
-              New Listing
+              New Listing{hasReachedLimit ? ' (2/2)' : ''}
             </button>
+            {hasReachedLimit && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-[10px] text-zinc-400 font-headline whitespace-nowrap opacity-0 group-hover/limit:opacity-100 transition-opacity pointer-events-none">
+                Maximum of 2 listings reached
+              </div>
+            )}
           </motion.div>
         </FramerIn>
 

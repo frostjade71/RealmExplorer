@@ -51,6 +51,13 @@ export type Database = {
             foreignKeyName: "assigned_badges_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_badges_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
@@ -126,9 +133,9 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
-          image_url: string
-          name: string
-          slug: string
+          image_url?: string
+          name?: string
+          slug?: string
           target_type?: Database["public"]["Enums"]["badge_target_type"]
           type?: Database["public"]["Enums"]["badge_type"]
         }
@@ -279,6 +286,13 @@ export type Database = {
             foreignKeyName: "cooldowns_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cooldowns_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
@@ -365,6 +379,13 @@ export type Database = {
             foreignKeyName: "otm_competitors_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "otm_competitors_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
@@ -411,6 +432,13 @@ export type Database = {
             columns: ["competitor_id"]
             isOneToOne: false
             referencedRelation: "otm_competitors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "otm_votes_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "public_servers"
             referencedColumns: ["id"]
           },
           {
@@ -464,13 +492,20 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
-          month: string
+          month?: string
           server_id?: string | null
           user_id?: string | null
           winner_image_url?: string | null
           winner_name?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "otm_winners_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "otm_winners_server_id_fkey"
             columns: ["server_id"]
@@ -569,6 +604,13 @@ export type Database = {
             foreignKeyName: "reports_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
@@ -614,6 +656,13 @@ export type Database = {
             foreignKeyName: "server_messages_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: true
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_messages_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: true
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
@@ -645,6 +694,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "server_ratings_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "server_ratings_server_id_fkey"
             columns: ["server_id"]
@@ -845,6 +901,13 @@ export type Database = {
             foreignKeyName: "votes_server_id_fkey"
             columns: ["server_id"]
             isOneToOne: false
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
             referencedRelation: "servers"
             referencedColumns: ["id"]
           },
@@ -859,10 +922,108 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_servers: {
+        Row: {
+          average_rating: number | null
+          banner_url: string | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          discord_url: string | null
+          featured: boolean | null
+          gallery: string[] | null
+          icon_url: string | null
+          id: string | null
+          last_edited_at: string | null
+          name: string | null
+          owner_id: string | null
+          rating_count: number | null
+          slug: string | null
+          social_links: Json | null
+          status: string | null
+          submitter_role: string | null
+          tags: string[] | null
+          type: string | null
+          updated_at: string | null
+          verify_discord: boolean | null
+          votes: number | null
+          website_url: string | null
+          weighted_rating: number | null
+          yesterday_rating_rank: number | null
+          yesterday_vote_rank: number | null
+        }
+        Insert: {
+          average_rating?: number | null
+          banner_url?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          discord_url?: string | null
+          featured?: boolean | null
+          gallery?: string[] | null
+          icon_url?: string | null
+          id?: string | null
+          last_edited_at?: string | null
+          name?: string | null
+          owner_id?: string | null
+          rating_count?: number | null
+          slug?: string | null
+          social_links?: Json | null
+          status?: string | null
+          submitter_role?: string | null
+          tags?: string[] | null
+          type?: string | null
+          updated_at?: string | null
+          verify_discord?: boolean | null
+          votes?: number | null
+          website_url?: string | null
+          weighted_rating?: number | null
+          yesterday_rating_rank?: number | null
+          yesterday_vote_rank?: number | null
+        }
+        Update: {
+          average_rating?: number | null
+          banner_url?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          discord_url?: string | null
+          featured?: boolean | null
+          gallery?: string[] | null
+          icon_url?: string | null
+          id?: string | null
+          last_edited_at?: string | null
+          name?: string | null
+          owner_id?: string | null
+          rating_count?: number | null
+          slug?: string | null
+          social_links?: Json | null
+          status?: string | null
+          submitter_role?: string | null
+          tags?: string[] | null
+          type?: string | null
+          updated_at?: string | null
+          verify_discord?: boolean | null
+          votes?: number | null
+          website_url?: string | null
+          weighted_rating?: number | null
+          yesterday_rating_rank?: number | null
+          yesterday_vote_rank?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       get_my_role: { Args: never; Returns: string }
+      get_server_details: { Args: { server_slug: string }; Returns: Json }
       get_top_storage_consumers: {
         Args: never
         Returns: {
