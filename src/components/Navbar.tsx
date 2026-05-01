@@ -243,7 +243,7 @@ export function Navbar() {
                               className="flex items-center gap-3 px-4 py-2 text-sm text-white hover:bg-zinc-800 transition-colors"
                             >
                             <LayoutDashboard className="w-4 h-4" />
-                            Admin Panel
+                            Panel
                           </Link>
                         )}
                         <button 
@@ -409,7 +409,7 @@ export function Navbar() {
                               className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-realm-green/10 hover:bg-realm-green/20 transition-colors border border-realm-green/20"
                             >
                               <ShieldCheck className="w-4 h-4 text-realm-green" />
-                              <span className="text-[9px] font-headline font-bold uppercase tracking-widest text-realm-green/60 text-center">Admin Panel</span>
+                              <span className="text-[9px] font-headline font-bold uppercase tracking-widest text-realm-green/60 text-center">Panel</span>
                             </Link>
                         )}
                       </div>

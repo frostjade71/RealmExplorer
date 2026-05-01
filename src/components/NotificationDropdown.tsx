@@ -58,6 +58,12 @@ export function NotificationDropdown() {
     } else if (n.type === 'staff_outreach' || n.type === 'rejection') {
       window.open('https://discord.com/channels/@me', '_blank')
       setIsOpen(false)
+    } else if (n.type === 'badge_award_user') {
+      navigate(`/profile/${n.related_id}`)
+      setIsOpen(false)
+    } else if (n.type === 'badge_award_server') {
+      navigate(`/server/${n.related_id}`)
+      setIsOpen(false)
     } else if (n.related_id) {
       navigate(`/server/${n.related_id}`)
       setIsOpen(false)
@@ -122,13 +128,13 @@ export function NotificationDropdown() {
                     <div 
                       key={n.id}
                       onClick={() => handleNotificationClick(n)}
-                      className={`p-4 hover:bg-white/[0.02] transition-colors cursor-pointer group relative ${!n.is_read ? 'bg-realm-green/[0.02]' : ''}`}
+                      className={`p-3 md:p-4 hover:bg-white/[0.02] transition-colors cursor-pointer group relative ${!n.is_read ? 'bg-realm-green/[0.02]' : ''}`}
                     >
                       {!n.is_read && (
                         <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-realm-green" />
                       )}
-                      <div className="flex gap-3">
-                        <div className={`mt-1 p-1.5 rounded-lg h-fit self-start ${(() => {
+                      <div className="flex gap-2 md:gap-3">
+                        <div className={`mt-1 p-1 md:p-1.5 rounded-lg h-fit self-start ${(() => {
                           const type = n.type
                           const msg = n.message.toLowerCase()
                           
@@ -138,6 +144,8 @@ export function NotificationDropdown() {
                             type === 'otm_podium' || 
                             type === 'otm_competitor' ||
                             type === 'server_rating' ||
+                            type === 'badge_award_user' ||
+                            type === 'badge_award_server' ||
                             (type === 'category_request_result' && msg.includes('accepted')) ||
                             (type === 'report_update' && msg.includes('resolved'))
                           ) {
@@ -165,18 +173,18 @@ export function NotificationDropdown() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <h4 className={`text-xs font-bold truncate ${!n.is_read ? 'text-white' : 'text-white/60'}`}>
+                            <h4 className={`text-[10px] md:text-xs font-bold truncate ${!n.is_read ? 'text-white' : 'text-white/60'}`}>
                               {n.title}
                             </h4>
-                            <span className="text-[9px] text-white/20 whitespace-nowrap">
+                            <span className="text-[8px] md:text-[9px] text-white/20 whitespace-nowrap">
                               {n.created_at ? formatDistanceToNow(new Date(n.created_at), { addSuffix: true }) : ''}
                             </span>
                           </div>
-                          <p className={`text-[11px] leading-relaxed ${!n.is_read ? 'text-white/70 font-medium' : 'text-white/40'}`}>
+                          <p className={`text-[9px] md:text-[11px] leading-relaxed ${!n.is_read ? 'text-white/70 font-medium' : 'text-white/40'}`}>
                             {n.message}
                           </p>
                           {(n.related_id || n.type === 'staff_outreach' || n.type === 'rejection') && (
-                             <div className="mt-2 flex items-center gap-1 text-[9px] font-bold text-realm-green/60 uppercase tracking-widest group-hover:text-realm-green transition-colors">
+                             <div className="mt-2 flex items-center gap-1 text-[8px] md:text-[9px] font-bold text-realm-green/60 uppercase tracking-widest group-hover:text-realm-green transition-colors">
                                {(n.type === 'staff_outreach' || n.type === 'rejection') ? 'Open Discord' : n.type === 'server_rating' ? 'View Rating' : 'View'} <ExternalLink className="w-2.5 h-2.5" />
                              </div>
                           )}

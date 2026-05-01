@@ -202,3 +202,27 @@ export interface BlogPost {
   updated_at: string
   profiles?: Profile
 }
+
+export type BadgeType = 'manual' | 'automatic'
+export type BadgeTargetType = 'user' | 'server'
+
+export interface Badge {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  image_url: string
+  type: BadgeType
+  target_type: BadgeTargetType
+  created_at: string
+}
+
+export interface AssignedBadge {
+  id: string
+  badge_id: string
+  user_id: string | null
+  server_id: string | null
+  granted_at: string
+  month: string | null
+  badge?: Badge
+}

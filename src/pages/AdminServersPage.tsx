@@ -168,7 +168,7 @@ export function AdminServersPage() {
         </FramerIn>
       </div>
 
-      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center">
+      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950/80 backdrop-blur-md p-4 -mx-4 rounded-xl border border-white/5 lg:border-none lg:bg-transparent lg:p-0 lg:mx-0 lg:backdrop-blur-none">
         <div className="flex-1 relative min-w-[200px]">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
           <input 

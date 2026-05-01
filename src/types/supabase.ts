@@ -14,6 +14,55 @@ export type Database = {
   }
   public: {
     Tables: {
+      assigned_badges: {
+        Row: {
+          badge_id: string
+          granted_at: string | null
+          id: string
+          month: string | null
+          server_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          badge_id: string
+          granted_at?: string | null
+          id?: string
+          month?: string | null
+          server_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          badge_id?: string
+          granted_at?: string | null
+          id?: string
+          month?: string | null
+          server_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assigned_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_badges_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -52,55 +101,38 @@ export type Database = {
           },
         ]
       }
-      blog_posts: {
+      badges: {
         Row: {
-          author_id: string | null
-          category: string
-          content: string | null
           created_at: string | null
+          description: string | null
           id: string
-          image_url: string | null
-          is_featured: boolean
+          image_url: string
+          name: string
           slug: string
-          status: string
-          title: string
-          updated_at: string | null
+          target_type: Database["public"]["Enums"]["badge_target_type"]
+          type: Database["public"]["Enums"]["badge_type"]
         }
         Insert: {
-          author_id?: string | null
-          category?: string
-          content?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
-          image_url?: string | null
-          is_featured?: boolean
+          image_url: string
+          name: string
           slug: string
-          status?: string
-          title: string
-          updated_at?: string | null
+          target_type?: Database["public"]["Enums"]["badge_target_type"]
+          type?: Database["public"]["Enums"]["badge_type"]
         }
         Update: {
-          author_id?: string | null
-          category?: string
-          content?: string | null
           created_at?: string | null
+          description?: string | null
           id?: string
-          image_url?: string | null
-          is_featured?: boolean
-          slug?: string
-          status?: string
-          title?: string
-          updated_at?: string | null
+          image_url: string
+          name: string
+          slug: string
+          target_type?: Database["public"]["Enums"]["badge_target_type"]
+          type?: Database["public"]["Enums"]["badge_type"]
         }
-        Relationships: [
-          {
-            foreignKeyName: "blog_posts_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       blog_post_likes: {
         Row: {
@@ -132,6 +164,56 @@ export type Database = {
           {
             foreignKeyName: "blog_post_likes_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_posts: {
+        Row: {
+          author_id: string | null
+          category: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -297,21 +379,30 @@ export type Database = {
       }
       otm_votes: {
         Row: {
-          competitor_id: string
+          category: string | null
+          competitor_id: string | null
           created_at: string | null
           id: string
+          server_id: string | null
+          target_user_id: string | null
           user_id: string
         }
         Insert: {
-          competitor_id: string
+          category?: string | null
+          competitor_id?: string | null
           created_at?: string | null
           id?: string
+          server_id?: string | null
+          target_user_id?: string | null
           user_id: string
         }
         Update: {
-          competitor_id?: string
+          category?: string | null
+          competitor_id?: string | null
           created_at?: string | null
           id?: string
+          server_id?: string | null
+          target_user_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -320,6 +411,20 @@ export type Database = {
             columns: ["competitor_id"]
             isOneToOne: false
             referencedRelation: "otm_competitors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "otm_votes_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "otm_votes_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -359,7 +464,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
-          month?: string
+          month: string
           server_id?: string | null
           user_id?: string | null
           winner_image_url?: string | null
@@ -585,6 +690,7 @@ export type Database = {
           verify_discord: boolean | null
           votes: number | null
           website_url: string | null
+          weighted_rating: number | null
           yesterday_rating_rank: number | null
           yesterday_vote_rank: number | null
         }
@@ -616,6 +722,7 @@ export type Database = {
           verify_discord?: boolean | null
           votes?: number | null
           website_url?: string | null
+          weighted_rating?: number | null
           yesterday_rating_rank?: number | null
           yesterday_vote_rank?: number | null
         }
@@ -647,6 +754,7 @@ export type Database = {
           verify_discord?: boolean | null
           votes?: number | null
           website_url?: string | null
+          weighted_rating?: number | null
           yesterday_rating_rank?: number | null
           yesterday_vote_rank?: number | null
         }
@@ -755,11 +863,23 @@ export type Database = {
     }
     Functions: {
       get_my_role: { Args: never; Returns: string }
+      get_top_storage_consumers: {
+        Args: never
+        Returns: {
+          bucket_id: string
+          created_at: string
+          mimetype: string
+          name: string
+          size_kb: number
+        }[]
+      }
       reset_all_cooldowns: { Args: never; Returns: undefined }
+      reset_otm_cooldowns: { Args: never; Returns: undefined }
       update_yesterday_ranks: { Args: never; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      badge_target_type: "user" | "server"
+      badge_type: "manual" | "automatic"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -886,6 +1006,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      badge_target_type: ["user", "server"],
+      badge_type: ["manual", "automatic"],
+    },
   },
 } as const

@@ -44,6 +44,7 @@ export function AdminLayout() {
     ...(isAdmin ? [
       { to: '/admin/users', label: 'Manage Users', icon: 'group' },
       { to: '/admin/events', label: 'Manage Events', icon: 'event' },
+      { to: '/admin/badges', label: 'Badges', icon: 'military_tech' },
       { 
         to: '/admin/category-requests', 
         label: 'Category Requests', 
@@ -81,7 +82,7 @@ export function AdminLayout() {
             <div className="w-8 h-8 bg-white/5 border border-white/10 rounded overflow-hidden flex items-center justify-center">
               <img src={logo} className="w-full h-full object-cover" alt="" />
             </div>
-            <h2 className="text-xl font-pixel tracking-tighter text-white">ADMIN PANEL</h2>
+            <h2 className="text-xl font-pixel tracking-tighter text-white">PANEL</h2>
           </div>
         </div>
 
@@ -128,13 +129,13 @@ export function AdminLayout() {
           </Link>
           <div className="mt-4 px-4 py-2 bg-white/5 border border-white/5 rounded-lg">
             <p className="text-[10px] font-pixel text-white/20 uppercase tracking-widest">System Version</p>
-            <p className="text-xs font-headline font-bold text-realm-green">v0.9.8-RC</p>
+            <p className="text-xs font-headline font-bold text-realm-green">v1.0.0 Full Release</p>
           </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 h-screen overflow-y-auto relative scrollbar-thin">
+      <main className="flex-1 min-w-0 h-[100dvh] lg:h-screen overflow-y-auto relative scrollbar-thin">
         {/* Mobile Header */}
         <header className="lg:hidden sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-md border-b border-white/5 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">

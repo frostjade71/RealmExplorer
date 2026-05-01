@@ -7,7 +7,7 @@ import { useUserServers } from '../hooks/queries'
 import { useDeleteServerMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { ServerCard } from '../components/ServerCard'
-import { PlusCircle, Pencil, Trash2 } from 'lucide-react'
+import { PlusCircle, Pencil, Trash2, BarChart2 } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -176,9 +176,20 @@ export function DashboardPage() {
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
+                        navigate(`/dashboard/analytics/${server.id}`)
+                      }}
+                      className="text-[10px] md:text-xs font-bold text-emerald-400 hover:text-emerald-300 px-3 md:px-4 py-2 bg-emerald-500/10 rounded-md transition-colors border border-emerald-500/20 flex items-center justify-center gap-2 hover:bg-emerald-500/20"
+                    >
+                      <BarChart2 className="w-3 h-3" />
+                      Analytics
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
                         navigate(`/submit/${server.id}`)
                       }}
-                      className="text-[10px] md:text-xs font-bold text-blue-400 hover:text-blue-300 px-3 md:px-4 py-2 bg-blue-500/10 rounded-lg transition-colors border border-blue-500/20 flex items-center justify-center gap-2 hover:bg-blue-500/20"
+                      className="text-[10px] md:text-xs font-bold text-blue-400 hover:text-blue-300 px-3 md:px-4 py-2 bg-blue-500/10 rounded-md transition-colors border border-blue-500/20 flex items-center justify-center gap-2 hover:bg-blue-500/20"
                     >
                       <Pencil className="w-3 h-3" />
                       Edit
@@ -189,7 +200,7 @@ export function DashboardPage() {
                         e.stopPropagation()
                         handleDeleteClick(server.id, server.name)
                       }}
-                      className="p-2 text-red-500 hover:text-red-400 bg-red-500/10 rounded-lg transition-colors border border-red-500/20 flex items-center justify-center hover:bg-red-500/20"
+                      className="p-2 text-red-500 hover:text-red-400 bg-red-500/10 rounded-md transition-colors border border-red-500/20 flex items-center justify-center hover:bg-red-500/20"
                       title="Delete Listing"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

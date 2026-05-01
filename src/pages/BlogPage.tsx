@@ -45,7 +45,7 @@ export function BlogPage() {
         {/* Dark Radial Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10"></div>
         
-        <div className="max-w-7xl mx-auto relative z-20 flex flex-col items-center text-center will-change-transform">
+        <div className="w-full max-w-7xl mx-auto px-4 relative z-20 flex flex-col items-center text-center will-change-transform">
           <FramerIn delay={0.2}>
             <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
               <Rss className="w-4 h-4 text-[#85fc7e]" />
@@ -54,7 +54,7 @@ export function BlogPage() {
           </FramerIn>
 
           <FramerIn delay={0.4}>
-            <h1 className="font-pixel text-white text-3xl md:text-5xl leading-tight mb-4 md:mb-6 drop-shadow-2xl uppercase">
+            <h1 className="font-pixel text-white text-2xl sm:text-3xl md:text-5xl leading-tight mb-4 md:mb-6 drop-shadow-2xl uppercase break-words w-full px-2">
               The <span className="text-[#4EC44E]">Realm</span> Blog
             </h1>
           </FramerIn>
@@ -87,8 +87,8 @@ export function BlogPage() {
                 <div className="absolute inset-0 border-b-2 border-r-2 border-black/40 pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col lg:flex-row gap-6 md:gap-8 items-center">
-                  <div className="flex-1 text-left">
-                    <div className="flex items-center gap-3 mb-3 md:mb-4">
+                  <div className="flex-1 text-center lg:text-left w-full">
+                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-3 md:mb-4">
                       <span className="px-2 py-0.5 bg-realm-green text-zinc-950 font-pixel text-[8px] uppercase tracking-widest shadow-[2px_2px_0px_rgba(0,0,0,0.3)] font-bold">
                         Must Read
                       </span>
@@ -102,11 +102,11 @@ export function BlogPage() {
                       {featuredPost.title}
                     </h2>
 
-                    <p className="text-zinc-400 font-headline text-xs md:text-sm line-clamp-2 opacity-80 max-w-2xl mb-6 leading-relaxed">
+                    <p className="text-zinc-400 font-headline text-xs md:text-sm line-clamp-2 opacity-80 max-w-2xl mx-auto lg:mx-0 mb-6 leading-relaxed">
                       {featuredPost.content?.replace(/[#*`]/g, '').slice(0, 250)}...
                     </p>
 
-                    <div className="inline-flex items-center gap-3 px-4 py-2 bg-realm-green text-zinc-950 font-pixel text-[8px] uppercase tracking-widest shadow-[2px_2px_0px_rgba(0,0,0,0.3)] group-hover:bg-white transition-colors font-bold">
+                    <div className="inline-flex items-center justify-center lg:justify-start gap-3 px-4 py-2 bg-realm-green text-zinc-950 font-pixel text-[8px] uppercase tracking-widest shadow-[2px_2px_0px_rgba(0,0,0,0.3)] group-hover:bg-white transition-colors font-bold">
                       View Full Story
                       <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -181,10 +181,10 @@ export function BlogPage() {
                     <div className="absolute inset-0 border-t-2 border-l-2 border-white/10 pointer-events-none" />
                     <div className="absolute inset-0 border-b-2 border-r-2 border-black/40 pointer-events-none" />
 
-                    <div className="relative z-10 flex items-center justify-between gap-6 md:gap-10">
+                    <div className="relative z-10 flex flex-col sm:flex-row items-center sm:justify-between gap-6 md:gap-10">
                       {/* Left: Content */}
-                      <div className="flex-1 text-left">
-                        <div className="flex items-center gap-3 mb-2 md:mb-4 opacity-40">
+                      <div className="flex-1 text-center sm:text-left w-full">
+                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-3 md:mb-4 opacity-40">
                           <span className="text-[8px] md:text-[10px] font-pixel text-white uppercase tracking-widest">
                             {format(new Date(post.created_at), 'MMMM dd, yyyy')}
                           </span>
@@ -205,7 +205,7 @@ export function BlogPage() {
                           {post.content?.replace(/[#*`]/g, '').slice(0, 200)}...
                         </p>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center sm:justify-start gap-2">
                           <span className="text-[8px] font-pixel text-realm-green uppercase tracking-widest group-hover:mr-2 transition-all">
                             Enter Selection
                           </span>

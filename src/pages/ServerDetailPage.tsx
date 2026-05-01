@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useServer, useUserVoteStatus, useServerRatings } from '../hooks/queries'
+import { useServer, useUserVoteStatus, useServerRatings, useEntityBadges } from '../hooks/queries'
 import { useVoteMutation, useSubmitRatingMutation, useSubmitReportMutation, useDeleteRatingMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { CategoryBadge } from '../components/CategoryBadge'
@@ -43,6 +43,7 @@ export function ServerDetailPage() {
 
   const { data: voteStatus, isLoading: checkingVote, refetch: refetchVoteStatus } = useUserVoteStatus(user?.id, server?.id)
   const { data: ratings } = useServerRatings(server?.id)
+  const { data: badges = [] } = useEntityBadges(server?.id, 'server')
 
   const voteMutation = useVoteMutation()
   const ratingMutation = useSubmitRatingMutation()
@@ -240,7 +241,7 @@ export function ServerDetailPage() {
         <div className="flex-1 w-full pt-1 md:pt-2">
 
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-            <div className="min-w-0 w-full">
+            <div className="min-w-0 md:flex-1 w-full md:w-auto">
               <h1 className="text-lg md:text-2xl font-pixel text-white mb-2 md:mb-3 break-words whitespace-normal leading-tight">{server.name}</h1>
               <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
                 {!isApproved && statusInfo && (
@@ -254,10 +255,73 @@ export function ServerDetailPage() {
                 </div>
                 <CategoryBadge category={server.category} />
               </div>
+              
+              {/* Mobile Badges (Original Position) */}
+              {badges.length > 0 && (
+                <div className="flex flex-wrap items-center gap-3 mb-4 md:hidden">
+                  {badges.map((badge, index) => (
+                    <div 
+                      key={`${badge.id}-${badge.month}`} 
+                      className="group relative cursor-help"
+                    >
+                      <img 
+                        src={new URL(`../assets/badges/${badge.image_url}`, import.meta.url).href} 
+                        alt={badge.name} 
+                        className="w-7 h-7 object-contain"
+                      />
+                      
+                      {/* Premium Tooltip */}
+                      <div className={`absolute bottom-full mb-3 w-48 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50 translate-y-2 group-hover:translate-y-0 ${index === 0 ? 'left-0' : 'left-1/2 -translate-x-1/2'}`}>
+                        <div className="bg-zinc-950/90 border border-white/10 rounded-xl p-3 backdrop-blur-xl shadow-2xl overflow-hidden relative">
+                          <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-realm-green/50 to-transparent" />
+                          <p className="text-[10px] font-pixel text-realm-green uppercase mb-1.5 tracking-tighter text-center">
+                            {badge.name}
+                            {badge.month && <span className="text-white/40 ml-1">({badge.month})</span>}
+                          </p>
+                          <p className="text-[10px] text-white/70 font-headline leading-tight italic text-center">"{badge.description}"</p>
+                        </div>
+                        <div className={`w-2 h-2 bg-zinc-950 border-r border-b border-white/10 rotate-45 -mt-1 relative z-10 ${index === 0 ? 'ml-2.5' : 'mx-auto'}`} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {user ? (
-                <div className="flex flex-col items-center md:items-end gap-1.5 w-full md:w-auto">
+            <div className="flex flex-col items-center md:items-end gap-2 w-full md:w-auto mt-2 md:mt-0">
+              <div className="flex items-center gap-1.5 w-full md:w-auto justify-center md:justify-end">
+                {/* Desktop Badges (Besides Vote) */}
+                {badges.length > 0 && (
+                  <div className="hidden md:flex items-center gap-2 mr-2">
+                    {badges.map((badge) => (
+                      <div 
+                        key={`${badge.id}-${badge.month}`} 
+                        className="group relative cursor-help"
+                      >
+                        <img 
+                          src={new URL(`../assets/badges/${badge.image_url}`, import.meta.url).href} 
+                          alt={badge.name} 
+                          className="w-9 h-9 object-contain"
+                        />
+                        
+                        {/* Premium Tooltip */}
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50 translate-y-2 group-hover:translate-y-0">
+                          <div className="bg-zinc-950/90 border border-white/10 rounded-xl p-3 backdrop-blur-xl shadow-2xl overflow-hidden relative">
+                            <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-realm-green/50 to-transparent" />
+                            <p className="text-[10px] font-pixel text-realm-green uppercase mb-1.5 tracking-tighter text-center">
+                              {badge.name}
+                              {badge.month && <span className="text-white/40 ml-1">({badge.month})</span>}
+                            </p>
+                            <p className="text-[10px] text-white/70 font-headline leading-tight italic text-center">"{badge.description}"</p>
+                          </div>
+                          <div className="w-2 h-2 bg-zinc-950 border-r border-b border-white/10 rotate-45 mx-auto -mt-1 relative z-10" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {user ? (
                   <div className="flex items-center gap-1.5 w-full md:w-auto">
                     <motion.button 
                       whileHover={isApproved ? { scale: 1.05 } : {}}
@@ -267,7 +331,7 @@ export function ServerDetailPage() {
                       className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-l-lg rounded-r-sm font-headline font-bold transition-colors shadow-lg text-xs md:text-sm ${
                         !isApproved ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-800 opacity-50' :
                         alreadyVoted ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' : 
-                        'bg-[#4EC44E] text-zinc-950 hover:bg-[#85fc7e] shadow-green-500/20'
+                        'bg-[#4EC44E] text-zinc-950 hover:bg-[#85fc7e]'
                       }`}
                     >
                       <ArrowUpSquare className={`w-4 h-4 md:w-5 h-5 ${alreadyVoted || !isApproved ? 'text-zinc-600' : ''}`} />
@@ -301,11 +365,11 @@ export function ServerDetailPage() {
                       <Star className={`w-4 h-4 md:w-5 h-5 ${isApproved ? 'fill-yellow-400' : ''}`} />
                     </motion.button>
                   </div>
-                  
-                </div>
-            ) : (
-              <div className="text-[10px] md:text-xs font-headline text-zinc-500 border border-zinc-800 px-3 md:px-4 py-1.5 md:py-2 rounded-md w-full text-center md:w-auto">Login to Vote</div>
-            )}
+                ) : (
+                  <div className="text-[10px] md:text-xs font-headline text-zinc-500 border border-zinc-800 px-3 md:px-4 py-1.5 md:py-2 rounded-md w-full text-center md:w-auto">Login to Vote</div>
+                )}
+              </div>
+            </div>
           </div>
 
           {error && (

@@ -32,7 +32,12 @@ import {
   BlogPage,
   AdminBlogPage,
   BlogPostDetailPage,
-  ProfilePage
+  ProfilePage,
+  ServerAnalyticsPage,
+  AdminBadgesPage,
+  TermsPage,
+  PrivacyPage,
+  DocsPage
 } from './pages/Pages'
 
 export const router = createBrowserRouter([
@@ -76,6 +81,18 @@ export const router = createBrowserRouter([
         element: <BlogPostDetailPage />,
       },
       {
+        path: '/terms',
+        element: <TermsPage />,
+      },
+      {
+        path: '/privacy',
+        element: <PrivacyPage />,
+      },
+      {
+        path: '/docs',
+        element: <DocsPage />,
+      },
+      {
         path: '/profile/:username',
         element: <ProfilePage />,
       },
@@ -102,6 +119,10 @@ export const router = createBrowserRouter([
           {
             path: '/dashboard',
             element: <DashboardPage />,
+          },
+          {
+            path: '/dashboard/analytics/:id',
+            element: <ServerAnalyticsPage />,
           },
         ],
       },
@@ -154,6 +175,10 @@ export const router = createBrowserRouter([
               {
                 path: 'audit-logs',
                 element: <AdminAuditLogsPage />,
+              },
+              {
+                path: 'badges',
+                element: <AdminBadgesPage />,
               },
               {
                 path: 'category-requests',

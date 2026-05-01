@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { useProfileByUsername, useUserServers } from '../hooks/queries'
+import { useProfileByUsername, useUserServers, useEntityBadges } from '../hooks/queries'
 import { useAuth } from '../contexts/AuthContext'
 import { ServerCard } from '../components/ServerCard'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
@@ -23,6 +23,7 @@ export function ProfilePage() {
   const { username } = useParams<{ username: string }>()
   const { data: profile, isLoading: profileLoading, error: profileError } = useProfileByUsername(username)
   const { data: servers = [], isLoading: serversLoading } = useUserServers(profile?.id, 'approved')
+  const { data: badges = [] } = useEntityBadges(profile?.id, 'user')
   const { user } = useAuth()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isBioModalOpen, setIsBioModalOpen] = useState(false)
@@ -182,6 +183,39 @@ export function ProfilePage() {
                 {servers.length} Public Listings
               </div>
             </div>
+
+            {/* User Badges */}
+            {badges.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {badges.map((badge, idx) => (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.4 + (idx * 0.1) }}
+                    key={`${badge.id}-${badge.month}`} 
+                    className="group relative cursor-help"
+                  >
+                    <img 
+                      src={new URL(`../assets/badges/${badge.image_url}`, import.meta.url).href} 
+                      alt={badge.name} 
+                      className="w-7 h-7 md:w-9 md:h-9 object-contain"
+                    />
+                    
+                    {/* Tooltip */}
+                    <div className={`absolute bottom-full mb-2 w-48 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 translate-y-1 group-hover:translate-y-0 ${idx === 0 ? 'left-0' : 'left-1/2 -translate-x-1/2'}`}>
+                      <div className="bg-zinc-950/90 border border-white/10 rounded-xl p-2.5 backdrop-blur-md shadow-xl text-center relative">
+                        <p className="text-[9px] font-pixel text-realm-green uppercase mb-1 tracking-tighter">
+                          {badge.name}
+                          {badge.month && <span className="text-white/40 ml-1">({badge.month})</span>}
+                        </p>
+                        <p className="text-[9px] text-white/60 font-headline leading-tight italic">"{badge.description}"</p>
+                      </div>
+                      <div className={`w-2 h-2 bg-zinc-950 border-r border-b border-white/10 rotate-45 -mt-1 ${idx === 0 ? 'ml-2.5 md:ml-3.5' : 'mx-auto'}`} />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </FramerIn>
         </div>
 

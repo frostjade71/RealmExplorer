@@ -21,13 +21,20 @@ export function Footer() {
         <div className="flex flex-wrap justify-center gap-6 md:gap-10">
           <div className="flex flex-col gap-3 md:gap-4">
             <h5 className="text-white font-pixel text-[9px] md:text-[10px] uppercase tracking-widest opacity-80">Platform</h5>
-            <Link to="#" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Terms of Service</Link>
-            <Link to="#" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Privacy Policy</Link>
           </div>
           <div className="flex flex-col gap-3 md:gap-4">
             <h5 className="text-white font-pixel text-[9px] md:text-[10px] uppercase tracking-widest opacity-80">Support</h5>
-            <Link to="#" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Documentation</Link>
-            <Link to="#" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Contact Support</Link>
+            <Link to="/docs" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Documentation</Link>
+            <a 
+              href="https://discord.com/invite/realmexplorer" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
+            >
+              Contact Support
+            </a>
           </div>
         </div>
         
@@ -62,7 +69,7 @@ export function Footer() {
               <Github className="w-4 h-4 md:w-5 md:h-5" />
             </a>
           </div>
-          <p className="font-body text-[10px] md:text-xs text-white/40">v0.9.8-RC | © 2026 Realm Explorer</p>
+          <p className="font-body text-[10px] md:text-xs text-white/40">v1.0.0 Full Release | © 2026 Realm Explorer</p>
         </div>
       </div>
     </footer>

@@ -16,7 +16,8 @@ import type {
   Report,
   BlogPost,
   OTMCategory,
-  OTMConfig
+  OTMConfig,
+  Badge
 } from '../types'
 
 export function useServers(params?: {
@@ -527,4 +528,138 @@ export function useBlogPostLikes(postId: string | undefined, userId: string | un
       return { count: count || 0, hasLiked }
     }
   })
+}
+export function useServerAnalytics(serverId: string | undefined) {
+  return useQuery({
+    queryKey: ['serverAnalytics', serverId],
+    enabled: !!serverId,
+    queryFn: async () => {
+      // Fetch all votes for this server to calculate trends
+      const { data: votes, error: votesError } = await supabase
+        .from('votes')
+        .select('created_at')
+        .eq('server_id', serverId!)
+        .order('created_at', { ascending: true })
+      
+      if (votesError) throw votesError
+
+      // Fetch recent ratings
+      const { data: ratings, error: ratingsError } = await supabase
+        .from('server_ratings')
+        .select('*, profiles(discord_username, discord_avatar)')
+        .eq('server_id', serverId!)
+        .order('created_at', { ascending: false })
+      
+      if (ratingsError) throw ratingsError
+
+      return { 
+        votes: votes as { created_at: string }[], 
+        ratings: ratings as (ServerRating & { profiles: Profile })[] 
+      }
+    }
+  })
+}
+
+export function useBadges() {
+  return useQuery({
+    queryKey: ['badges'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('badges').select('*').order('name', { ascending: true })
+      if (error) throw error
+      return data as unknown as Badge[]
+    }
+  })
+}
+
+export function useEntityBadges(targetId: string | undefined, targetType: 'user' | 'server') {
+  return useQuery({
+    queryKey: ['entityBadges', targetId, targetType],
+    enabled: !!targetId,
+    queryFn: async () => {
+      // 1. Fetch manually assigned badges
+      const { data: assigned, error } = await supabase
+        .from('assigned_badges')
+        .select('*, badge:badges(*)')
+        .eq(targetType === 'user' ? 'user_id' : 'server_id', targetId!)
+      
+      if (error) throw error
+
+      const results = (assigned || []).map((a: any) => ({
+        ...a.badge,
+        granted_at: a.granted_at,
+        month: a.month
+      })) as unknown as (Badge & { granted_at: string; month: string | null })[]
+
+      // 2. Fetch automatic badges if it's a server
+      if (targetType === 'server') {
+        const [topVotesResult, topRatingsResult, serverResult, autoBadgesResult] = await Promise.all([
+          supabase.from('servers').select('id').eq('status', 'approved').order('votes', { ascending: false }).limit(1).maybeSingle(),
+          supabase.from('servers').select('id').eq('status', 'approved').order('weighted_rating', { ascending: false }).limit(1).maybeSingle(),
+          supabase.from('servers').select('created_at').eq('id', targetId!).single(),
+          supabase.from('badges').select('*').eq('type', 'automatic')
+        ])
+
+        const topVotes = topVotesResult.data
+        const topRatings = topRatingsResult.data
+        const server = serverResult.data
+        const autoBadges = autoBadgesResult.data || []
+
+        const now = new Date()
+        
+        // Fresh Server Check (<= 7 days old)
+        if (server?.created_at) {
+          const createdAt = new Date(server.created_at)
+          const diffDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+          if (diffDays <= 7) {
+            const b = autoBadges.find(b => b.slug === 'fresh-server')
+            if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
+          }
+        }
+
+        if (topVotes?.id === targetId) {
+          const b = autoBadges.find(b => b.slug === 'top-votes')
+          if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
+        }
+        if (topRatings?.id === targetId) {
+          const b = autoBadges.find(b => b.slug === 'top-ratings')
+          if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
+        }
+      }
+
+      return results
+    }
+  })
+}
+
+export function useAssignBadge() {
+  return {
+    mutateAsync: async ({ badgeId, userId, serverId, month }: { badgeId: string; userId?: string; serverId?: string; month?: string }) => {
+      const { data, error } = await supabase
+        .from('assigned_badges')
+        .insert({
+          badge_id: badgeId,
+          user_id: userId || null,
+          server_id: serverId || null,
+          month: month || null
+        } as any)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data
+    }
+  }
+}
+
+export function useUnassignBadge() {
+  return {
+    mutateAsync: async (assignedBadgeId: string) => {
+      const { error } = await supabase
+        .from('assigned_badges')
+        .delete()
+        .eq('id', assignedBadgeId as any)
+      
+      if (error) throw error
+    }
+  }
 }
