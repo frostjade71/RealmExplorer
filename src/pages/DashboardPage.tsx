@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
@@ -25,6 +26,18 @@ export function DashboardPage() {
   const [deleteName, setDeleteName] = useState('')
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false)
 
+  // Lock body scroll when any modal is open
+  useEffect(() => {
+    if (deleteId || isRoleModalOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [deleteId, isRoleModalOpen])
+
   const handleDeleteClick = (id: string, name: string) => {
     setDeleteId(id)
     setDeleteName(name)
@@ -41,69 +54,55 @@ export function DashboardPage() {
   if (loading) return <LoadingSpinner />
 
   return (
-    <AnimatedPage className="max-w-7xl mx-auto px-8 py-12">
-      <AnimatePresence>
-        {deleteId && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setDeleteId(null)}
-              className={`absolute inset-0 bg-black/80 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-2xl"
-            >
-              <div className="text-center mb-6">
-                <div className="text-red-500 mb-3 opacity-80">
-                  <span className="material-symbols-outlined text-2xl">delete</span>
+    <>
+      {createPortal(
+        <AnimatePresence>
+          {deleteId && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setDeleteId(null)}
+                className={`absolute inset-0 bg-black/80 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}
+              />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative w-full max-w-[320px] bg-zinc-900 border border-zinc-800 p-5 rounded-2xl shadow-2xl"
+              >
+                <div className="text-center mb-4">
+                  <div className="text-red-500 mb-2 opacity-80">
+                    <span className="material-symbols-outlined text-xl">delete</span>
+                  </div>
+                  <h3 className="text-base font-pixel text-white mb-1 uppercase tracking-wide">Delete Listing?</h3>
+                  <p className="text-zinc-500 font-headline text-[10px] leading-relaxed">
+                    Permanently remove <span className="text-zinc-300 font-bold">"{deleteName}"</span>?
+                  </p>
                 </div>
-                <h3 className="text-lg font-pixel text-white mb-2 uppercase tracking-wide">Delete Listing?</h3>
-                <p className="text-zinc-500 font-headline text-xs leading-relaxed">
-                  Permanently remove <span className="text-zinc-300 font-bold">"{deleteName}"</span>?
-                </p>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <button 
-                  onClick={() => setDeleteId(null)}
-                  className="py-3 rounded-xl bg-zinc-800 text-white font-headline font-bold hover:bg-zinc-700 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={confirmDelete}
-                  disabled={deleteMutation.isPending}
-                  className="py-3 rounded-xl bg-red-500 text-white font-headline font-bold hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50"
-                >
-                  {deleteMutation.isPending ? 'Deleting...' : 'Confirm Delete'}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      <FramerIn delay={0.1} className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div>
-          <h1 className="font-pixel text-xs md:text-lg text-white mb-2 uppercase tracking-wide">Your Listings</h1>
-          <div className="h-px w-full bg-zinc-800"></div>
-        </div>
-        
-         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0 self-end sm:self-auto">
-          <button 
-            onClick={() => setIsRoleModalOpen(true)}
-            className="flex items-center gap-2 bg-[#4EC44E] text-[#002202] px-5 py-2.5 rounded-lg font-headline font-bold hover:bg-[#85fc7e] transition-all shadow-lg shadow-green-500/20 text-xs md:text-sm"
-          >
-            <PlusCircle className="w-4 h-4 md:w-5 h-5" />
-            New Listing
-          </button>
-        </motion.div>
-      </FramerIn>
+                <div className="grid grid-cols-2 gap-3">
+                  <button 
+                    onClick={() => setDeleteId(null)}
+                    className="py-2.5 rounded-xl bg-zinc-800 text-white font-headline font-bold text-[10px] hover:bg-zinc-700 transition-colors uppercase tracking-widest"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={confirmDelete}
+                    disabled={deleteMutation.isPending}
+                    className="py-2.5 rounded-xl bg-red-500 text-white font-headline font-bold text-[10px] hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 uppercase tracking-widest"
+                  >
+                    {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <RoleSelectionModal 
         isOpen={isRoleModalOpen}
@@ -113,6 +112,24 @@ export function DashboardPage() {
           navigate(`/submit?role=${role}`)
         }}
       />
+
+      <AnimatedPage className="max-w-7xl mx-auto px-8 py-12">
+        <FramerIn delay={0.1} className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div>
+            <h1 className="font-pixel text-xs md:text-lg text-white mb-2 uppercase tracking-wide">Your Listings</h1>
+            <div className="h-px w-full bg-zinc-800"></div>
+          </div>
+          
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0 self-end sm:self-auto">
+            <button 
+              onClick={() => setIsRoleModalOpen(true)}
+              className="flex items-center gap-2 bg-[#4EC44E] text-[#002202] px-5 py-2.5 rounded-lg font-headline font-bold hover:bg-[#85fc7e] transition-all shadow-lg shadow-green-500/20 text-xs md:text-sm"
+            >
+              <PlusCircle className="w-4 h-4 md:w-5 h-5" />
+              New Listing
+            </button>
+          </motion.div>
+        </FramerIn>
 
 
       {servers.length === 0 ? (
@@ -185,5 +202,6 @@ export function DashboardPage() {
         </motion.div>
       )}
     </AnimatedPage>
+    </>
   )
 }
