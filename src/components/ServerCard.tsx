@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import type { Server } from '../types'
 import { CategoryBadge } from './CategoryBadge'
 import { Star } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, type Variants } from 'framer-motion'
 import { slugify } from '../lib/urlUtils'
 
 export function ServerCard({ 
@@ -34,15 +34,50 @@ export function ServerCard({
     'Review All Assets': { label: 'Review All Assets', bg: 'bg-orange-500/10', text: 'text-orange-400' }
   }[server.status as string] || { label: server.status, bg: 'bg-zinc-800', text: 'text-zinc-400' }
 
+  const cardVariants: Variants = {
+    initial: { y: 0, scale: 1 },
+    hover: { 
+      y: -6, 
+      scale: 1.01,
+      transition: { 
+        type: 'spring',
+        stiffness: 400,
+        damping: 25,
+        mass: 1
+      } 
+    },
+    tap: { scale: 0.98 }
+  }
+
+  const highlightVariants: Variants = {
+    initial: { opacity: 0, y: -2 },
+    hover: { opacity: 1, y: 0, transition: { duration: 0.15 } }
+  }
+
   return (
     <Link to={`/server/${server.slug || slugify(server.name)}`} className="block h-full group">
       <motion.div 
-        whileHover={{ y: -8, scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-surface border border-outline-variant/30 p-4 md:p-6 rounded-lg hover:shadow-2xl hover:shadow-green-950/20 hover:border-t-realm-green transition-all duration-300 flex flex-col h-full overflow-hidden relative cursor-pointer"
+        variants={cardVariants}
+        initial="initial"
+        whileHover="hover"
+        whileTap="tap"
+        className="bg-surface border border-outline-variant/30 p-4 md:p-6 rounded-lg flex flex-col h-full overflow-hidden relative cursor-pointer shadow-sm hover:border-realm-green/30 transition-colors duration-200 will-change-transform"
       >
+        {/* GPU-Friendly Top Highlight Bar */}
+        <motion.div 
+          variants={highlightVariants}
+          className="absolute top-0 left-0 right-0 h-[3px] bg-realm-green z-20 shadow-[0_0_15px_rgba(78,196,78,0.4)]"
+        />
+
+        {/* High-Performance Shadow Layer */}
+        <motion.div 
+          variants={{
+            initial: { opacity: 0 },
+            hover: { opacity: 1 }
+          }}
+          className="absolute inset-0 shadow-2xl shadow-green-950/40 -z-10 pointer-events-none"
+        />
+
         <div className="flex items-start justify-between mb-3 md:mb-4">
           <div className="flex items-center gap-3 md:gap-4 w-full">
             <div 
@@ -61,7 +96,7 @@ export function ServerCard({
                 server.name.length > 25 ? 'text-[11px] md:text-xs' : 
                 server.name.length > 15 ? 'text-xs md:text-sm' : 
                 'text-sm md:text-base'
-              } line-clamp-2 mb-1 transition-colors leading-tight break-words`}>
+              } line-clamp-2 mb-1 group-hover:text-white transition-colors leading-tight break-words`}>
                 {server.name}
               </h3>
               <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
@@ -76,7 +111,7 @@ export function ServerCard({
           </div>
         </div>
         
-        <p className="text-on-surface-variant text-[12px] md:text-[13px] flex-grow line-clamp-2 leading-relaxed mb-4 md:mb-6 group-hover:text-zinc-300 transition-colors">
+        <p className="text-on-surface-variant text-[12px] md:text-[13px] flex-grow line-clamp-2 leading-relaxed mb-4 md:mb-6 group-hover:text-zinc-200 transition-colors">
           {server.description || "No description provided."}
         </p>
         
@@ -129,8 +164,6 @@ export function ServerCard({
           </div>
         </div>
 
-        {/* Glossy Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
       </motion.div>
     </Link>
   )

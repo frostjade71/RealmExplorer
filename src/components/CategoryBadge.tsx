@@ -10,6 +10,7 @@ import skyblockIcon from '../assets/category/41601-minecraftoaktree.png'
 import moddedIcon from '../assets/category/437888-bedrock.png'
 import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
 import skygenIcon from '../assets/category/89458-iron-block.png'
+import prisonIcon from '../assets/category/7504_Iron_Bars.png'
 
 const categoryStyles: Record<ServerCategory, { bg: string, text: string, icon: React.ReactNode }> = {
   factions: { 
@@ -41,6 +42,11 @@ const categoryStyles: Record<ServerCategory, { bg: string, text: string, icon: R
     bg: 'bg-amber-500/10', 
     text: 'text-amber-500', 
     icon: <img src={skygenIcon} alt="" className="w-3.5 h-3.5 object-contain" /> 
+  },
+  prison: { 
+    bg: 'bg-zinc-500/10', 
+    text: 'text-zinc-200', 
+    icon: <img src={prisonIcon} alt="" className="w-3.5 h-3.5 object-contain" /> 
   },
   other: { 
     bg: 'bg-zinc-500/10', 

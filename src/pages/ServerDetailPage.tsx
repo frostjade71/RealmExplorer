@@ -603,19 +603,19 @@ export function ServerDetailPage() {
               {owner && (
                 <Link 
                   to={`/profile/${owner.discord_username}`}
-                  className="pt-4 mt-1 border-t border-zinc-800/50 flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group"
+                  className="pt-4 mt-1 border-t border-zinc-800/50 flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group transition-all duration-300"
                 >
                   <img src={owner.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-zinc-700 bg-zinc-800" alt="Owner" />
                   <div className="flex-1">
-                    <p className={`text-[8px] md:text-[9px] uppercase tracking-widest font-headline mb-0.5 ${
+                    <p className="text-white text-xs md:text-sm leading-tight">{owner.discord_username}</p>
+                    <p className={`text-[8px] md:text-[9px] uppercase tracking-widest font-headline mt-0.5 ${
                       (server.submitter_role || 'Owner') === 'Owner' ? 'text-yellow-400' : 'text-realm-green'
                     }`}>
                       {server.submitter_role || 'Owner'}
                     </p>
-                    <p className="text-white text-xs md:text-sm font-bold">{owner.discord_username}</p>
                   </div>
                   <span className="text-[8px] md:text-[9px] uppercase tracking-widest font-headline text-zinc-600 font-bold whitespace-nowrap opacity-40 group-hover:opacity-100 transition-opacity">
-                    View Profile
+                    view profile
                   </span>
                 </Link>
               )}
@@ -632,7 +632,7 @@ export function ServerDetailPage() {
               }
               setIsReportModalOpen(true)
             }}
-            className="w-full bg-zinc-900/50 border border-zinc-800 p-4 rounded-lg flex items-center justify-center gap-3 text-zinc-500 hover:text-red-400 hover:border-red-500/20 hover:bg-red-500/5 transition-all group"
+            className="w-full bg-zinc-900/50 border border-zinc-800 p-4 rounded-lg flex items-center justify-center gap-3 text-zinc-500 hover:border-red-500/40 transition-all group"
           >
             <Flag className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
             <span className="font-headline font-bold uppercase tracking-widest text-[9px]">Report Server</span>

@@ -69,7 +69,7 @@ export function Footer() {
               <Github className="w-4 h-4 md:w-5 md:h-5" />
             </a>
           </div>
-          <p className="font-body text-[10px] md:text-xs text-white/40">v1.0.0 Full Release | © 2026 Realm Explorer</p>
+          <p className="font-body text-[10px] md:text-xs text-white/40">v1.1.0 | © 2026 Realm Explorer</p>
         </div>
       </div>
     </footer>

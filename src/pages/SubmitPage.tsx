@@ -47,6 +47,7 @@ import skyblockIcon from "../assets/category/41601-minecraftoaktree.png";
 import moddedIcon from "../assets/category/437888-bedrock.png";
 import smpIcon from "../assets/category/708066-iron-pickaxe (1).png";
 import skygenIcon from "../assets/category/89458-iron-block.png";
+import prisonIcon from "../assets/category/7504_Iron_Bars.png";
 
 interface ReorderableSocialLink extends SocialLink {
   localId: string;
@@ -319,6 +320,7 @@ export function SubmitPage() {
     "kitpvp",
     "skyblock",
     "skygen",
+    "prison",
     "smp",
     "modded",
     "other",
@@ -334,6 +336,7 @@ export function SubmitPage() {
         kitpvp: kitpvpIcon,
         skyblock: skyblockIcon,
         skygen: skygenIcon,
+        prison: prisonIcon,
         modded: moddedIcon,
       };
       return icons[c] ? (

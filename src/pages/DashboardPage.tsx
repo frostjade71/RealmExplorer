@@ -128,7 +128,7 @@ export function DashboardPage() {
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm ${
                 hasReachedLimit
                   ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed opacity-60'
-                  : 'bg-[#4EC44E] text-[#002202] hover:bg-[#85fc7e] shadow-lg shadow-green-500/20'
+                  : 'bg-[#4EC44E] text-[#002202] hover:bg-[#85fc7e]'
               }`}
             >
               <PlusCircle className="w-4 h-4 md:w-5 h-5" />

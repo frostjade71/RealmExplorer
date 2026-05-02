@@ -22,6 +22,7 @@ import skyblockIcon from '../assets/category/41601-minecraftoaktree.png'
 import moddedIcon from '../assets/category/437888-bedrock.png'
 import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
 import skygenIcon from '../assets/category/89458-iron-block.png'
+import prisonIcon from '../assets/category/7504_Iron_Bars.png'
 
 // Category Backgrounds
 import factionsBg from '../assets/homepage/factionsbg.jpg'
@@ -30,6 +31,7 @@ import moddedBg from '../assets/homepage/modded.jpg'
 import skyblockBg from '../assets/homepage/skyblockbg.jpg'
 import smpBg from '../assets/homepage/smpbg.jpg'
 import skygenBg from '../assets/homepage/skygen.webp'
+import prisonBg from '../assets/homepage/prisons.jpg'
 
 function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toString() }: { 
   value: number, 
@@ -96,6 +98,7 @@ export function HomePage() {
     { id: 'skyblock', name: 'Skyblock', icon: skyblockIcon, bg: skyblockBg, desc: 'Start from nothing on a floating island.' },
     { id: 'modded', name: 'Modded', icon: moddedIcon, bg: moddedBg, desc: 'Modded high-end servers for players to experience.' },
     { id: 'skygen', name: 'SkyGen', icon: skygenIcon, bg: skygenBg, desc: 'Evolutionary sky-based generator survival.' },
+    { id: 'prison', name: 'Prison', icon: prisonIcon, bg: prisonBg, desc: 'Mine, rank up, and escape in a prison environment.' },
   ]
 
   return (

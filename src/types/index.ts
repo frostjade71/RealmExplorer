@@ -1,5 +1,5 @@
 export type UserRole = 'explorer' | 'moderator' | 'admin'
-export type ServerCategory = 'factions' | 'kitpvp' | 'skyblock' | 'smp' | 'modded' | 'skygen' | 'other'
+export type ServerCategory = 'factions' | 'kitpvp' | 'skyblock' | 'smp' | 'modded' | 'skygen' | 'prison' | 'other'
 export type ServerType = 'server' | 'realm'
 export type ServerStatus = 'pending' | 'approved' | 'rejected' | 'emailed' | 'Review Icon' | 'Review Cover' | 'Review Icon & Cover' | 'Review Gallery' | 'Review Icon & Gallery' | 'Review Cover & Gallery' | 'Review All Assets'
 

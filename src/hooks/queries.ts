@@ -71,10 +71,26 @@ export function useServer(idOrSlug: string | undefined) {
       if (error) throw error
       if (!data) throw new Error('Server not found')
 
-      const result = data as unknown as { server: Server; owner: Profile | null }
+      const result = data as any
+      const server = result.server || (result.id ? result : null)
+      if (!server) throw new Error('Server data missing')
+
+      let owner = result.owner || server.profiles || null
+
+      // Fallback: If owner is missing but owner_id exists, fetch the profile manually
+      if (!owner && server.owner_id) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', server.owner_id)
+          .single()
+        
+        if (profile) owner = profile
+      }
+
       return {
-        server: result.server,
-        owner: result.owner
+        server: server as Server,
+        owner: owner as Profile | null
       }
     }
   })

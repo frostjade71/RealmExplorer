@@ -109,12 +109,12 @@ export function Navbar() {
                   >
                     <Link
                       to={item.path}
-                      className="relative flex items-center gap-2 px-4 py-2 rounded-lg transition-colors group"
+                      className="relative flex items-center gap-2 px-4 py-2 rounded transition-colors group"
                     >
                       {isActive && (
                         <motion.div
                           layoutId="nav-active"
-                          className="absolute inset-0 bg-white/10 rounded-lg"
+                          className="absolute inset-0 bg-white/10 rounded"
                           transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                         />
                       )}
@@ -135,7 +135,7 @@ export function Navbar() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
                             transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="absolute left-0 mt-1 w-40 bg-zinc-900/90 border border-white/5 backdrop-blur-xl rounded-xl shadow-2xl py-2 flex flex-col gap-1 z-50 overflow-hidden"
+                            className="absolute left-0 mt-1 w-40 bg-zinc-900/90 border border-white/5 backdrop-blur-xl rounded-md shadow-2xl py-2 flex flex-col gap-1 z-50 overflow-hidden"
                           >
                             {item.children?.map((child) => {
                               const isLinkActive = location.pathname === child.path
@@ -153,7 +153,7 @@ export function Navbar() {
                                   {isLinkActive && (
                                     <motion.div
                                       layoutId="nav-active"
-                                      className="absolute inset-0 bg-white/10 rounded-lg"
+                                      className="absolute inset-0 bg-white/10 rounded"
                                       transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
                                     />
                                   )}
@@ -179,7 +179,7 @@ export function Navbar() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={signInWithDiscord}
-                className="bg-[#5865F2] text-white px-3 py-1.5 sm:px-6 sm:py-2 rounded-lg font-headline font-bold text-[10px] sm:text-sm shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+                className="bg-[#5865F2] text-white px-3 py-1.5 sm:px-6 sm:py-2 rounded font-headline font-bold text-[10px] sm:text-sm shadow-lg shadow-indigo-500/20 flex items-center gap-2"
               >
                 <svg 
                   className="w-5 h-5 fill-current" 
@@ -201,7 +201,7 @@ export function Navbar() {
                         setUserMenuOpen(!userMenuOpen)
                       }
                     }}
-                    className="flex items-center gap-3 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-xl transition-colors border border-white/5"
+                    className="flex items-center gap-3 bg-white/5 hover:bg-white/10 px-3 py-2 rounded-md transition-colors border border-white/5"
                   >
                     <img 
                       src={profile?.discord_avatar || `https://cdn.discordapp.com/embed/avatars/0.png`} 
@@ -218,7 +218,7 @@ export function Navbar() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute right-0 mt-3 w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 flex flex-col gap-1 z-50 overflow-hidden"
+                        className="absolute right-0 mt-3 w-48 bg-zinc-900 border border-zinc-800 rounded-md shadow-2xl py-2 flex flex-col gap-1 z-50 overflow-hidden"
                       >
                         <Link 
                           to={`/profile/${profile?.discord_username}`}
@@ -264,7 +264,7 @@ export function Navbar() {
             )}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden text-white ml-2 p-2 rounded-lg hover:bg-white/10 transition-colors"
+              className="md:hidden text-white ml-2 p-2 rounded hover:bg-white/10 transition-colors"
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -323,9 +323,9 @@ export function Navbar() {
                        <div key={item.path} className="flex flex-col gap-1">
                          <Link 
                            to={item.path}
-                           className={`flex items-center gap-3 px-4 py-2 rounded-lg font-headline text-sm font-bold transition-all ${
+                           className={`flex items-center gap-3 px-4 py-2 rounded font-headline text-sm font-bold transition-all ${
                              isActive 
-                               ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20 scale-[1.02]' 
+                               ? 'bg-realm-green text-zinc-950' 
                                : isServers
                                  ? 'text-realm-green border border-realm-green/30'
                                  : 'text-white/70 hover:text-white hover:bg-white/5'
@@ -349,7 +349,7 @@ export function Navbar() {
                                <Link 
                                  key={child.path}
                                  to={child.path}
-                                 className={`flex items-center gap-3 px-4 py-2 rounded-lg font-headline text-xs font-semibold transition-all ${location.pathname === child.path ? 'text-realm-green bg-realm-green/10' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
+                                 className={`flex items-center gap-3 px-4 py-2 rounded font-headline text-xs font-semibold transition-all ${location.pathname === child.path ? 'text-realm-green bg-realm-green/10' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
                                >
                                 {child.icon}
                                 {child.label}
@@ -366,7 +366,7 @@ export function Navbar() {
                   {!user ? (
                      <button 
                        onClick={signInWithDiscord}
-                       className="w-full bg-[#5865F2] text-white py-2.5 rounded-lg font-headline font-bold text-xs shadow-lg flex items-center justify-center gap-2 hover:bg-[#4752c4] transition-colors"
+                       className="w-full bg-[#5865F2] text-white py-2.5 rounded font-headline font-bold text-xs shadow-lg flex items-center justify-center gap-2 hover:bg-[#4752c4] transition-colors"
                      >
                       <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
@@ -378,7 +378,7 @@ export function Navbar() {
                       <Link 
                         to={`/profile/${profile?.discord_username}`}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg border border-white/5 transition-colors group"
+                        className="flex items-center gap-3 px-4 py-2 bg-white/5 hover:bg-white/10 rounded border border-white/5 transition-colors group"
                       >
                         <img 
                           src={profile?.discord_avatar || `https://cdn.discordapp.com/embed/avatars/0.png`} 
@@ -397,7 +397,7 @@ export function Navbar() {
                         <Link 
                           to="/dashboard"
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`flex ${isModerator ? 'flex-col items-center justify-center gap-1.5 p-2' : 'items-center gap-3 px-4 py-3'} rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5`}
+                          className={`flex ${isModerator ? 'flex-col items-center justify-center gap-1.5 p-2' : 'items-center gap-3 px-4 py-3'} rounded bg-white/5 hover:bg-white/10 transition-colors border border-white/5`}
                         >
                           <LayoutDashboard className="w-4 h-4 text-white/60" />
                           <span className="text-[9px] font-headline font-bold uppercase tracking-widest text-white/40">Listings</span>
@@ -406,7 +406,7 @@ export function Navbar() {
                             <Link 
                               to="/admin"
                               onClick={() => setMobileMenuOpen(false)}
-                              className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-lg bg-realm-green/10 hover:bg-realm-green/20 transition-colors border border-realm-green/20"
+                              className="flex flex-col items-center justify-center gap-1.5 p-2 rounded bg-realm-green/10 hover:bg-realm-green/20 transition-colors border border-realm-green/20"
                             >
                               <ShieldCheck className="w-4 h-4 text-realm-green" />
                               <span className="text-[9px] font-headline font-bold uppercase tracking-widest text-realm-green/60 text-center">Panel</span>
@@ -419,7 +419,7 @@ export function Navbar() {
                             setMobileMenuOpen(false)
                             signOut()
                           }}
-                          className="flex w-full items-center justify-center gap-3 px-4 py-2 rounded-lg font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors"
+                          className="flex w-full items-center justify-center gap-3 px-4 py-2 rounded font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-colors"
                         >
                           <LogOut className="w-3.5 h-3.5" />
                           Sign Out

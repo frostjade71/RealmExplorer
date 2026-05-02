@@ -95,7 +95,7 @@ export function NotificationDropdown() {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="fixed right-4 left-auto top-20 w-[280px] md:absolute md:inset-x-auto md:right-0 md:top-full md:mt-3 md:w-80 bg-zinc-950 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[60]"
+            className="fixed right-4 left-auto top-20 w-[280px] md:absolute md:inset-x-auto md:right-0 md:top-full md:mt-3 md:w-80 bg-zinc-950 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl overflow-hidden z-[60]"
           >
             <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/20">
               <h3 className="text-white font-bold text-sm font-headline">Notifications</h3>
@@ -134,7 +134,7 @@ export function NotificationDropdown() {
                         <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-realm-green" />
                       )}
                       <div className="flex gap-2 md:gap-3">
-                        <div className={`mt-1 p-1 md:p-1.5 rounded-lg h-fit self-start ${(() => {
+                        <div className={`mt-1 p-1 md:p-1.5 rounded h-fit self-start ${(() => {
                           const type = n.type
                           const msg = n.message.toLowerCase()
                           
@@ -228,7 +228,7 @@ export function NotificationDropdown() {
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-2xl"
+                className="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 p-6 rounded-lg shadow-2xl"
               >
                 <div className="text-center mb-6">
                   <div className="text-red-500 mb-3 opacity-80">
@@ -243,7 +243,7 @@ export function NotificationDropdown() {
                 <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={() => setIsClearModalOpen(false)}
-                    className="py-3 rounded-xl bg-zinc-800 text-white font-headline font-bold hover:bg-zinc-700 transition-colors text-xs"
+                    className="py-3 rounded-md bg-zinc-800 text-white font-headline font-bold hover:bg-zinc-700 transition-colors text-xs"
                   >
                     Cancel
                   </button>
@@ -254,7 +254,7 @@ export function NotificationDropdown() {
                       })
                     }}
                     disabled={clearAll.isPending}
-                    className="py-3 rounded-xl bg-red-500 text-white font-headline font-bold hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 text-xs"
+                    className="py-3 rounded-md bg-red-500 text-white font-headline font-bold hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 text-xs"
                   >
                     {clearAll.isPending ? 'Clearing...' : 'Clear All'}
                   </button>
@@ -276,11 +276,11 @@ export function NotificationDropdown() {
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-sm bg-zinc-950 border border-white/10 p-8 rounded-3xl shadow-2xl"
+                className="relative w-full max-w-sm bg-zinc-950 border border-white/10 p-8 rounded-xl shadow-2xl"
               >
                 <div className="flex justify-between items-center mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-realm-green/10 text-realm-green">
+                    <div className="p-2 rounded-md bg-realm-green/10 text-realm-green">
                       <Info className="w-5 h-5" />
                     </div>
                     <h3 className="text-sm font-pixel text-white uppercase tracking-wider">{resultModal.title}</h3>
@@ -296,7 +296,7 @@ export function NotificationDropdown() {
 
                 <button 
                   onClick={() => setResultModal(null)}
-                  className="w-full py-4 rounded-2xl bg-realm-green text-zinc-950 font-headline font-bold hover:bg-[#85fc7e] transition-all shadow-lg shadow-green-500/10 text-xs uppercase tracking-[0.2em]"
+                  className="w-full py-4 rounded-lg bg-realm-green text-zinc-950 font-headline font-bold hover:bg-[#85fc7e] transition-all shadow-lg shadow-green-500/10 text-xs uppercase tracking-[0.2em]"
                 >
                   Understood
                 </button>

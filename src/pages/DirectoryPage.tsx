@@ -22,6 +22,7 @@ import skyblockIcon from '../assets/category/41601-minecraftoaktree.png'
 import moddedIcon from '../assets/category/437888-bedrock.png'
 import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
 import skygenIcon from '../assets/category/89458-iron-block.png'
+import prisonIcon from '../assets/category/7504_Iron_Bars.png'
 
 import { MetaTags } from '../components/MetaTags'
 
@@ -73,6 +74,7 @@ export function DirectoryPage() {
     { id: 'skyblock', label: 'Skyblock', icon: skyblockIcon, isImage: true },
     { id: 'kitpvp', label: 'KitPVP', icon: kitpvpIcon, isImage: true },
     { id: 'skygen', label: 'SkyGen', icon: skygenIcon, isImage: true },
+    { id: 'prison', label: 'Prison', icon: prisonIcon, isImage: true },
     { id: 'modded', label: 'Modded', icon: moddedIcon, isImage: true },
     { id: 'other', label: 'Other', icon: MoreHorizontal, isImage: false },
   ]

@@ -42,12 +42,12 @@ export function CategoryRequestModal({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative bg-zinc-950 border border-white/10 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            className="relative bg-zinc-950 border border-white/10 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
           >
             {/* Header */}
             <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02] shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-realm-green/10 text-realm-green">
+                <div className="p-2 rounded-lg bg-realm-green/10 text-realm-green">
                   <PlusCircle className="w-5 h-5" />
                 </div>
                 <h2 className="font-pixel text-white text-base md:text-lg uppercase tracking-wider">Request Category</h2>
@@ -68,8 +68,8 @@ export function CategoryRequestModal({
                     type="text"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    placeholder="e.g. Prison, Skywars, Survival..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-headline text-sm focus:outline-none focus:ring-2 focus:ring-realm-green/50 focus:border-realm-green/50 placeholder:text-white/20 transition-all shadow-inner"
+                    placeholder="e.g. Bedwars, Skywars, Parkour..."
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-5 py-4 text-white font-headline text-sm focus:outline-none focus:ring-2 focus:ring-realm-green/50 focus:border-realm-green/50 placeholder:text-white/20 transition-all shadow-inner"
                     autoFocus
                   />
                 </div>
@@ -80,12 +80,12 @@ export function CategoryRequestModal({
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Describe the gameplay and features of this category..."
-                    className="w-full h-40 bg-white/5 border border-white/10 rounded-xl p-5 text-white font-body text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-realm-green/50 focus:border-realm-green/50 placeholder:text-white/20 resize-none transition-all shadow-inner"
+                    className="w-full h-40 bg-white/5 border border-white/10 rounded-lg p-5 text-white font-body text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-realm-green/50 focus:border-realm-green/50 placeholder:text-white/20 resize-none transition-all shadow-inner"
                   />
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-4 bg-realm-green/5 border border-realm-green/10 rounded-xl text-realm-green/70">
+              <div className="flex items-start gap-3 p-4 bg-realm-green/5 border border-realm-green/10 rounded-lg text-realm-green/70">
                 <PlusCircle className="w-5 h-5 shrink-0 mt-0.5" />
                 <p className="text-[11px] font-headline leading-relaxed">
                   <span className="font-bold uppercase tracking-wider block mb-0.5 text-[10px]">Community Suggestion</span>
@@ -99,7 +99,7 @@ export function CategoryRequestModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 py-4 rounded-xl font-headline font-bold text-white/40 hover:text-white hover:bg-white/5 transition-all text-[10px] uppercase tracking-widest"
+                  className="flex-1 py-4 rounded-lg font-headline font-bold text-white/40 hover:text-white hover:bg-white/5 transition-all text-[10px] uppercase tracking-widest"
                 >
                   Cancel
                 </button>
@@ -111,7 +111,7 @@ export function CategoryRequestModal({
                     if (form) form.requestSubmit();
                   }}
                   disabled={!subject.trim() || !description.trim() || isSubmitting}
-                  className={`flex-[2] py-4 rounded-xl font-headline font-bold flex items-center justify-center gap-3 transition-all text-[10px] uppercase tracking-widest ${
+                  className={`flex-[2] py-4 rounded-lg font-headline font-bold flex items-center justify-center gap-3 transition-all text-[10px] uppercase tracking-widest ${
                     !subject.trim() || !description.trim() || isSubmitting
                       ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-white/5'
                       : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e] shadow-lg shadow-green-500/20'
