@@ -244,7 +244,7 @@ export function AdminServersPage() {
                     visible: { opacity: 1, y: 0 }
                   }}
                   className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
-                  onClick={() => navigate(`/server/${server.slug}`)}
+                  onClick={() => navigate(`/server/${server.slug || server.id}`)}
                 >
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
