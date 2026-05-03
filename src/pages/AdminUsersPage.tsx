@@ -165,8 +165,7 @@ export function AdminUsersPage() {
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
                       <div className="relative">
-                        <motion.img 
-                          whileHover={{ scale: 1.1, rotate: 5 }}
+                        <img 
                           src={user.discord_avatar || ''} 
                           className="w-10 h-10 rounded-lg bg-zinc-800 border border-white/10" 
                           alt="" 

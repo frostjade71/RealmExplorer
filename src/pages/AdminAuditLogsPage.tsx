@@ -5,7 +5,7 @@ import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useMemo } from 'react'
 import { Search, X, History, User, Info, Calendar, Trash2, ThumbsUp, Sparkles } from 'lucide-react'
-import { useClearAuditLogsMutation, useClearVoteLogsMutation } from '../hooks/mutations'
+import { useClearAuditLogsMutation, useClearVoteLogsMutation, useClearOTMLogsMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { toast } from 'sonner'
@@ -22,17 +22,18 @@ export function AdminAuditLogsPage() {
   
   const clearLogsMutation = useClearAuditLogsMutation()
   const clearVotesMutation = useClearVoteLogsMutation()
+  const clearOTMLogsMutation = useClearOTMLogsMutation()
 
   const handleClear = () => {
     if (!profile) return
 
-    const mutation = activeTab === 'audit' ? clearLogsMutation : clearVotesMutation
+    const mutation = activeTab === 'audit' ? clearLogsMutation : activeTab === 'otm' ? clearOTMLogsMutation : clearVotesMutation
     
     mutation.mutate(
       { adminId: profile.id, adminName: profile.discord_username || 'Unknown' },
       {
         onSuccess: () => {
-          toast.success(`${activeTab === 'audit' ? 'Audit' : 'Vote'} logs cleared successfully`)
+          toast.success(`${activeTab === 'audit' ? 'Audit' : activeTab === 'otm' ? 'OTM' : 'Vote'} logs cleared successfully`)
           setIsClearModalOpen(false)
         },
         onError: (err: any) => {
@@ -111,7 +112,7 @@ export function AdminAuditLogsPage() {
               className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all font-headline text-[10px] uppercase font-bold tracking-widest disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-              Clear {activeTab === 'audit' ? 'Audit' : 'Vote'}
+              Clear {activeTab === 'audit' ? 'Audit' : activeTab === 'otm' ? 'OTM' : 'Vote'}
             </button>
           </FramerIn>
 
@@ -160,11 +161,11 @@ export function AdminAuditLogsPage() {
         isOpen={isClearModalOpen}
         onClose={() => setIsClearModalOpen(false)}
         onConfirm={handleClear}
-        title={`Clear ${activeTab === 'audit' ? 'Audit' : 'Vote'} Logs?`}
-        message={`This action is permanent and will remove all recorded ${activeTab === 'audit' ? 'staff activity' : 'community votes'} from the database. ${activeTab === 'audit' ? 'A final log entry will record this purge.' : ''}`}
+        title={`Clear ${activeTab === 'audit' ? 'Audit' : activeTab === 'otm' ? 'OTM' : 'Vote'} Logs?`}
+        message={`This action is permanent and will remove all recorded ${activeTab === 'audit' ? 'staff activity' : activeTab === 'otm' ? 'OTM vote records' : 'community votes'} from the database. ${activeTab === 'audit' ? 'A final log entry will record this purge.' : ''}`}
         confirmLabel="Wipe Everything"
         isDangerous={true}
-        isLoading={clearLogsMutation.isPending || clearVotesMutation.isPending}
+        isLoading={clearLogsMutation.isPending || clearVotesMutation.isPending || clearOTMLogsMutation.isPending}
       />
 
       <FramerIn delay={0.2} className="mb-6 relative">
@@ -233,17 +234,25 @@ export function AdminAuditLogsPage() {
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap">
                         <span className={`px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider border ${getActionColor(log.action)}`}>
-                          {log.action.replace(/_/g, ' ')}
+                          {activeTab === 'otm' && log.details.category ? (
+                            log.details.category === 'realm' ? 'ROTM' : 
+                            log.details.category === 'server' ? 'SOTM' : 
+                            log.details.category === 'builder' ? 'BOTM' : 
+                            log.details.category === 'developer' ? 'DOTM' : 
+                            log.details.category.toUpperCase()
+                          ) : (
+                            log.action.replace(/_/g, ' ')
+                          )}
                         </span>
                       </td>
                       <td className="px-6 py-5">
                         {activeTab === 'otm' ? (
                           <div className="text-sm font-headline">
-                            <span className="text-realm-green font-bold">{log.details.voter || log.discord_username}</span>
-                            <span className="text-white/40"> has {log.action === 'OTM_VOTE' ? 'Voted' : 'unvoted'} </span>
-                            <span className="text-white font-bold">{log.details.competitor}</span>
+                            <span className="text-white/40">Voted </span>
+                            <span className="text-white font-bold">{log.details.competitor || 'Unknown'}</span>
                             <span className="text-white/40">, </span>
-                            <code className="bg-white/5 px-1.5 py-0.5 rounded text-[10px] text-realm-green font-mono border border-white/10">now {log.details.newCount}</code>
+                            <span className="text-realm-green font-bold">{log.details.newCount || '0'}</span>
+                            <span className="text-white/40"> now.</span>
                           </div>
                         ) : (
                           <div className="space-y-1">

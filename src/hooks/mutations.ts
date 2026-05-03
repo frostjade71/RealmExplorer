@@ -625,7 +625,7 @@ export function useResetOTMCooldownsMutation() {
 export function useOTMVoteMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ userId, serverId, targetUserId, category, voterName }: { userId: string; serverId?: string | null; targetUserId?: string | null; category: OTMCategory; voterName?: string }) => {
+    mutationFn: async ({ userId, serverId, targetUserId, category, voterName, competitorName, newCount }: { userId: string; serverId?: string | null; targetUserId?: string | null; category: OTMCategory; voterName?: string; competitorName?: string; newCount?: number }) => {
       const { error } = await supabase
         .from('otm_votes')
         .insert({ 
@@ -644,7 +644,9 @@ export function useOTMVoteMutation() {
       await logAction('OTM_VOTE', { 
         voter: voterName || 'User', 
         target: serverId || targetUserId,
-        category
+        category,
+        competitor: competitorName,
+        newCount: newCount
       }, userId, voterName)
     },
     onSuccess: () => {
@@ -700,7 +702,10 @@ export function useClearAuditLogsMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ adminId, adminName }: { adminId: string; adminName: string }) => {
-      const { error } = await supabase.from('audit_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000') // Delete all
+      const { error } = await supabase
+        .from('audit_logs')
+        .delete()
+        .not('action', 'ilike', 'OTM_%')
       if (error) throw error
 
       // Log the clearing action itself
@@ -738,6 +743,28 @@ export function useClearVoteLogsMutation() {
       queryClient.invalidateQueries({ queryKey: ['voteLogs'] })
       queryClient.invalidateQueries({ queryKey: ['servers'] })
       queryClient.invalidateQueries({ queryKey: ['server'] })
+    }
+  })
+}
+
+export function useClearOTMLogsMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ adminId, adminName }: { adminId: string; adminName: string }) => {
+      const { error } = await supabase.from('audit_logs').delete().ilike('action', 'OTM_%')
+      if (error) throw error
+
+      // Log the clearing action
+      await logAction('OTM_LOGS_CLEARED', {}, adminId, adminName)
+      await sendLogNotification({
+        action: '🧹 OTM Logs Purged',
+        adminName: adminName,
+        details: 'All OTM vote logs have been permanently cleared from the database.',
+        color: 0x95a5a6 // Gray
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] })
     }
   })
 }

@@ -118,17 +118,22 @@ export function EventsPage({ category }: EventsPageProps) {
   const finalizeVoteWithData = (data: any) => {
     if (!data || !user) return
     
+    const competitorName = data.servers?.name || data.profiles?.discord_username || 'Unknown'
+    const newVoteCount = (data.total_votes || 0) + 1
+
     voteMutation.mutate({ 
       userId: user.id, 
       serverId: data.server_id,
       targetUserId: data.user_id,
       category: category,
-      voterName: profile?.discord_username || 'Unknown'
+      voterName: profile?.discord_username || 'Unknown',
+      competitorName: competitorName,
+      newCount: newVoteCount
     }, {
       onSuccess: () => {
         setIsVoteModalOpen(false)
         setVoteTarget(null)
-        toast.success('Vote Cast!', { description: `You supported ${data.servers?.name || data.profiles?.discord_username}` })
+        toast.success('Vote Cast!', { description: `You supported ${competitorName}` })
       }
     })
   }
