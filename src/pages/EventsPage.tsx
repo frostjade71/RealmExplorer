@@ -5,7 +5,7 @@ import { ConfirmationModal } from '../components/ConfirmationModal'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useOTMWinners, useOTMCompetitors, useUserServers, useUserOTMVotes, useOTMSettings } from '../hooks/queries'
+import { useOTMWinners, useOTMCompetitors, useUserOTMVotes, useOTMSettings } from '../hooks/queries'
 import { useOTMVoteMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
@@ -33,6 +33,7 @@ export function EventsPage({ category }: EventsPageProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [visibleCount, setVisibleCount] = useState(12)
   const { user, profile } = useAuth()
+  const [now, setNow] = useState(Date.now())
   
   // Reset pagination/search when category changes
   useEffect(() => {
@@ -40,9 +41,13 @@ export function EventsPage({ category }: EventsPageProps) {
     setVisibleCount(12)
   }, [category])
 
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
   const { data: winners } = useOTMWinners()
   const { data: settings } = useOTMSettings()
-  const { data: userServers = [] } = useUserServers(user?.id)
   
   const currentCategoryData = CATEGORIES_DATA[category]
   const isSystemComingSoon = category === 'developer' || category === 'builder'
@@ -105,10 +110,6 @@ export function EventsPage({ category }: EventsPageProps) {
       return
     }
     
-    if (userServers.length === 0) {
-      toast.error('Eligibility Required', { description: 'You must own at least one approved server to vote.' })
-      return
-    }
 
     setVoteTarget(competitor)
     setIsVoteModalOpen(true)
@@ -137,7 +138,6 @@ export function EventsPage({ category }: EventsPageProps) {
     if (!lastVote) return { active: false, remaining: 0 }
 
     const lastTime = new Date(lastVote.created_at).getTime()
-    const now = new Date().getTime()
     const diff = lastTime + 24 * 60 * 60 * 1000 - now
     
     return { active: diff > 0, remaining: diff }
