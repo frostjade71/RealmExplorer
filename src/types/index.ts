@@ -80,6 +80,8 @@ export interface OTMWinner {
   user_id?: string | null
   winner_name: string | null
   winner_image_url: string | null
+  winner_banner_url: string | null
+  winner_slug: string | null
   description: string | null
   created_at: string
   servers?: Server

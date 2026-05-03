@@ -73,11 +73,17 @@ export function AdminEventsPage() {
       if (selectedUser) {
         payload.winner_name = selectedUser.discord_username
         payload.winner_image_url = selectedUser.discord_avatar
+        payload.winner_slug = selectedUser.discord_username
       }
       payload.server_id = null
     } else if (!isPersonCategory(data.category) && data.server_id) {
-      payload.winner_name = null
-      payload.winner_image_url = null
+      const selectedServer = approvedServers.find(s => s.id === data.server_id)
+      if (selectedServer) {
+        payload.winner_name = selectedServer.name
+        payload.winner_image_url = selectedServer.icon_url
+        payload.winner_banner_url = selectedServer.banner_url
+        payload.winner_slug = selectedServer.slug
+      }
       payload.user_id = null
     }
 

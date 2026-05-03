@@ -85,7 +85,7 @@ export function EventsPage({ category }: EventsPageProps) {
 
   const heroBackground = useMemo(() => {
     const isServerOrRealm = category === 'realm' || category === 'server';
-    const bannerUrl = activeWinner?.servers?.banner_url;
+    const bannerUrl = activeWinner?.winner_banner_url || activeWinner?.servers?.banner_url;
     
     if (isServerOrRealm && bannerUrl) {
       return { type: 'image', url: bannerUrl, key: bannerUrl };
@@ -240,9 +240,11 @@ export function EventsPage({ category }: EventsPageProps) {
                     to={(() => {
                       const isPerson = activeWinner.category === 'developer' || activeWinner.category === 'builder'
                       if (isPerson) {
-                        return activeWinner.profiles?.discord_username ? `/profile/${activeWinner.profiles.discord_username}` : '#'
+                        const slug = activeWinner.winner_slug || activeWinner.profiles?.discord_username
+                        return slug ? `/profile/${slug}` : '#'
                       }
-                      return activeWinner.servers ? `/server/${activeWinner.servers.slug || slugify(activeWinner.servers.name)}` : '#'
+                      const slug = activeWinner.winner_slug || activeWinner.servers?.slug || (activeWinner.servers?.name ? slugify(activeWinner.servers.name) : null)
+                      return slug ? `/server/${slug}` : '#'
                     })()}
                     className="block group no-underline"
                   >

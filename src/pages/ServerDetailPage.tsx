@@ -366,7 +366,7 @@ export function ServerDetailPage() {
                     </motion.button>
                   </div>
                 ) : (
-                  <div className="text-[10px] md:text-xs font-headline text-zinc-500 border border-zinc-800 px-3 md:px-4 py-1.5 md:py-2 rounded-md w-full text-center md:w-auto">Login to Vote</div>
+                  <div className="text-[10px] md:text-xs font-headline text-zinc-500 border border-zinc-800 px-3 md:px-4 py-1.5 md:py-2 rounded-md w-full text-center md:w-auto">Login to Vote & Rate</div>
                 )}
               </div>
             </div>

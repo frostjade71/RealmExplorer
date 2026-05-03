@@ -9,7 +9,7 @@ import { useState, useMemo } from 'react'
 import { ContactOwnerModal } from '../components/ContactOwnerModal'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, X } from 'lucide-react'
+import { Search, X, Check, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -115,6 +115,11 @@ export function AdminServersPage() {
 
   const handleDeleteConfirm = () => {
     if (!serverToDelete || !profile) return
+    
+    if (profile.role !== 'admin') {
+      toast.error('Permission Denied', { description: 'Only administrators can delete servers.' })
+      return
+    }
 
     deleteMutation.mutate(
       { id: serverToDelete.id, adminId: profile.id, adminName: profile.discord_username },
@@ -280,13 +285,19 @@ export function AdminServersPage() {
                     {server.category}
                   </td>
                   <td className="px-6 py-5">
-                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
+                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
                       server.status === 'approved' ? 'bg-realm-green/10 text-realm-green border border-realm-green/20' :
                       server.status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
                       (server.status.startsWith('Review') || server.status.includes('Gallery')) ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
                       'bg-orange-500/10 text-orange-500 border border-orange-500/20'
                     }`}>
-                      <span className="w-1 h-1 rounded-lg bg-current" />
+                      {server.status === 'approved' ? (
+                        <Check className="w-3 h-3" />
+                      ) : server.status === 'rejected' ? (
+                        <X className="w-3 h-3" />
+                      ) : (
+                        <Clock className="w-3 h-3" />
+                      )}
                       {server.status}
                     </div>
                   </td>
@@ -321,21 +332,23 @@ export function AdminServersPage() {
                           e.stopPropagation()
                           openContactModal(server, 'contact')
                         }}
-                        className="w-10 h-10 rounded-lg bg-white/5 text-white/40 hover:bg-white/10 hover:text-white flex items-center justify-center transition-all duration-300 border border-white/10 group/btn"
+                        className="w-10 h-10 rounded-lg bg-[#5865F2]/10 text-[#5865F2] hover:bg-[#5865F2] hover:text-white flex items-center justify-center transition-all duration-300 border border-[#5865F2]/20 group/btn"
                         title="Contact Owner"
                       >
                         <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">mail</span>
                       </button>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setServerToDelete(server)
-                        }}
-                        className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-red-500/20 group/btn"
-                        title="Delete Server"
-                      >
-                        <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">delete</span>
-                      </button>
+                      {profile?.role === 'admin' && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setServerToDelete(server)
+                          }}
+                          className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-red-500/20 group/btn"
+                          title="Delete Server"
+                        >
+                          <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">delete</span>
+                        </button>
+                      )}
                     </div>
                   </td>
                 </motion.tr>
