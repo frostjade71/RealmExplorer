@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ThumbsUp, ChevronLeft, ChevronRight, Trophy, Sparkles, Star, Calendar, Eye, Loader2, Timer, Search, X } from 'lucide-react'
+import { ThumbsUp, ChevronRight, Sparkles, Calendar, Eye, Loader2, Timer, Search, X, Pickaxe, Code2, Medal, Award } from 'lucide-react'
 import { useState, useMemo, useEffect } from 'react'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { AnimatedPage } from '../components/AnimatedPage'
@@ -17,16 +17,19 @@ import heroVideo from '../assets/hero/heroRE.mp4'
 import { slugify } from '../lib/urlUtils'
 import { OTMCompetitionTimer } from '../components/OTMCompetitionTimer'
 
-const CATEGORIES: { id: OTMCategory; label: string; icon: any }[] = [
-  { id: 'realm', label: 'Realm of the Month', icon: Sparkles },
-  { id: 'server', label: 'Server of the Month', icon: Trophy },
-  { id: 'developer', label: 'Developer of the Month', icon: Star },
-  { id: 'builder', label: 'Builder of the Month', icon: Calendar },
-]
+export interface EventsPageProps {
+  category: OTMCategory
+}
 
-export function EventsPage() {
+const CATEGORIES_DATA: Record<OTMCategory, { label: string; icon: any }> = {
+  realm: { label: 'Realm of the Month', icon: Medal },
+  server: { label: 'Server of the Month', icon: Award },
+  developer: { label: 'Developer of the Month', icon: Code2 },
+  builder: { label: 'Builder of the Month', icon: Pickaxe },
+}
+
+export function EventsPage({ category }: EventsPageProps) {
   const isMobile = useIsMobile()
-  const [currentIndex, setCurrentIndex] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [visibleCount, setVisibleCount] = useState(12)
   const { user, profile } = useAuth()
@@ -35,15 +38,15 @@ export function EventsPage() {
   useEffect(() => {
     setSearchQuery('')
     setVisibleCount(12)
-  }, [currentIndex])
+  }, [category])
 
   const { data: winners } = useOTMWinners()
   const { data: settings } = useOTMSettings()
   const { data: userServers = [] } = useUserServers(user?.id)
   
-  const currentCategory = CATEGORIES[currentIndex]
-  const isSystemComingSoon = currentCategory.id === 'developer' || currentCategory.id === 'builder'
-  const { data: categoryCompetitors = [], isLoading: loadingCompetitors } = useOTMCompetitors(currentCategory.id, !isSystemComingSoon)
+  const currentCategoryData = CATEGORIES_DATA[category]
+  const isSystemComingSoon = category === 'developer' || category === 'builder'
+  const { data: categoryCompetitors = [], isLoading: loadingCompetitors } = useOTMCompetitors(category, !isSystemComingSoon)
   const { data: userVotes = [] } = useUserOTMVotes(user?.id)
 
   const voteMutation = useOTMVoteMutation()
@@ -51,8 +54,8 @@ export function EventsPage() {
   const [voteTarget, setVoteTarget] = useState<any>(null)
 
   const activeWinner = useMemo(() => {
-    return winners?.find(w => w.category === currentCategory.id)
-  }, [winners, currentCategory])
+    return winners?.find(w => w.category === category)
+  }, [winners, category])
 
   const filteredCompetitors = useMemo(() => {
     if (!searchQuery) return categoryCompetitors
@@ -72,26 +75,23 @@ export function EventsPage() {
 
   const isCompetitionActive = useMemo(() => {
     if (!settings) return true
-    return settings.competition_status[currentCategory.id]
-  }, [settings, currentCategory])
+    return settings.competition_status[category]
+  }, [settings, category])
 
   const nextStartTime = useMemo(() => {
     if (!settings) return null
-    return settings.next_start_times[currentCategory.id]
-  }, [settings, currentCategory])
+    return settings.next_start_times[category]
+  }, [settings, category])
 
   const heroBackground = useMemo(() => {
-    const isServerOrRealm = currentCategory.id === 'realm' || currentCategory.id === 'server';
+    const isServerOrRealm = category === 'realm' || category === 'server';
     const bannerUrl = activeWinner?.servers?.banner_url;
     
     if (isServerOrRealm && bannerUrl) {
       return { type: 'image', url: bannerUrl, key: bannerUrl };
     }
     return { type: 'video', url: heroVideo, key: 'default-video' };
-  }, [currentCategory.id, activeWinner, heroVideo]);
-
-  const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % CATEGORIES.length)
-  const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + CATEGORIES.length) % CATEGORIES.length)
+  }, [category, activeWinner, heroVideo]);
 
   const defaultMonth = useMemo(() => {
     const d = new Date()
@@ -121,7 +121,7 @@ export function EventsPage() {
       userId: user.id, 
       serverId: data.server_id,
       targetUserId: data.user_id,
-      category: currentCategory.id,
+      category: category,
       voterName: profile?.discord_username || 'Unknown'
     }, {
       onSuccess: () => {
@@ -133,7 +133,7 @@ export function EventsPage() {
   }
 
   const getCooldownStatus = (id: string) => {
-    const lastVote = userVotes.find(v => v.id === id)
+    const lastVote = userVotes.find(v => v.id === id && v.category === category)
     if (!lastVote) return { active: false, remaining: 0 }
 
     const lastTime = new Date(lastVote.created_at).getTime()
@@ -190,7 +190,7 @@ export function EventsPage() {
         <div className="max-w-7xl mx-auto w-full relative z-20 will-change-transform">
           <AnimatePresence mode="popLayout">
             <motion.div 
-              key={currentCategory.id}
+              key={category}
               initial={{ opacity: 0, y: isMobile ? 10 : 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: isMobile ? -10 : -20 }}
@@ -223,8 +223,8 @@ export function EventsPage() {
                   className="font-pixel text-white text-3xl md:text-5xl leading-tight mb-8 drop-shadow-2xl"
                   style={{ textShadow: '0 4px 12px rgba(0,0,0,1), 0 0 40px rgba(0,0,0,0.4)' }}
                 >
-                   {currentCategory.label.split(' ')[0]} <br/>
-                   <span className="text-realm-green">{currentCategory.label.split(' ').slice(1).join(' ')}</span>
+                   {currentCategoryData.label.split(' ')[0]} <br/>
+                   <span className="text-realm-green">{currentCategoryData.label.split(' ').slice(1).join(' ')}</span>
                 </h1>
               </motion.div>
 
@@ -285,22 +285,6 @@ export function EventsPage() {
               )}
             </motion.div>
           </AnimatePresence>
-
-          {/* Navigation Controls Group */}
-          <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 pointer-events-none flex justify-between px-4 lg:px-0">
-             <button 
-              onClick={prevSlide}
-              className="pointer-events-auto w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-realm-green hover:text-zinc-950 transition-[background-color,color,transform] text-white/40 hover:scale-110"
-             >
-               <ChevronLeft className="w-5 h-5" />
-             </button>
-             <button 
-              onClick={nextSlide}
-              className="pointer-events-auto w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-realm-green hover:text-zinc-950 transition-all text-white/40 hover:scale-110"
-             >
-               <ChevronRight className="w-5 h-5" />
-             </button>
-          </div>
         </div>
 
         {/* Cinematic Fade into next section */}
@@ -316,10 +300,10 @@ export function EventsPage() {
             <p className="text-zinc-500 font-headline text-sm">Support your favorites and help them be the next OTM winner!</p>
             {/* Mobile Timer - Below Description */}
             <div className="lg:hidden mt-4">
-              {isCompetitionActive && settings?.end_times?.[currentCategory.id] && (
+              {isCompetitionActive && settings?.end_times?.[category] && (
                 <OTMCompetitionTimer 
-                  category={currentCategory.id} 
-                  targetTime={settings.end_times[currentCategory.id]!} 
+                  category={category} 
+                  targetTime={settings.end_times[category]!} 
                   variant="compact"
                 />
               )}
@@ -329,10 +313,10 @@ export function EventsPage() {
           <div className="flex flex-col items-end gap-3 lg:gap-4 w-full lg:w-auto">
             {/* Desktop Timer - Above Search Bar */}
             <div className="hidden lg:block">
-              {isCompetitionActive && settings?.end_times?.[currentCategory.id] && (
+              {isCompetitionActive && settings?.end_times?.[category] && (
                 <OTMCompetitionTimer 
-                  category={currentCategory.id} 
-                  targetTime={settings.end_times[currentCategory.id]!} 
+                  category={category} 
+                  targetTime={settings.end_times[category]!} 
                   variant="compact"
                 />
               )}
@@ -344,7 +328,7 @@ export function EventsPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 group-focus-within:text-realm-green transition-colors" />
                 <input 
                   type="text" 
-                  placeholder={`search ${currentCategory.id}...`} 
+                  placeholder={`search ${category}...`} 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-[#1a1a1b] border-2 border-[#101010] pl-9 pr-8 py-2 md:py-2.5 text-[10px] md:text-sm text-white placeholder-zinc-600 placeholder:text-[8px] md:placeholder:text-[10px] outline-none focus:border-realm-green/50 transition-all font-pixel uppercase tracking-widest shadow-[2px_2px_0_rgba(0,0,0,0.4)]"
@@ -357,24 +341,6 @@ export function EventsPage() {
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
-              </div>
-
-              {/* Navigation Arrows */}
-              <div className="flex items-center gap-2 order-1 sm:order-2 ml-auto sm:ml-0">
-                 <button 
-                  onClick={prevSlide}
-                  className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-realm-green hover:text-zinc-950 transition-[background-color,color,transform] text-white/40 hover:scale-110 active:scale-95 group shadow-lg"
-                  title="Previous Category"
-                 >
-                   <ChevronLeft className="w-5 h-5" />
-                 </button>
-                 <button 
-                  onClick={nextSlide}
-                  className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-realm-green hover:text-zinc-950 transition-[background-color,color,transform] text-white/40 hover:scale-110 active:scale-95 group shadow-lg"
-                  title="Next Category"
-                 >
-                   <ChevronRight className="w-5 h-5" />
-                 </button>
               </div>
             </div>
           </div>
@@ -396,7 +362,7 @@ export function EventsPage() {
                   
                   <h3 className="text-[10px] md:text-xs font-pixel text-white mb-2 uppercase tracking-widest leading-none">Coming Soon</h3>
                   <p className="text-[9px] md:text-[10px] text-zinc-500 font-headline leading-relaxed uppercase tracking-widest">
-                    Our {currentCategory.label} system is being prepared.
+                    Our {currentCategoryData.label} system is being prepared.
                   </p>
 
                   <div className="mt-8 flex items-center gap-2 px-3 py-1.5 bg-black/40 border-2 border-[#101010] shadow-[2px_2px_0_rgba(0,0,0,0.4)]">
@@ -409,7 +375,7 @@ export function EventsPage() {
           </div>
         ) : !isCompetitionActive ? (
           <OTMCompetitionTimer 
-            category={currentCategory.id} 
+            category={category} 
             targetTime={nextStartTime || ''} 
           />
         ) : (
@@ -536,23 +502,23 @@ export function EventsPage() {
               </div>
             )}
 
-            {!loadingCompetitors && filteredCompetitors.length > visibleCount && (
-              <FramerIn delay={0.1} className="mt-12 flex justify-center">
-                <button
-                  onClick={() => setVisibleCount(prev => prev + 12)}
-                  className="group relative overflow-hidden bg-[#313233] border-4 border-[#101010] px-8 py-3 flex items-center justify-center gap-3 shadow-[4px_4px_0_rgba(0,0,0,0.5)] transition-all hover:bg-[#3c3c43] active:scale-95"
-                >
-                   {/* Inner Highlight Border */}
-                   <div className="absolute inset-0 border-t-2 border-l-2 border-white/5 pointer-events-none" />
-                   <div className="absolute inset-0 border-b-2 border-r-2 border-black/20 pointer-events-none" />
-                   
-                   <span className="font-pixel text-[10px] md:text-sm text-white uppercase tracking-widest flex items-center gap-2">
-                     Load More Candidates
-                   </span>
-                   <ChevronRight className="w-4 h-4 text-realm-green group-hover:translate-x-1 transition-transform rotate-90" />
-                </button>
-              </FramerIn>
-            )}
+             {!loadingCompetitors && filteredCompetitors.length > visibleCount && (
+               <FramerIn delay={0.1} className="mt-10 flex justify-center">
+                 <button
+                   onClick={() => setVisibleCount(prev => prev + 12)}
+                   className="group relative overflow-hidden bg-[#313233] border-2 border-[#101010] px-6 py-2 flex items-center justify-center gap-2.5 shadow-[3px_3px_0_rgba(0,0,0,0.5)] transition-all hover:bg-[#3c3c43] active:scale-95"
+                 >
+                    {/* Inner Highlight Border */}
+                    <div className="absolute inset-0 border-t border-l border-white/5 pointer-events-none" />
+                    <div className="absolute inset-0 border-b border-r border-black/20 pointer-events-none" />
+                    
+                    <span className="font-pixel text-[9px] md:text-xs text-white uppercase tracking-widest flex items-center gap-2">
+                      Load More Candidates
+                    </span>
+                    <ChevronRight className="w-3.5 h-3.5 text-realm-green group-hover:translate-x-1 transition-transform rotate-90" />
+                 </button>
+               </FramerIn>
+             )}
           </>
         )}
         </FramerIn>

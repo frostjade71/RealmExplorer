@@ -217,7 +217,7 @@ export function DirectoryPage() {
         <div className="w-full flex flex-wrap gap-1.5 md:gap-2">
           <button
             onClick={() => setCategory(null)}
-            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${!activeCategory ? 'bg-realm-green text-[#002202] border-realm-green shadow-lg shadow-green-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${!activeCategory ? 'bg-realm-green text-[#002202] border-realm-green' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
           >
             All Categories
           </button>
@@ -225,7 +225,7 @@ export function DirectoryPage() {
             <button
               key={cat.id}
               onClick={() => setCategory(cat.id)}
-              className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-realm-green text-[#002202] border-realm-green shadow-lg shadow-green-900/20' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+              className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-realm-green text-[#002202] border-realm-green' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
             >
               {cat.isImage ? (
                 <img src={cat.icon} alt="" className="w-3.5 h-3.5 md:w-4 md:h-4 object-contain" />

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle, X } from 'lucide-react'
-import { useIsMobile } from '../hooks/useMediaQuery'
+import { createPortal } from 'react-dom'
 
 interface ConfirmationModalProps {
   isOpen: boolean
@@ -28,12 +28,11 @@ export function ConfirmationModal({
   isLoading = false
 }: ConfirmationModalProps) {
   const isPixel = variant === 'pixel'
-  const isMobile = useIsMobile()
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className={`fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 ${isMobile ? 'backdrop-blur-none' : 'backdrop-blur-sm'} transform-gpu`}>
+        <div className={`fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 transform-gpu`}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -41,7 +40,7 @@ export function ConfirmationModal({
             className={`relative w-full max-w-sm overflow-hidden ${
               isPixel 
                 ? 'bg-[#313233] border-4 border-[#101010] shadow-[8px_8px_0_rgba(0,0,0,0.5)] rounded-none' 
-                : 'bg-zinc-950 border border-white/10 rounded-xl shadow-2xl'
+                : 'bg-zinc-950 border border-white/10 rounded-lg shadow-xl'
             }`}
           >
             {/* Pixel Variant Bevels */}
@@ -57,7 +56,7 @@ export function ConfirmationModal({
                 <div className={`flex items-center justify-center border ${
                   isPixel
                     ? `w-10 h-10 border-2 border-[#101010] shadow-[2px_2px_0_rgba(0,0,0,0.3)] ${isDangerous ? 'bg-red-500 text-white' : 'bg-realm-green text-zinc-950'}`
-                    : `w-12 h-12 rounded-xl ${isDangerous ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-realm-green/10 border-realm-green/20 text-realm-green'}`
+                    : `w-12 h-12 rounded-lg ${isDangerous ? 'bg-red-500/10 border-red-500/20 text-red-500' : 'bg-realm-green/10 border-realm-green/20 text-realm-green'}`
                 }`}>
                   <AlertCircle className={isPixel ? 'w-5 h-5' : 'w-6 h-6'} />
                 </div>
@@ -95,7 +94,7 @@ export function ConfirmationModal({
                   className={`flex-1 font-headline font-bold uppercase tracking-widest transition-all ${
                     isPixel
                       ? 'py-2 px-4 bg-white/5 border-2 border-[#101010] text-white/40 hover:text-white hover:bg-white/10 text-[9px] shadow-[2px_2px_0_rgba(0,0,0,0.4)]'
-                      : 'py-3 px-6 rounded-xl text-white/40 hover:text-white hover:bg-white/5 text-[10px] border border-transparent hover:border-white/10'
+                      : 'py-3 px-6 rounded-lg text-white/40 hover:text-white hover:bg-white/5 text-[10px] border border-transparent hover:border-white/10'
                   }`}
                 >
                   {cancelLabel}
@@ -106,7 +105,7 @@ export function ConfirmationModal({
                   className={`flex-[1.5] font-headline font-bold flex items-center justify-center gap-2 transition-all uppercase tracking-widest ${
                     isPixel
                       ? `py-2 px-4 border-2 border-[#101010] text-[9px] shadow-[2px_2px_0_rgba(0,0,0,0.4)] ${isDangerous ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'}`
-                      : `py-3 px-6 rounded-xl text-[10px] shadow-xl ${isDangerous ? 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/20' : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e] shadow-realm-green/20'}`
+                      : `py-3 px-6 rounded-lg text-[10px] shadow-md ${isDangerous ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'}`
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isLoading ? (
@@ -121,6 +120,7 @@ export function ConfirmationModal({
         </div>
       )}
     </AnimatePresence>
-
   )
+  
+  return createPortal(modalContent, document.getElementById('modal-root')!)
 }

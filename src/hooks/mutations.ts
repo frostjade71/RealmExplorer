@@ -636,7 +636,7 @@ export function useOTMVoteMutation() {
         } as any)
       
       if (error) {
-        if (error.code === '23505') throw new Error('Already voted recently')
+        if (error.code === '23505') throw new Error('You have already voted in this category')
         throw error
       }
 

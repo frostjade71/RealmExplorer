@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useGlobalStats } from '../hooks/queries'
 import { useEffect, useState, useRef } from 'react'
-import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Users, BookOpen, ShieldCheck, Medal, ChevronsUp } from 'lucide-react'
+import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Users, BookOpen, ShieldCheck, Medal, ChevronsUp, Pickaxe, Code2, Award } from 'lucide-react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { NotificationDropdown } from './NotificationDropdown'
 // logo imported from public/logoRE.png as /logoRE.png
@@ -36,10 +36,13 @@ export function Navbar() {
     { label: 'Home', path: '/', icon: <Home className="w-4 h-4" /> },
     { 
       label: 'Events', 
-      path: '/events', 
+      path: '/rotm', 
       icon: <Calendar className="w-4 h-4" />,
       children: [
-        { label: 'OTM', path: '/events', icon: <Medal className="w-4 h-4" /> },
+        { label: 'ROTM', path: '/rotm', icon: <Medal className="w-4 h-4" /> },
+        { label: 'SOTM', path: '/sotm', icon: <Award className="w-4 h-4" /> },
+        { label: 'BOTM', path: '/botm', icon: <Pickaxe className="w-4 h-4" /> },
+        { label: 'DOTM', path: '/dotm', icon: <Code2 className="w-4 h-4" /> },
         { label: 'OTM Standings', path: '/otm-standings', icon: <ChevronsUp className="w-4 h-4" /> },
       ]
     },
@@ -293,7 +296,7 @@ export function Navbar() {
               style={{ willChange: 'transform' }}
             >
               <div className="p-6 flex flex-col h-full">
-                <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
+                <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-3">
                   <Link 
                     to="/" 
                     onClick={() => setMobileMenuOpen(false)}
@@ -301,7 +304,7 @@ export function Navbar() {
                   >
                     <img 
                       src="/logoRE.png" 
-                      className="w-12 h-12 object-contain" 
+                      className="w-10 h-10 object-contain" 
                       alt="RE Logo" 
                     />
                   </Link>
@@ -309,21 +312,21 @@ export function Navbar() {
                     onClick={() => setMobileMenuOpen(false)}
                     className="p-2 text-zinc-500 hover:text-white transition-colors"
                   >
-                    <LogOut className="w-5 h-5 rotate-180" />
+                    <LogOut className="w-4 h-4 rotate-180" />
                   </button>
                 </div>
 
-                <div className="flex flex-col gap-1.5 flex-grow overflow-y-auto pr-2">
+                <div className="flex flex-col gap-1 flex-grow overflow-y-auto pr-2">
                   {navItems.map((item) => {
                       const isActive = location.pathname === item.path
                       const hasChildren = item.children && item.children.length > 0
                       const isServers = item.label === 'Servers'
                       
                       return (
-                       <div key={item.path} className="flex flex-col gap-1">
+                       <div key={item.path} className="flex flex-col gap-0.5">
                          <Link 
                            to={item.path}
-                           className={`flex items-center gap-3 px-4 py-2 rounded font-headline text-sm font-bold transition-all ${
+                           className={`flex items-center gap-2.5 px-3 py-1.5 rounded font-headline text-[13px] font-bold transition-all ${
                              isActive 
                                ? 'bg-realm-green text-zinc-950' 
                                : isServers
@@ -337,19 +340,19 @@ export function Navbar() {
                            {item.label}
                            
                            {isServers && (
-                             <span className="ml-auto text-realm-green text-[10px] font-mono font-bold">
+                             <span className="ml-auto text-realm-green text-[9px] font-mono font-bold">
                                +{stats?.servers || 0}
                              </span>
                            )}
                          </Link>
                         
                         {hasChildren && (
-                          <div className="flex flex-col gap-1 ml-4 border-l border-white/5 pl-2">
+                          <div className="flex flex-col gap-0.5 ml-3 border-l border-white/5 pl-2">
                             {item.children?.map(child => (
                                <Link 
                                  key={child.path}
                                  to={child.path}
-                                 className={`flex items-center gap-3 px-4 py-2 rounded font-headline text-xs font-semibold transition-all ${location.pathname === child.path ? 'text-realm-green bg-realm-green/10' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
+                                 className={`flex items-center gap-2 px-3 py-1.5 rounded font-headline text-[11px] font-semibold transition-all ${location.pathname === child.path ? 'text-realm-green bg-realm-green/10' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
                                >
                                 {child.icon}
                                 {child.label}
@@ -357,8 +360,8 @@ export function Navbar() {
                             ))}
                           </div>
                         )}
-                      </div>
-                     )
+                       </div>
+                      )
                   })}
                 </div>
 

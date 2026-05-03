@@ -80,7 +80,7 @@ export function AdminCategoryRequestsPage() {
         </FramerIn>
         
         <FramerIn delay={0.1}>
-          <div className="flex items-center justify-around lg:justify-start gap-4 sm:gap-6 bg-white/5 border border-white/10 px-4 sm:px-6 py-4 rounded-2xl backdrop-blur-md">
+          <div className="flex items-center justify-around lg:justify-start gap-4 sm:gap-6 bg-zinc-900 border border-white/10 px-4 sm:px-6 py-4 rounded-lg">
             <div className="text-center min-w-[70px]">
               <div className="text-orange-500 font-pixel text-xl leading-none mb-1">
                 {requests.filter(r => r.status === 'pending').length}
@@ -103,7 +103,7 @@ export function AdminCategoryRequestsPage() {
         </FramerIn>
       </div>
 
-      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950/80 backdrop-blur-md p-4 -mx-4 rounded-xl border border-white/5 lg:border-none lg:bg-transparent lg:p-0 lg:mx-0 lg:backdrop-blur-none">
+      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950 p-4 -mx-4 rounded-lg border border-white/5 lg:border-none lg:bg-transparent lg:p-0 lg:mx-0">
         <div className="flex-1 relative min-w-[200px]">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
           <input 
@@ -111,7 +111,7 @@ export function AdminCategoryRequestsPage() {
             placeholder="Search suggestions or users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none backdrop-blur-md"
+            className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
@@ -120,7 +120,7 @@ export function AdminCategoryRequestsPage() {
           )}
         </div>
         
-        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
+        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-lg">
           {[
             { id: 'pending', label: 'Pending' },
             { id: 'accepted', label: 'Accepted' },
@@ -130,9 +130,9 @@ export function AdminCategoryRequestsPage() {
             <button
               key={f.id}
               onClick={() => setStatusFilter(f.id as any)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-headline font-bold uppercase tracking-widest transition-all ${
+              className={`px-4 py-2 rounded-lg text-[10px] font-headline font-bold uppercase tracking-widest transition-all ${
                 statusFilter === f.id 
-                  ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' 
+                  ? 'bg-realm-green text-zinc-950 shadow-md' 
                   : 'text-white/40 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -142,7 +142,7 @@ export function AdminCategoryRequestsPage() {
         </div>
       </FramerIn>
 
-      <FramerIn delay={0.2} className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
+      <FramerIn delay={0.2} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left font-headline text-sm border-collapse">
             <thead>
@@ -175,7 +175,7 @@ export function AdminCategoryRequestsPage() {
                 >
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                      <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
                         {req.profiles?.discord_avatar ? (
                           <img src={req.profiles.discord_avatar} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -195,12 +195,12 @@ export function AdminCategoryRequestsPage() {
                     {format(new Date(req.created_at), 'MMM dd, HH:mm')}
                   </td>
                   <td className="px-6 py-5">
-                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
                       req.status === 'accepted' ? 'bg-realm-green/10 text-realm-green border border-realm-green/20' :
                       req.status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
                       'bg-orange-500/10 text-orange-400 border border-orange-500/20'
                     }`}>
-                      <span className="w-1 h-1 rounded-full bg-current" />
+                      <span className="w-1 h-1 rounded-lg bg-current" />
                       {req.status}
                     </div>
                   </td>

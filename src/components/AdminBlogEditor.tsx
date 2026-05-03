@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { type BlogPost } from '../types'
 import { useAuth } from '../contexts/AuthContext'
 import { useCreateBlogPostMutation, useUpdateBlogPostMutation } from '../hooks/mutations'
@@ -92,7 +93,7 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
 
   if (!isOpen) return null
 
-  return (
+  const editorContent = (
     <AnimatePresence>
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10">
         <motion.div
@@ -100,14 +101,14 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/80 backdrop-blur-md"
+          className="absolute inset-0 bg-black/80"
         />
         
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-5xl max-h-[90vh] bg-zinc-900 border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+          className="relative w-full max-w-5xl max-h-[90vh] bg-zinc-900 border border-white/10 rounded-lg shadow-xl overflow-hidden flex flex-col"
         >
           {/* Header */}
           <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-black/20">
@@ -182,7 +183,7 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
                             onClick={() => setCategory(cat)}
                             className={`px-4 py-2 rounded-xl border-2 font-pixel text-[8px] uppercase tracking-widest transition-all ${
                               category === cat 
-                                ? 'bg-realm-green border-realm-green text-zinc-950 shadow-[3px_3px_0px_rgba(0,0,0,0.4)]' 
+                                ? 'bg-realm-green border-realm-green text-zinc-950 shadow-sm' 
                                 : 'bg-white/5 border-white/10 text-white/40 hover:text-white hover:border-white/20'
                             }`}
                           >
@@ -199,7 +200,7 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
                       >
                         <motion.div 
                           animate={{ x: isFeatured ? 26 : 2 }}
-                          className={`absolute top-1 w-4 h-4 rounded-full shadow-lg ${isFeatured ? 'bg-zinc-950' : 'bg-white/40'}`}
+                          className={`absolute top-1 w-4 h-4 rounded-full shadow-sm ${isFeatured ? 'bg-zinc-950' : 'bg-white/40'}`}
                         />
                       </div>
                       <div className="flex-1">
@@ -254,7 +255,7 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
                 </div>
 
                 {imageUrl && (
-                  <div className="max-w-2xl mx-auto aspect-video rounded-3xl overflow-hidden bg-white/[0.02] border border-white/10 shadow-3xl mb-12 relative flex items-center justify-center">
+                  <div className="max-w-2xl mx-auto aspect-video rounded-lg overflow-hidden bg-white/[0.02] border border-white/10 shadow-xl mb-12 relative flex items-center justify-center">
                     <img src={imageUrl} alt="" className="max-w-full max-h-full object-contain" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                   </div>
@@ -309,7 +310,7 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
             <button
               onClick={handleSubmit}
               disabled={createMutation.isPending || updateMutation.isPending || !title || !content}
-              className="flex items-center gap-2 px-8 py-3 bg-realm-green text-zinc-950 rounded-xl font-headline font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 shadow-lg shadow-realm-green/20"
+              className="flex items-center gap-2 px-8 py-3 bg-realm-green text-zinc-950 rounded-xl font-headline font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 shadow-md"
             >
               {createMutation.isPending || updateMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -325,4 +326,6 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
       </div>
     </AnimatePresence>
   )
+
+  return createPortal(editorContent, document.getElementById('modal-root')!)
 }

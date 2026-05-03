@@ -158,13 +158,13 @@ export function AdminBadgesPage() {
                   setTargetType(badge.target_type)
                   setSearchQuery('')
                 }}
-                className={`flex items-start gap-4 p-4 rounded-2xl border transition-all duration-300 text-left ${
+                className={`flex items-start gap-4 p-4 rounded-lg border transition-all duration-300 text-left ${
                   selectedBadge?.id === badge.id
-                    ? 'bg-realm-green/10 border-realm-green text-realm-green shadow-[0_0_20px_rgba(133,252,126,0.1)]'
+                    ? 'bg-realm-green/10 border-realm-green text-realm-green shadow-sm'
                     : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/20'
                 }`}
               >
-                <div className="w-12 h-12 bg-black/40 rounded-xl border border-white/10 flex items-center justify-center shrink-0 p-2 overflow-hidden">
+                <div className="w-12 h-12 bg-black/40 rounded-lg border border-white/10 flex items-center justify-center shrink-0 p-2 overflow-hidden">
                    <img 
                     src={new URL(`../assets/badges/${badge.image_url}`, import.meta.url).href} 
                     alt={badge.name} 
@@ -202,14 +202,14 @@ export function AdminBadgesPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl relative overflow-hidden"
+                className="bg-zinc-900 border border-white/10 rounded-lg p-8 relative overflow-hidden"
               >
                 {/* Background Decor */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-realm-green/5 blur-[80px] -z-10" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-realm-green/5 -z-10" />
                 
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-realm-green/10 rounded-2xl border border-realm-green/20 flex items-center justify-center p-2 overflow-hidden">
+                    <div className="w-14 h-14 bg-realm-green/10 rounded-lg border border-realm-green/20 flex items-center justify-center p-2 overflow-hidden">
                        <img 
                         src={new URL(`../assets/badges/${selectedBadge.image_url}`, import.meta.url).href} 
                         alt="" 
@@ -230,7 +230,7 @@ export function AdminBadgesPage() {
                 </div>
 
                 {selectedBadge.type === 'automatic' ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center bg-blue-500/5 border border-blue-500/20 rounded-2xl">
+                  <div className="flex flex-col items-center justify-center py-12 text-center bg-blue-500/5 border border-blue-500/20 rounded-lg">
                     <Info className="text-blue-400 mb-4" size={32} />
                     <h3 className="text-lg font-pixel text-white mb-2 uppercase">AUTOMATIC BADGE</h3>
                     <p className="text-white/40 text-sm max-w-md px-6">
@@ -247,14 +247,14 @@ export function AdminBadgesPage() {
                           placeholder={`Search ${selectedBadge.target_type}s...`}
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-realm-green/50 transition-all font-headline font-medium"
+                          className="w-full bg-white/5 border border-white/10 rounded-lg py-4 pl-12 pr-6 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-realm-green/50 transition-all font-headline font-medium"
                         />
                       </div>
                       <div className="w-full md:w-48">
                         <select
                           value={selectedMonth}
                           onChange={(e) => setSelectedMonth(e.target.value)}
-                          className="w-full h-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 text-white focus:outline-none focus:ring-2 focus:ring-realm-green/50 transition-all font-headline font-bold appearance-none cursor-pointer"
+                          className="w-full h-full bg-white/5 border border-white/10 rounded-lg py-4 px-4 text-white focus:outline-none focus:ring-2 focus:ring-realm-green/50 transition-all font-headline font-bold appearance-none cursor-pointer"
                         >
                           {monthOptions.map(m => (
                             <option key={m} value={m} className="bg-zinc-900 text-white">{m}</option>
@@ -271,7 +271,7 @@ export function AdminBadgesPage() {
                               key={target.id}
                               onClick={() => handleAssign(target.id)}
                               disabled={isAssigning}
-                              className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
+                              className="w-full flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
                             >
                               <div className="flex items-center gap-3">
                                 {targetType === 'server' ? (
@@ -279,7 +279,7 @@ export function AdminBadgesPage() {
                                     <img src={target.icon_url || ''} className="w-full h-full object-cover" alt="" />
                                   </div>
                                 ) : (
-                                  <div className="w-10 h-10 bg-white/10 rounded-full overflow-hidden border border-white/10">
+                                  <div className="w-10 h-10 bg-white/10 rounded-lg overflow-hidden border border-white/10">
                                     <img src={target.discord_avatar || ''} className="w-full h-full object-cover" alt="" />
                                   </div>
                                 )}
@@ -321,7 +321,7 @@ export function AdminBadgesPage() {
                   <Shield size={20} /> RECENT ASSIGNMENTS
                 </h2>
 
-                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-md">
+                <div className="bg-zinc-900 border border-white/10 rounded-lg overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
@@ -336,7 +336,7 @@ export function AdminBadgesPage() {
                       <tbody className="divide-y divide-white/5 font-headline">
                         {assignedLoading ? (
                           <tr>
-                            <td colSpan={4} className="px-6 py-12 text-center text-white/20 font-pixel animate-pulse uppercase">Loading assignments...</td>
+                            <td colSpan={4} className="px-6 py-12 text-center text-white/20 font-pixel uppercase">Loading assignments...</td>
                           </tr>
                         ) : assignedBadges.length > 0 ? (
                           assignedBadges.map((ab) => (

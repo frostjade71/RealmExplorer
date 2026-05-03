@@ -1,7 +1,12 @@
 export { HomePage } from './HomePage'
 export { ServerDetailPage } from './ServerDetailPage'
 export { DirectoryPage as ServersPage } from './DirectoryPage'
-export { EventsPage } from './EventsPage'
+import { EventsPage } from './EventsPage'
+export { EventsPage }
+export const ROTMPage = () => <EventsPage category="realm" />
+export const SOTMPage = () => <EventsPage category="server" />
+export const BOTMPage = () => <EventsPage category="builder" />
+export const DOTMPage = () => <EventsPage category="developer" />
 export { LeaderboardsPage } from './LeaderboardsPage'
 export { OTMStandingsPage } from './OTMStandingsPage'
 export { AboutPage } from './AboutPage'

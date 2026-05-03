@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { Trophy, Star, Sparkles, Calendar, Search, X, Medal, Crown, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Trophy, Search, X, Medal, Crown, ChevronLeft, ChevronRight, Pickaxe, Code2, Award } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatedPage } from '../components/AnimatedPage'
@@ -15,10 +15,10 @@ import thirdPlaceIcon from '../assets/leaderboards/4162-3rd.png'
 import type { OTMCategory } from '../types'
 
 const CATEGORIES: { id: OTMCategory; label: string; icon: any }[] = [
-  { id: 'realm', label: 'Realm of the Month', icon: Sparkles },
-  { id: 'server', label: 'Server of the Month', icon: Trophy },
-  { id: 'developer', label: 'Developer of the Month', icon: Star },
-  { id: 'builder', label: 'Builder of the Month', icon: Calendar },
+  { id: 'realm', label: 'Realm of the Month', icon: Medal },
+  { id: 'server', label: 'Server of the Month', icon: Award },
+  { id: 'developer', label: 'Developer of the Month', icon: Code2 },
+  { id: 'builder', label: 'Builder of the Month', icon: Pickaxe },
 ]
 
 export function OTMStandingsPage() {

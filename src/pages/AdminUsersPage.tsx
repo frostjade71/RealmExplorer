@@ -63,18 +63,18 @@ export function AdminUsersPage() {
         </FramerIn>
 
         <FramerIn delay={0.1}>
-          <div className="flex items-center justify-between lg:justify-start gap-4 sm:gap-6 bg-white/5 border border-white/10 px-4 sm:px-6 py-4 rounded-2xl backdrop-blur-md">
+          <div className="flex items-center justify-between lg:justify-start gap-4 sm:gap-6 bg-zinc-900 border border-white/10 px-4 sm:px-6 py-4 rounded-lg">
             <div className="flex -space-x-3 shrink-0">
               {users.slice(0, 5).map(user => (
                 <img 
                   key={user.id} 
                   src={user.discord_avatar || ''} 
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-zinc-950 bg-zinc-800" 
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-2 border-zinc-950 bg-zinc-800" 
                   alt="" 
                 />
               ))}
               {users.length > 5 && (
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-zinc-950 bg-white/5 flex items-center justify-center text-[10px] font-bold text-white/40">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-2 border-zinc-950 bg-white/5 flex items-center justify-center text-[10px] font-bold text-white/40">
                   +{users.length - 5}
                 </div>
               )}
@@ -87,7 +87,7 @@ export function AdminUsersPage() {
         </FramerIn>
       </div>
 
-      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950/80 backdrop-blur-md p-4 -mx-4 rounded-xl border border-white/5 lg:border-none lg:bg-transparent lg:p-0 lg:mx-0 lg:backdrop-blur-none">
+      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950 p-4 -mx-4 rounded-lg border border-white/5 lg:border-none lg:bg-transparent lg:p-0 lg:mx-0">
         <div className="flex-1 relative min-w-[200px]">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
           <input 
@@ -95,7 +95,7 @@ export function AdminUsersPage() {
             placeholder="Search by username or ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none backdrop-blur-md"
+            className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
@@ -104,7 +104,7 @@ export function AdminUsersPage() {
           )}
         </div>
         
-        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
+        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-lg">
           {[
             { id: 'all', label: 'All' },
             { id: 'admin', label: 'Admins' },
@@ -114,9 +114,9 @@ export function AdminUsersPage() {
             <button
               key={f.id}
               onClick={() => setRoleFilter(f.id)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-headline font-bold uppercase tracking-widest transition-all ${
+              className={`px-4 py-2 rounded-lg text-[10px] font-headline font-bold uppercase tracking-widest transition-all ${
                 roleFilter === f.id 
-                  ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' 
+                  ? 'bg-realm-green text-zinc-950 shadow-md' 
                   : f.id === 'all'
                     ? 'bg-white/10 text-white border border-white/10 hover:bg-white/20'
                     : 'text-white/40 hover:text-white hover:bg-white/5'
@@ -128,7 +128,7 @@ export function AdminUsersPage() {
         </div>
       </FramerIn>
 
-      <FramerIn delay={0.2} className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
+      <FramerIn delay={0.2} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left font-headline text-sm border-collapse">
             <thead>
@@ -168,7 +168,7 @@ export function AdminUsersPage() {
                         <motion.img 
                           whileHover={{ scale: 1.1, rotate: 5 }}
                           src={user.discord_avatar || ''} 
-                          className="w-10 h-10 rounded-xl bg-zinc-800 shadow-xl border border-white/10" 
+                          className="w-10 h-10 rounded-lg bg-zinc-800 border border-white/10" 
                           alt="" 
                         />
 

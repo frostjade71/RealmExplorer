@@ -105,7 +105,7 @@ export function AdminSettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <FramerIn delay={0.2}>
-          <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden group backdrop-blur-md">
+          <div className="bg-zinc-900/60 border border-white/5 rounded-lg p-6 relative overflow-hidden group">
             {/* Background Icon Watermark */}
             <div className="absolute -top-10 -right-10 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700 pointer-events-none">
               <span className="material-symbols-outlined text-[120px] text-white">sync_alt</span>
@@ -113,7 +113,7 @@ export function AdminSettingsPage() {
             
             <div className="relative z-10">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-realm-green/10 flex items-center justify-center border border-realm-green/20">
+                <div className="w-12 h-12 rounded-lg bg-realm-green/10 flex items-center justify-center border border-realm-green/20">
                   <span className="material-symbols-outlined text-realm-green">refresh</span>
                 </div>
                 <div>
@@ -133,7 +133,7 @@ export function AdminSettingsPage() {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setShowConfirmModal(true)}
                   disabled={loading}
-                  className={`w-full py-3 px-6 rounded-xl font-headline font-bold flex items-center justify-center gap-2 transition-all duration-500 shadow-xl bg-white/5 border border-white/10 text-white text-xs hover:bg-realm-green hover:text-zinc-950 hover:border-realm-green`}
+                  className={`w-full py-3 px-6 rounded-lg font-headline font-bold flex items-center justify-center gap-2 transition-all duration-500 bg-white/5 border border-white/10 text-white text-xs hover:bg-realm-green hover:text-zinc-950 hover:border-realm-green`}
                 >
                   {loading ? (
                     <span className="material-symbols-outlined animate-spin text-sm">sync</span>
@@ -147,7 +147,7 @@ export function AdminSettingsPage() {
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-headline font-bold uppercase tracking-wider"
+                    className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs font-headline font-bold uppercase tracking-wider"
                   >
                     <span className="material-symbols-outlined text-sm">warning</span>
                     {error}
@@ -159,14 +159,14 @@ export function AdminSettingsPage() {
         </FramerIn>
 
         <FramerIn delay={0.25}>
-          <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden group backdrop-blur-md h-full">
+          <div className="bg-zinc-900/60 border border-white/5 rounded-lg p-6 relative overflow-hidden group h-full">
             <div className="absolute -top-10 -right-10 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700 pointer-events-none text-red-500">
               <span className="material-symbols-outlined text-[120px]">delete_forever</span>
             </div>
             
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                <div className="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center border border-red-500/20">
                   <span className="material-symbols-outlined text-red-500">cleaning_services</span>
                 </div>
                 <div>
@@ -182,7 +182,7 @@ export function AdminSettingsPage() {
               <button
                 onClick={() => setShowOTMConfirm(true)}
                 disabled={loadingOTM}
-                className="w-full py-3 px-6 rounded-xl font-headline font-bold flex items-center justify-center gap-2 transition-all duration-500 shadow-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs hover:bg-red-500 hover:text-white"
+                className="w-full py-3 px-6 rounded-lg font-headline font-bold flex items-center justify-center gap-2 transition-all duration-500 bg-red-500/10 border border-red-500/20 text-red-500 text-xs hover:bg-red-500 hover:text-white"
               >
                 {loadingOTM ? (
                   <span className="material-symbols-outlined animate-spin text-sm">sync</span>
@@ -196,14 +196,14 @@ export function AdminSettingsPage() {
         </FramerIn>
 
         <FramerIn delay={0.3}>
-          <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden group backdrop-blur-md h-full">
+          <div className="bg-zinc-900/60 border border-white/5 rounded-lg p-6 relative overflow-hidden group h-full">
             <div className="absolute -top-10 -right-10 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700 pointer-events-none text-realm-green">
               <span className="material-symbols-outlined text-[120px]">timer_off</span>
             </div>
             
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-realm-green/10 flex items-center justify-center border border-realm-green/20">
+                <div className="w-12 h-12 rounded-lg bg-realm-green/10 flex items-center justify-center border border-realm-green/20">
                   <span className="material-symbols-outlined text-realm-green">history_toggle_off</span>
                 </div>
                 <div>
@@ -219,7 +219,7 @@ export function AdminSettingsPage() {
               <button
                 onClick={() => setShowOTMCooldownConfirm(true)}
                 disabled={loadingOTMCooldown}
-                className="w-full py-3 px-6 rounded-xl font-headline font-bold flex items-center justify-center gap-2 transition-all duration-500 shadow-xl bg-white/5 border border-white/10 text-white text-xs hover:bg-realm-green hover:text-zinc-950"
+                className="w-full py-3 px-6 rounded-lg font-headline font-bold flex items-center justify-center gap-2 transition-all duration-500 bg-white/5 border border-white/10 text-white text-xs hover:bg-realm-green hover:text-zinc-950"
               >
                 {loadingOTMCooldown ? (
                   <span className="material-symbols-outlined animate-spin text-sm">sync</span>

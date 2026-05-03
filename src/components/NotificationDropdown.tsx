@@ -41,9 +41,9 @@ export function NotificationDropdown() {
       markRead.mutate(n.id)
     }
     
-    // Redirect to /events for OTM notifications
+    // Redirect to /rotm for OTM notifications
     if (n.type === 'otm_podium' || n.type === 'otm_competitor') {
-      navigate('/events')
+      navigate('/rotm')
       setIsOpen(false)
     } else if (n.type === 'category_request_result') {
       const isAccepted = n.message.toLowerCase().includes('accepted')

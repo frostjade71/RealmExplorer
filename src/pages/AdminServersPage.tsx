@@ -147,17 +147,12 @@ export function AdminServersPage() {
         </FramerIn>
         
         <FramerIn delay={0.1}>
-          <div className="flex items-center justify-around lg:justify-start gap-4 sm:gap-6 bg-white/5 border border-white/10 px-4 sm:px-6 py-4 rounded-2xl backdrop-blur-md">
+          <div className="flex items-center justify-around lg:justify-start gap-4 sm:gap-6 bg-zinc-900 border border-white/10 px-4 sm:px-6 py-4 rounded-lg">
             <div className="text-center min-w-[70px]">
               <div className="text-realm-green font-pixel text-xl leading-none mb-1">
                 {servers.filter(s => ['pending', 'Review Icon', 'Review Cover', 'Review Icon & Cover', 'Review Gallery', 'Review Icon & Gallery', 'Review Cover & Gallery', 'Review All Assets'].includes(s.status)).length}
               </div>
               <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">To Review</div>
-            </div>
-            <div className="w-px h-8 bg-white/10" />
-            <div className="text-center min-w-[70px]">
-              <div className="text-blue-400 font-pixel text-xl leading-none mb-1">{servers.filter(s => s.status === 'emailed').length}</div>
-              <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest">Emailed</div>
             </div>
             <div className="w-px h-8 bg-white/10" />
             <div className="text-center min-w-[70px]">
@@ -168,7 +163,7 @@ export function AdminServersPage() {
         </FramerIn>
       </div>
 
-      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950/80 backdrop-blur-md p-4 -mx-4 rounded-xl border border-white/5 lg:border-none lg:bg-transparent lg:p-0 lg:mx-0 lg:backdrop-blur-none">
+      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950 p-4 -mx-4 rounded-lg border border-white/5 lg:border-none lg:bg-transparent lg:p-0 lg:mx-0">
         <div className="flex-1 relative min-w-[200px]">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
           <input 
@@ -176,7 +171,7 @@ export function AdminServersPage() {
             placeholder="Search by name or IP..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none backdrop-blur-md"
+            className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
@@ -185,20 +180,19 @@ export function AdminServersPage() {
           )}
         </div>
         
-        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
+        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-lg">
           {[
             { id: 'review', label: 'Review' },
             { id: 'approved', label: 'Approved' },
             { id: 'rejected', label: 'Rejected' },
-            { id: 'emailed', label: 'Emailed' },
             { id: 'all', label: 'All' }
           ].map(f => (
             <button
               key={f.id}
               onClick={() => setStatusFilter(f.id)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-headline font-bold uppercase tracking-widest transition-all ${
+              className={`px-4 py-2 rounded-lg text-[10px] font-headline font-bold uppercase tracking-widest transition-all ${
                 statusFilter === f.id 
-                  ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' 
+                  ? 'bg-realm-green text-zinc-950 shadow-md' 
                   : f.id === 'all'
                     ? 'bg-white/10 text-white border border-white/10 hover:bg-white/20'
                     : 'text-white/40 hover:text-white hover:bg-white/5'
@@ -210,7 +204,7 @@ export function AdminServersPage() {
         </div>
       </FramerIn>
 
-      <FramerIn delay={0.2} className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
+      <FramerIn delay={0.2} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left font-headline text-sm border-collapse">
             <thead>
@@ -286,14 +280,13 @@ export function AdminServersPage() {
                     {server.category}
                   </td>
                   <td className="px-6 py-5">
-                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
                       server.status === 'approved' ? 'bg-realm-green/10 text-realm-green border border-realm-green/20' :
                       server.status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
-                      server.status === 'emailed' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse' :
-                      (server.status.startsWith('Review') || server.status.includes('Gallery')) ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20 animate-pulse' :
-                      'bg-orange-500/10 text-orange-500 border border-orange-500/20 animate-pulse'
+                      (server.status.startsWith('Review') || server.status.includes('Gallery')) ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
+                      'bg-orange-500/10 text-orange-500 border border-orange-500/20'
                     }`}>
-                      <span className="w-1 h-1 rounded-full bg-current" />
+                      <span className="w-1 h-1 rounded-lg bg-current" />
                       {server.status}
                     </div>
                   </td>
@@ -305,7 +298,7 @@ export function AdminServersPage() {
                             e.stopPropagation()
                             handleUpdateStatus(server.id, 'approved')
                           }}
-                          className="w-10 h-10 rounded-xl bg-realm-green/10 text-realm-green hover:bg-realm-green hover:text-zinc-950 flex items-center justify-center transition-all duration-300 border border-realm-green/20 group/btn"
+                          className="w-10 h-10 rounded-lg bg-realm-green/10 text-realm-green hover:bg-realm-green hover:text-zinc-950 flex items-center justify-center transition-all duration-300 border border-realm-green/20 group/btn"
                           title="Approve"
                         >
                           <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">check</span>
@@ -317,7 +310,7 @@ export function AdminServersPage() {
                             e.stopPropagation()
                             openContactModal(server, 'rejection')
                           }}
-                          className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-red-500/20 group/btn"
+                          className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-red-500/20 group/btn"
                           title="Reject"
                         >
                           <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">close</span>
@@ -328,7 +321,7 @@ export function AdminServersPage() {
                           e.stopPropagation()
                           openContactModal(server, 'contact')
                         }}
-                        className="w-10 h-10 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white flex items-center justify-center transition-all duration-300 border border-white/10 group/btn"
+                        className="w-10 h-10 rounded-lg bg-white/5 text-white/40 hover:bg-white/10 hover:text-white flex items-center justify-center transition-all duration-300 border border-white/10 group/btn"
                         title="Contact Owner"
                       >
                         <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">mail</span>
@@ -338,7 +331,7 @@ export function AdminServersPage() {
                           e.stopPropagation()
                           setServerToDelete(server)
                         }}
-                        className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-red-500/20 group/btn"
+                        className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-red-500/20 group/btn"
                         title="Delete Server"
                       >
                         <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">delete</span>

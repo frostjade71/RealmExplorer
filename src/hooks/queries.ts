@@ -314,12 +314,14 @@ export function useUserOTMVotes(userId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('otm_votes')
-        .select('server_id, target_user_id, created_at')
+        .select('server_id, target_user_id, category, created_at')
         .eq('user_id', userId!)
+        .order('created_at', { ascending: false })
       
       if (error) throw error
       return (data || []).map((v: any) => ({
         id: v.server_id || v.target_user_id,
+        category: v.category,
         created_at: v.created_at
       }))
     }

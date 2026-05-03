@@ -1,10 +1,11 @@
 /**
  * Converts a string into a URL-friendly slug.
- * Example: "Best SMP Network 1.20!" -> "best-smp-network-1-20"
+ * Example: "Gooner Network" -> "gooner-network"
  */
 export function slugify(text: string): string {
   const slug = text
     .toString()
+    .normalize('NFKD')               // Normalize unicode characters
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-')           // Replace spaces with -

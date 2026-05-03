@@ -92,13 +92,24 @@ export function ServerCard({
               )}
             </div>
             <div className="min-w-0 flex-grow pr-4 md:pr-6">
-              <h3 className={`font-pixel ${
-                server.name.length > 25 ? 'text-[11px] md:text-xs' : 
-                server.name.length > 15 ? 'text-xs md:text-sm' : 
-                'text-sm md:text-base'
-              } line-clamp-2 mb-1 group-hover:text-white transition-colors leading-tight break-words`}>
-                {server.name}
-              </h3>
+              {(() => {
+                const nameParts = server.name.split(' ');
+                const longestWord = Math.max(...nameParts.map(w => w.length));
+                const hasVeryLongWord = longestWord > 12;
+                const hasLongWord = longestWord > 10;
+                
+                const fontSizeClass = (server.name.length > 25 || hasVeryLongWord) 
+                  ? 'text-[11px] md:text-xs' 
+                  : (server.name.length > 15 || hasLongWord) 
+                    ? 'text-xs md:text-sm' 
+                    : 'text-sm md:text-base';
+
+                return (
+                  <h3 className={`font-pixel ${fontSizeClass} line-clamp-2 mb-1 group-hover:text-white transition-colors leading-tight break-words`}>
+                    {server.name}
+                  </h3>
+                );
+              })()}
               <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
                 {(showStatus || server.status !== 'approved') && (
                   <span className={`px-1.5 md:px-2 py-0.5 text-[8px] md:text-[10px] font-bold uppercase tracking-wider rounded border border-current/10 ${statusInfo.bg} ${statusInfo.text}`}>

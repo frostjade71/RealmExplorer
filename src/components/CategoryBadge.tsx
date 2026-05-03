@@ -59,7 +59,7 @@ export function CategoryBadge({ category, className }: { category: ServerCategor
   const style = categoryStyles[category] || categoryStyles.other
   
   return (
-    <div className={twMerge(clsx("flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] md:text-[10px] font-headline font-bold uppercase tracking-wider w-fit", style.bg, style.text, className))}>
+    <div className={twMerge(clsx("flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] md:text-[10px] font-headline font-bold uppercase tracking-wider w-fit", style.bg, style.text, className))}>
       {style.icon}
       <span>{category}</span>
     </div>

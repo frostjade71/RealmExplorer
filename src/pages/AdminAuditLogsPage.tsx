@@ -108,7 +108,7 @@ export function AdminAuditLogsPage() {
             <button
               onClick={() => setIsClearModalOpen(true)}
               disabled={currentCount === 0}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all font-headline text-[10px] uppercase font-bold tracking-widest disabled:opacity-50 disabled:cursor-not-allowed group"
+              className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all font-headline text-[10px] uppercase font-bold tracking-widest disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
               Clear {activeTab === 'audit' ? 'Audit' : 'Vote'}
@@ -116,7 +116,7 @@ export function AdminAuditLogsPage() {
           </FramerIn>
 
           <FramerIn delay={0.15}>
-            <div className="bg-white/5 border border-white/10 px-6 py-3 sm:py-4 rounded-2xl backdrop-blur-md">
+            <div className="bg-zinc-900 border border-white/10 px-6 py-3 sm:py-4 rounded-lg">
               <div className="text-left lg:text-right">
                 <div className="text-white font-pixel text-lg leading-none mb-1">{currentCount}</div>
                 <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest leading-none">Stored Events</div>
@@ -126,11 +126,11 @@ export function AdminAuditLogsPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/5 p-1 rounded-2xl max-w-full lg:w-fit border border-white/10">
+      <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/5 p-1 rounded-lg max-w-full lg:w-fit border border-white/10">
         <button
           onClick={() => { setActiveTab('audit'); setSearchQuery(''); }}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
-            activeTab === 'audit' ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' : 'text-white/40 hover:text-white hover:bg-white/5'
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
+            activeTab === 'audit' ? 'bg-realm-green text-zinc-950 shadow-md' : 'text-white/40 hover:text-white hover:bg-white/5'
           }`}
         >
           <History className="w-3.5 h-3.5" />
@@ -138,8 +138,8 @@ export function AdminAuditLogsPage() {
         </button>
         <button
           onClick={() => { setActiveTab('otm'); setSearchQuery(''); }}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
-            activeTab === 'otm' ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' : 'text-white/40 hover:text-white hover:bg-white/5'
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
+            activeTab === 'otm' ? 'bg-realm-green text-zinc-950 shadow-md' : 'text-white/40 hover:text-white hover:bg-white/5'
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
@@ -147,8 +147,8 @@ export function AdminAuditLogsPage() {
         </button>
         <button
           onClick={() => { setActiveTab('vote'); setSearchQuery(''); }}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
-            activeTab === 'vote' ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' : 'text-white/40 hover:text-white hover:bg-white/5'
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
+            activeTab === 'vote' ? 'bg-realm-green text-zinc-950 shadow-md' : 'text-white/40 hover:text-white hover:bg-white/5'
           }`}
         >
           <ThumbsUp className="w-3.5 h-3.5" />
@@ -174,7 +174,7 @@ export function AdminAuditLogsPage() {
           placeholder={activeTab === 'audit' ? "Filter logs by username, action, or details..." : "Search by voter, Discord ID, or server..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none backdrop-blur-md"
+          className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
         />
         {searchQuery && (
           <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
@@ -183,7 +183,7 @@ export function AdminAuditLogsPage() {
         )}
       </FramerIn>
 
-      <FramerIn delay={0.25} className="bg-zinc-900/40 border border-white/5 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
+      <FramerIn delay={0.25} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left font-headline text-sm border-collapse">
             <thead>
@@ -223,7 +223,7 @@ export function AdminAuditLogsPage() {
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                           <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-realm-green/30 transition-colors">
+                           <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-realm-green/30 transition-colors">
                               <User className="w-3 h-3 text-white/20 group-hover:text-realm-green/60 transition-colors" />
                            </div>
                            <span className="font-bold text-white group-hover:text-realm-green transition-colors">
@@ -268,7 +268,7 @@ export function AdminAuditLogsPage() {
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                           <div className="w-6 h-6 rounded-full bg-realm-green/10 flex items-center justify-center border border-realm-green/20 group-hover:bg-realm-green/20 transition-colors">
+                           <div className="w-6 h-6 rounded-lg bg-realm-green/10 flex items-center justify-center border border-realm-green/20 group-hover:bg-realm-green/20 transition-colors">
                               <User className="w-3 h-3 text-realm-green/60" />
                            </div>
                            <span className="font-bold text-white">

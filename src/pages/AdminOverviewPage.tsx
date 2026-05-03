@@ -72,33 +72,51 @@ export function AdminOverviewPage() {
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Staff Dashboard</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-pixel text-white mb-4">Welcome, {profile?.discord_username || 'Staff'}</h1>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-white/40 font-headline text-xs md:text-sm max-w-2xl leading-relaxed">
-            <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${dbStatus === 'online' ? 'bg-realm-green animate-pulse' : 'bg-red-500'}`} />
-              <span className="uppercase tracking-widest text-[10px] font-bold">Database {dbStatus}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* DB Status */}
+            <div className="flex items-center gap-2.5 px-3 py-1.5 bg-white/5 border border-white/5 rounded-lg">
+              <div className="relative">
+                <div className={`w-2 h-2 rounded-lg ${dbStatus === 'online' ? 'bg-realm-green' : 'bg-red-500'}`} />
+                {dbStatus === 'online' && <div className="absolute inset-0 w-2 h-2 rounded-lg bg-realm-green opacity-40" />}
+              </div>
+              <span className="text-[10px] font-headline font-bold text-white/60 uppercase tracking-wider">
+                Database <span className={dbStatus === 'online' ? 'text-realm-green' : 'text-red-500'}>{dbStatus}</span>
+              </span>
             </div>
+
+            {/* Latency */}
             {latency !== null && (
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[14px]">speed</span>
-                <span className="uppercase tracking-widest text-[10px] font-bold">{latency}ms Response</span>
+              <div className="flex items-center gap-2.5 px-3 py-1.5 bg-white/5 border border-white/5 rounded-lg">
+                <span className="material-symbols-outlined text-[14px] text-white/40">sensors</span>
+                <span className="text-[10px] font-headline font-bold text-white/60 uppercase tracking-wider">
+                  <span className="text-white">{latency}ms</span> Latency
+                </span>
               </div>
             )}
-            <div className="hidden sm:block text-white/20">|</div>
-            <p>
-              You have <span className="text-orange-500 font-bold">{pendingServers + pendingCatRequests} tasks</span> to review.
-            </p>
+
+            <div className="hidden sm:block w-px h-4 bg-white/10 mx-1" />
+
+            {/* Tasks Summary */}
+            <div className="flex items-center gap-3 px-4 py-1.5 bg-realm-green/5 border border-realm-green/10 rounded-lg">
+              <span className="material-symbols-outlined text-[14px] text-realm-green">assignment_late</span>
+              <p className="text-[10px] font-headline font-bold uppercase tracking-wider text-white/80">
+                Active Queue: <span className={pendingServers + pendingCatRequests > 0 ? 'text-orange-500' : 'text-realm-green'}>
+                  {pendingServers + pendingCatRequests} tasks
+                </span>
+              </p>
+            </div>
           </div>
         </FramerIn>
       </div>
 
 
-      <FramerInList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <FramerInList className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-12">
         {quickStats.map((stat, i) => {
           // Map futuristic labels to grounded ones
           const displayLabel = stat.label === 'Total Influence' ? 'Total Votes' : stat.label
           return (
-            <div key={i} className="bg-zinc-900/40 border border-white/5 p-6 rounded-3xl backdrop-blur-md group hover:border-white/20 transition-all duration-500">
-              <div className={`w-12 h-12 rounded-2xl ${stat.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500`}>
+            <div key={i} className="bg-zinc-900/60 border border-white/5 rounded-lg p-6 group hover:border-white/20 transition-all duration-500">
+              <div className={`w-12 h-12 rounded-lg ${stat.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500`}>
                 <span className={`material-symbols-outlined ${stat.color}`}>{stat.icon}</span>
               </div>
               <div className="text-2xl font-pixel text-white mb-1">{stat.value.toLocaleString()}</div>
@@ -110,7 +128,7 @@ export function AdminOverviewPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <FramerIn delay={0.4} className="lg:col-span-2">
-          <div className="bg-zinc-900/40 border border-white/5 rounded-3xl overflow-hidden backdrop-blur-md">
+          <div className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden">
             <div className="p-6 border-b border-white/5 flex items-center justify-between">
               <h3 className="font-pixel text-white text-sm flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm text-realm-green">history</span>
@@ -118,45 +136,54 @@ export function AdminOverviewPage() {
               </h3>
               <Link to="/admin/servers" className="text-[10px] font-headline text-realm-green uppercase font-bold tracking-widest hover:underline">View All</Link>
             </div>
-            <div className="divide-y divide-white/[0.03]">
-              {servers.slice(0, 5).map(server => (
-                <div key={server.id} className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 overflow-hidden">
-                      {server.icon_url ? (
-                        <img src={server.icon_url} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="material-symbols-outlined text-white/20 text-xl">dns</span>
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-bold text-white text-sm">{server.name}</div>
-                      <div className="text-[10px] text-white/40 font-mono tracking-tighter">
-                        {server.type === 'realm' && server.ip_or_code 
-                          ? (server.ip_or_code.startsWith('http') ? server.ip_or_code : `https://realms.gg/${server.ip_or_code}`) 
-                          : (server.ip_or_code || 'No IP')}
+            <div className="overflow-x-auto scrollbar-thin">
+              <div className="divide-y divide-white/[0.03] min-w-[450px]">
+                {servers.slice(0, 5).map(server => (
+                  <Link 
+                    key={server.id} 
+                    to="/admin/servers"
+                    className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 overflow-hidden group-hover:border-realm-green/30 transition-colors">
+                        {server.icon_url ? (
+                          <img src={server.icon_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="material-symbols-outlined text-white/20 text-xl">dns</span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-bold text-white text-sm group-hover:text-realm-green transition-colors">{server.name}</div>
+                        <div className="text-[10px] text-white/40 font-mono tracking-tighter">
+                          {server.type === 'realm' && server.ip_or_code 
+                            ? (server.ip_or_code.startsWith('http') ? server.ip_or_code : `https://realms.gg/${server.ip_or_code}`) 
+                            : (server.ip_or_code || 'No IP')}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                    server.status === 'approved' ? 'bg-realm-green/10 text-realm-green' :
-                    server.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
-                    'bg-orange-500/10 text-orange-500'
-                  }`}>
-                    {server.status}
-                  </div>
-                </div>
-              ))}
-              {servers.length === 0 && (
-                <div className="p-12 text-center text-white/20 italic text-sm">No recent server activity found.</div>
-              )}
+                    <div className="flex items-center gap-3">
+                      <div className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                        server.status === 'approved' ? 'bg-realm-green/10 text-realm-green' :
+                        server.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
+                        'bg-orange-500/10 text-orange-500'
+                      }`}>
+                        {server.status}
+                      </div>
+                      <span className="material-symbols-outlined text-white/10 text-sm group-hover:text-realm-green group-hover:translate-x-0.5 transition-all">chevron_right</span>
+                    </div>
+                  </Link>
+                ))}
+                {servers.length === 0 && (
+                  <div className="p-12 text-center text-white/20 italic text-sm">No recent server activity found.</div>
+                )}
+              </div>
             </div>
           </div>
         </FramerIn>
 
         <FramerIn delay={0.5} className="space-y-8">
           {/* Quick Actions */}
-          <div className="bg-gradient-to-br from-realm-green/10 to-transparent border border-realm-green/20 rounded-3xl p-8 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-realm-green/10 to-transparent border border-realm-green/20 rounded-lg p-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-[0.05] pointer-events-none">
               <span className="material-symbols-outlined text-[120px]">bolt</span>
             </div>
@@ -165,22 +192,22 @@ export function AdminOverviewPage() {
               Quick Actions
             </h3>
             <div className="space-y-3">
-              <Link to="/admin/servers" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group relative">
+              <Link to="/admin/servers" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-lg transition-all group relative">
                 <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">rule</span>
                 <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">Manage Servers</span>
                 {pendingServers > 0 && (
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-orange-500 text-zinc-950 text-[10px] font-pixel px-1.5 py-0.5 rounded-md animate-pulse">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-orange-500 text-zinc-950 text-[10px] font-pixel px-1.5 py-0.5 rounded-md">
                     {pendingServers}
                   </span>
                 )}
               </Link>
               {isAdmin && (
                 <>
-                  <Link to="/admin/users" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
+                  <Link to="/admin/users" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-lg transition-all group">
                     <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">shield_person</span>
                     <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">User Management</span>
                   </Link>
-                  <Link to="/admin/settings" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-2xl transition-all group">
+                  <Link to="/admin/settings" className="flex items-center gap-4 p-4 bg-zinc-950/50 hover:bg-zinc-950 border border-white/5 hover:border-realm-green/30 rounded-lg transition-all group">
                     <span className="material-symbols-outlined text-xl text-white/40 group-hover:text-realm-green transition-colors">settings_input_component</span>
                     <span className="text-xs font-bold text-white/60 group-hover:text-white transition-colors">General Settings</span>
                   </Link>
@@ -190,7 +217,7 @@ export function AdminOverviewPage() {
           </div>
 
           {/* Storage Health Audit */}
-          <div className="bg-zinc-900/40 border border-white/5 rounded-3xl overflow-hidden backdrop-blur-md">
+          <div className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden">
             <div className="p-6 border-b border-white/5 flex items-center justify-between">
               <h3 className="font-pixel text-white text-[10px] uppercase tracking-widest flex items-center gap-2">
                 <HardDrive className="w-3.5 h-3.5 text-realm-green" />

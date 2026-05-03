@@ -37,14 +37,14 @@ export function RoleSelectionModal({ isOpen, onClose, onSelect }: RoleSelectionM
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 bg-black/80"
           />
           
           <motion.div 
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl overflow-hidden"
           >
             <div className="p-5 border-b border-zinc-800 flex justify-between items-center relative z-10 bg-zinc-900">
               <h2 className="font-pixel text-white text-xs md:text-sm uppercase tracking-widest">Select your Role</h2>
@@ -61,7 +61,7 @@ export function RoleSelectionModal({ isOpen, onClose, onSelect }: RoleSelectionM
                 <button 
                   key={role.id} 
                   onClick={() => onSelect(role.id)}
-                  className="relative bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden hover:shadow-2xl transition-all group min-h-[120px] flex flex-col justify-end p-5 text-left"
+                  className="relative bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden transition-all group min-h-[120px] flex flex-col justify-end p-5 text-left"
                 >
                   {/* Background Image with Overlay */}
                   <div className="absolute inset-0 z-0">
@@ -74,12 +74,12 @@ export function RoleSelectionModal({ isOpen, onClose, onSelect }: RoleSelectionM
                   </div>
 
                   <div className="relative z-10 pointer-events-none">
-                    <div className="w-8 h-8 bg-white/10 backdrop-blur-md rounded-lg flex items-center justify-center mb-3 group-hover:bg-realm-green transition-all duration-300">
+                    <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center mb-3 group-hover:bg-realm-green transition-all duration-300">
                       <span className="material-symbols-outlined text-white text-lg">
                         {role.icon}
                       </span>
                     </div>
-                    <h3 className="font-pixel text-[11px] mb-1 text-white drop-shadow-md">{role.title}</h3>
+                    <h3 className="font-pixel text-[11px] mb-1 text-white">{role.title}</h3>
                     <p className="text-zinc-300 text-[10px] leading-relaxed line-clamp-2">{role.desc}</p>
                   </div>
                 </button>

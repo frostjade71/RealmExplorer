@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
@@ -127,7 +128,7 @@ export function AdminEditAboutPage() {
 
         {/* Team Members List */}
         <FramerIn delay={0.2} className="lg:col-span-2">
-          <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-8 backdrop-blur-md h-full">
+          <div className="bg-zinc-900 border border-white/5 rounded-lg p-8 h-full">
             <h2 className="text-lg font-pixel text-white mb-6 flex items-center gap-3">
               <span className="material-symbols-outlined text-realm-green">group</span>
               Executives & Owners
@@ -135,7 +136,7 @@ export function AdminEditAboutPage() {
 
             <div className="space-y-4">
               {teamMembers.length === 0 ? (
-                <div className="py-12 text-center text-white/20 font-headline italic bg-black/20 rounded-2xl border border-dashed border-white/5">
+                <div className="py-12 text-center text-white/20 font-headline italic bg-black/20 rounded-lg border border-dashed border-white/5">
                   No team members added yet.
                 </div>
               ) : (
@@ -144,7 +145,7 @@ export function AdminEditAboutPage() {
                     <motion.div 
                       key={member.id}
                       layout
-                      className="flex items-center gap-4 bg-black/40 border border-white/5 p-4 rounded-2xl group hover:border-white/20 transition-all"
+                      className="flex items-center gap-4 bg-black/40 border border-white/5 p-4 rounded-lg group hover:border-white/20 transition-all"
                     >
                       <div className="flex flex-col gap-1">
                         <button 
@@ -165,7 +166,7 @@ export function AdminEditAboutPage() {
 
                       <img 
                         src={member.profiles?.discord_avatar || ''} 
-                        className="w-12 h-12 rounded-xl border border-white/10"
+                        className="w-12 h-12 rounded-lg border border-white/10"
                         alt=""
                       />
 
@@ -182,7 +183,7 @@ export function AdminEditAboutPage() {
 
                       <button 
                         onClick={() => handleRemoveMember(member.id)}
-                        className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                        className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -196,7 +197,7 @@ export function AdminEditAboutPage() {
 
         {/* Add Member Sidebar */}
         <FramerIn delay={0.3}>
-          <div className="bg-zinc-900/40 border border-white/5 rounded-3xl p-8 backdrop-blur-md h-full">
+          <div className="bg-zinc-900 border border-white/5 rounded-lg p-8 h-full">
             <h2 className="text-lg font-pixel text-white mb-6 flex items-center gap-3">
               <span className="material-symbols-outlined text-realm-green">person_add</span>
               Add Member
@@ -209,7 +210,7 @@ export function AdminEditAboutPage() {
                 placeholder="Search players..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:border-realm-green transition-all outline-none"
+                className="w-full bg-black/40 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-sm text-white focus:border-realm-green transition-all outline-none"
               />
             </div>
 
@@ -219,7 +220,7 @@ export function AdminEditAboutPage() {
                   key={user.id}
                   onClick={() => handleAddMember(user)}
                   disabled={addMutation.isPending}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-all text-left group"
+                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-all text-left group"
                 >
                   <img 
                     src={user.discord_avatar || ''} 
@@ -249,101 +250,104 @@ export function AdminEditAboutPage() {
       </div>
 
       {/* Role Selection Modal */}
-      <AnimatePresence>
-        {selectedUserForRole && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-zinc-950 border border-white/10 w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden"
-            >
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-6">
-                  <div className="flex items-center gap-4">
-                    <img 
-                      src={selectedUserForRole.discord_avatar || ''} 
-                      className="w-12 h-12 rounded-2xl border border-white/10 shadow-xl" 
-                      alt="" 
-                    />
-                    <div>
-                      <h3 className="text-white font-bold leading-none">{selectedUserForRole.discord_username}</h3>
-                      <p className="text-white/20 text-[10px] font-mono mt-1">Assigning Team Role</p>
+      {createPortal(
+        <AnimatePresence>
+          {selectedUserForRole && (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="bg-zinc-950 border border-white/10 w-full max-w-sm rounded-lg overflow-hidden shadow-xl"
+              >
+                <div className="p-8">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center gap-4">
+                      <img 
+                        src={selectedUserForRole.discord_avatar || ''} 
+                        className="w-12 h-12 rounded-lg border border-white/10" 
+                        alt="" 
+                      />
+                      <div>
+                        <h3 className="text-white font-bold leading-none">{selectedUserForRole.discord_username}</h3>
+                        <p className="text-white/20 text-[10px] font-mono mt-1">Assigning Team Role</p>
+                      </div>
                     </div>
+                    <button 
+                      onClick={() => setSelectedUserForRole(null)}
+                      className="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-all"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => setSelectedUserForRole(null)}
-                    className="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-all"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+  
+                  <div className="space-y-3 mb-8">
+                    <button
+                      onClick={() => setRoleSelection('Executive')}
+                      className={`w-full flex items-center gap-4 p-4 rounded-lg border transition-all ${
+                        roleSelection === 'Executive' 
+                          ? 'bg-realm-green/10 border-realm-green/30 text-realm-green' 
+                          : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20 hover:text-white'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${roleSelection === 'Executive' ? 'bg-realm-green/20' : 'bg-white/10'}`}>
+                        <Shield className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="text-xs font-bold uppercase tracking-widest">Executive</div>
+                        <div className="text-[10px] opacity-60">High-level administrator</div>
+                      </div>
+                      {roleSelection === 'Executive' && <div className="w-2 h-2 rounded-full bg-realm-green shadow-sm" />}
+                    </button>
+  
+                    <button
+                      onClick={() => setRoleSelection('Owner')}
+                      className={`w-full flex items-center gap-4 p-4 rounded-lg border transition-all ${
+                        roleSelection === 'Owner' 
+                          ? 'bg-[#FFD700]/10 border-[#FFD700]/30 text-[#FFD700]' 
+                          : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20 hover:text-white'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${roleSelection === 'Owner' ? 'bg-[#FFD700]/20' : 'bg-white/10'}`}>
+                        <Crown className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="text-xs font-bold uppercase tracking-widest">Owner</div>
+                        <div className="text-[10px] opacity-60">Project stakeholder</div>
+                      </div>
+                      {roleSelection === 'Owner' && <div className="w-2 h-2 rounded-full bg-[#FFD700] shadow-sm" />}
+                    </button>
+                  </div>
+  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setSelectedUserForRole(null)}
+                      className="flex-1 py-3 px-6 rounded-lg font-headline font-bold text-white/40 hover:text-white hover:bg-white/5 transition-all text-[10px] uppercase tracking-widest"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmAddMember}
+                      disabled={addMutation.isPending}
+                      className="flex-[2] py-4 px-6 bg-realm-green text-zinc-950 rounded-lg font-headline font-bold text-[10px] uppercase tracking-widest hover:bg-[#85fc7e] shadow-md disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                    >
+                      {addMutation.isPending ? (
+                        <div className="w-4 h-4 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4" />
+                          Confirm Addition
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
-
-                <div className="space-y-3 mb-8">
-                  <button
-                    onClick={() => setRoleSelection('Executive')}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all ${
-                      roleSelection === 'Executive' 
-                        ? 'bg-realm-green/10 border-realm-green/30 text-realm-green' 
-                        : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20 hover:text-white'
-                    }`}
-                  >
-                    <div className={`p-2 rounded-xl ${roleSelection === 'Executive' ? 'bg-realm-green/20' : 'bg-white/10'}`}>
-                      <Shield className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="text-xs font-bold uppercase tracking-widest">Executive</div>
-                      <div className="text-[10px] opacity-60">High-level administrator</div>
-                    </div>
-                    {roleSelection === 'Executive' && <div className="w-2 h-2 rounded-full bg-realm-green shadow-[0_0_8px_#85fc7e]" />}
-                  </button>
-
-                  <button
-                    onClick={() => setRoleSelection('Owner')}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all ${
-                      roleSelection === 'Owner' 
-                        ? 'bg-[#FFD700]/10 border-[#FFD700]/30 text-[#FFD700]' 
-                        : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20 hover:text-white'
-                    }`}
-                  >
-                    <div className={`p-2 rounded-xl ${roleSelection === 'Owner' ? 'bg-[#FFD700]/20' : 'bg-white/10'}`}>
-                      <Crown className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="text-xs font-bold uppercase tracking-widest">Owner</div>
-                      <div className="text-[10px] opacity-60">Project stakeholder</div>
-                    </div>
-                    {roleSelection === 'Owner' && <div className="w-2 h-2 rounded-full bg-[#FFD700] shadow-[0_0_8px_#FFD700]" />}
-                  </button>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setSelectedUserForRole(null)}
-                    className="flex-1 py-3 px-6 rounded-2xl font-headline font-bold text-white/40 hover:text-white hover:bg-white/5 transition-all text-[10px] uppercase tracking-widest"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={confirmAddMember}
-                    disabled={addMutation.isPending}
-                    className="flex-[2] py-4 px-6 bg-realm-green text-zinc-950 rounded-2xl font-headline font-bold text-[10px] uppercase tracking-widest hover:bg-[#85fc7e] shadow-xl shadow-realm-green/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                  >
-                    {addMutation.isPending ? (
-                      <div className="w-4 h-4 border-2 border-zinc-950/20 border-t-zinc-950 rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4" />
-                        Confirm Addition
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.getElementById('modal-root')!
+      )}
     </AnimatedPage>
   )
 }

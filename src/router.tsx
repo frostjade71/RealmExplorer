@@ -11,7 +11,10 @@ import { Layout } from './components/Layout'
 import {
   HomePage,
   ServersPage,
-  EventsPage,
+  ROTMPage,
+  SOTMPage,
+  BOTMPage,
+  DOTMPage,
   AboutPage,
   ServerDetailPage,
   SubmitPage,
@@ -53,8 +56,20 @@ export const router = createBrowserRouter([
         element: <ServersPage />,
       },
       {
-        path: '/events',
-        element: <EventsPage />,
+        path: '/rotm',
+        element: <ROTMPage />,
+      },
+      {
+        path: '/sotm',
+        element: <SOTMPage />,
+      },
+      {
+        path: '/botm',
+        element: <BOTMPage />,
+      },
+      {
+        path: '/dotm',
+        element: <DOTMPage />,
       },
       {
         path: '/leaderboards',
