@@ -276,7 +276,7 @@ export function UpgradePage() {
                       <PayPalScriptProvider options={{ 
                         clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "sb",
                         currency: "USD",
-                        intent: "CAPTURE"
+                        intent: "capture"
                       }}>
                         <PayPalButtons 
                           style={{ 
