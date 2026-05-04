@@ -369,12 +369,13 @@ export function UpgradePage() {
                 </thead>
                 <tbody className="font-headline">
                   {[
+                    { name: 'Shuffle Priority', free: false, plus: true },
                     { name: 'Server Listing Limit', free: '1 Server', plus: '5 Servers' },
                     { name: 'Image Gallery Size', free: '1 Image', plus: '5 Images' },
                     { name: 'Description Length', free: '2,000 Chars', plus: '5,000 Chars' },
+                    { name: 'Shuffle Cooldown', free: '6 Seconds', plus: '2 Seconds' },
                     { name: 'Social Links', free: '2 Links', plus: '6 Links' },
                     { name: 'Profile Banner', free: false, plus: true },
-                    { name: 'Search Priority', free: false, plus: true },
                     { name: 'Golden Profile Border', free: false, plus: true },
                     { name: 'Discord Roles', free: false, plus: true },
                     { name: 'Priority Support', free: false, plus: true },

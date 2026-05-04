@@ -25,7 +25,7 @@ export function ProfilePage() {
   const { data: profile, isLoading: profileLoading, error: profileError } = useProfileByUsername(username)
   const { data: servers = [], isLoading: serversLoading } = useUserServers(profile?.id, 'approved')
   const { data: badges = [] } = useEntityBadges(profile?.id, 'user')
-  const { user, isExplorerPlus } = useAuth()
+  const { user, hasPremiumPerks } = useAuth()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isBioModalOpen, setIsBioModalOpen] = useState(false)
   const [isBannerModalOpen, setIsBannerModalOpen] = useState(false)
@@ -150,7 +150,7 @@ export function ProfilePage() {
         {isOwnProfile && (
           <button 
             onClick={() => {
-              if (isExplorerPlus) {
+              if (hasPremiumPerks) {
                 setIsBannerModalOpen(true)
               } else {
                 toast.info('Explorer+ Feature', {
@@ -159,7 +159,7 @@ export function ProfilePage() {
               }
             }}
             className="absolute top-4 right-6 z-30 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-lg border border-white/10 text-white/70 hover:text-white transition-all shadow-xl group"
-            title={isExplorerPlus ? "Update Profile Banner" : "Upgrade to unlock Banner"}
+            title={hasPremiumPerks ? "Update Profile Banner" : "Upgrade to unlock Banner"}
           >
             <Pencil className="w-4 h-4 group-hover:scale-110 transition-transform" />
           </button>

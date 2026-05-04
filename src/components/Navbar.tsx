@@ -2,16 +2,18 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useGlobalStats } from '../hooks/queries'
 import { useEffect, useState, useRef } from 'react'
-import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Users, BookOpen, ShieldCheck, Medal, ChevronsUp, Pickaxe, Code2, Award, Crown } from 'lucide-react'
+import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Users, BookOpen, ShieldCheck, Medal, ChevronsUp, Pickaxe, Code2, Award } from 'lucide-react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { NotificationDropdown } from './NotificationDropdown'
-// logo imported from public/logoRE.png as /logoRE.png
+import GoldIngot from '../assets/upgrades/9515-mc-gold-ingot.png'
+import GoldGradient from '../assets/upgrades/Gold Minecraft Gradient.webp'
 
 export function Navbar() {
   const { user, profile, signInWithDiscord, signOut, isModerator, isExplorerPlus } = useAuth()
   const { data: stats } = useGlobalStats()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileExpanded, setMobileExpanded] = useState<string[]>([])
   const location = useLocation()
 
   // Reset scroll instantly on path change
@@ -252,10 +254,17 @@ export function Navbar() {
                         <Link 
                           to="/upgrade"
                           onClick={() => setUserMenuOpen(false)} 
-                          className="flex items-center gap-3 px-4 py-2 text-xs text-amber-400 font-bold hover:bg-amber-400/10 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2 text-xs text-white font-black hover:opacity-90 transition-all relative overflow-hidden"
+                          style={{ 
+                            backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${GoldGradient})`, 
+                            backgroundSize: 'cover', 
+                            backgroundPosition: 'center',
+                          }}
                         >
-                          <Crown className="w-4 h-4" />
-                          {isExplorerPlus ? 'Explorer+' : 'Upgrade to Explorer+'}
+                          <img src={GoldIngot} alt="" className="w-4 h-4 object-contain drop-shadow-[0_0_2px_rgba(0,0,0,0.8)]" />
+                          <span style={{ textShadow: '0 0 4px rgba(0,0,0,0.8)' }}>
+                            {isExplorerPlus ? 'Explorer+' : 'Upgrade to Explorer+'}
+                          </span>
                         </Link>
                         <button 
                           onClick={() => {
@@ -328,46 +337,81 @@ export function Navbar() {
                   {navItems.map((item) => {
                       const isActive = location.pathname === item.path
                       const hasChildren = item.children && item.children.length > 0
+                      const isDropdown = (item.label === 'Events' || item.label === 'About') && hasChildren
+                      const isExpanded = mobileExpanded.includes(item.label)
                       const isServers = item.label === 'Servers'
                       
                       return (
                        <div key={item.path} className="flex flex-col gap-0.5">
-                         <Link 
-                           to={item.path}
-                           className={`flex items-center gap-2.5 px-3 py-1.5 rounded font-headline text-[13px] font-bold transition-all ${
-                             isActive 
-                               ? 'bg-realm-green text-zinc-950' 
-                               : isServers
-                                 ? 'text-realm-green border border-realm-green/30'
+                         {isDropdown ? (
+                           <button 
+                             onClick={() => {
+                               setMobileExpanded(prev => 
+                                 prev.includes(item.label) 
+                                   ? prev.filter(l => l !== item.label) 
+                                   : [...prev, item.label]
+                               )
+                             }}
+                             className={`flex items-center gap-2.5 px-3 py-1.5 rounded font-headline text-[13px] font-bold transition-all w-full text-left ${
+                               isActive || isExpanded
+                                 ? 'bg-realm-green/10 text-realm-green' 
                                  : 'text-white/70 hover:text-white hover:bg-white/5'
-                           }`}
-                         >
-                           <span className={`${isActive ? 'text-zinc-950' : 'text-realm-green'} transition-colors`}>
-                             {item.icon}
-                           </span>
-                           {item.label}
-                           
-                           {isServers && (
-                             <span className="ml-auto text-realm-green text-[9px] font-mono font-bold">
-                               +{stats?.servers || 0}
+                             }`}
+                           >
+                             <span className="text-realm-green">
+                               {item.icon}
                              </span>
-                           )}
-                         </Link>
+                             {item.label}
+                             <ChevronDown className={`ml-auto w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                           </button>
+                         ) : (
+                           <Link 
+                             to={item.path}
+                             onClick={() => setMobileMenuOpen(false)}
+                             className={`flex items-center gap-2.5 px-3 py-1.5 rounded font-headline text-[13px] font-bold transition-all ${
+                               isActive 
+                                 ? 'bg-realm-green text-zinc-950' 
+                                 : isServers
+                                   ? 'text-realm-green border border-realm-green/30'
+                                   : 'text-white/70 hover:text-white hover:bg-white/5'
+                             }`}
+                           >
+                             <span className={`${isActive ? 'text-zinc-950' : 'text-realm-green'} transition-colors`}>
+                               {item.icon}
+                             </span>
+                             {item.label}
+                             
+                             {isServers && (
+                               <span className="ml-auto text-realm-green text-[9px] font-mono font-bold">
+                                 +{stats?.servers || 0}
+                               </span>
+                             )}
+                           </Link>
+                         )}
                         
-                        {hasChildren && (
-                          <div className="flex flex-col gap-0.5 ml-3 border-l border-white/5 pl-2">
-                            {item.children?.map(child => (
-                               <Link 
-                                 key={child.path}
-                                 to={child.path}
-                                 className={`flex items-center gap-2 px-3 py-1.5 rounded font-headline text-[11px] font-semibold transition-all ${location.pathname === child.path ? 'text-realm-green bg-realm-green/10' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
-                               >
-                                {child.icon}
-                                {child.label}
-                               </Link>
-                            ))}
-                          </div>
-                        )}
+                        <AnimatePresence initial={false}>
+                          {hasChildren && (isExpanded || !isDropdown) && (
+                            <motion.div 
+                              initial={isDropdown ? { height: 0, opacity: 0 } : false}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={isDropdown ? { height: 0, opacity: 0 } : undefined}
+                              transition={{ duration: 0.2, ease: "easeInOut" }}
+                              className="flex flex-col gap-0.5 ml-3 border-l border-white/5 pl-2 overflow-hidden"
+                            >
+                              {item.children?.map(child => (
+                                 <Link 
+                                   key={child.path}
+                                   to={child.path}
+                                   onClick={() => setMobileMenuOpen(false)}
+                                   className={`flex items-center gap-2 px-3 py-1.5 rounded font-headline text-[11px] font-semibold transition-all ${location.pathname === child.path ? 'text-realm-green bg-realm-green/10' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
+                                 >
+                                  {child.icon}
+                                  {child.label}
+                                 </Link>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                        </div>
                       )
                   })}
@@ -386,6 +430,25 @@ export function Navbar() {
                     </button>
                   ) : (
                     <div className="space-y-2">
+                      <Link 
+                        to="/upgrade"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 border border-black/20 rounded transition-all group overflow-hidden relative"
+                        style={{ 
+                          backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${GoldGradient})`, 
+                          backgroundSize: 'cover', 
+                          backgroundPosition: 'center' 
+                        }}
+                      >
+                        <img src={GoldIngot} alt="" className="w-5 h-5 object-contain drop-shadow-[0_0_2px_rgba(0,0,0,0.8)]" />
+                        <span 
+                          className="text-white font-headline font-black text-[10px] uppercase tracking-widest"
+                          style={{ textShadow: '0 0 4px rgba(0,0,0,0.8)' }}
+                        >
+                          {isExplorerPlus ? 'Explorer+' : 'Upgrade to Explorer+'}
+                        </span>
+                      </Link>
+
                       <Link 
                         to={`/profile/${profile?.discord_username}`}
                         onClick={() => setMobileMenuOpen(false)}
@@ -424,15 +487,6 @@ export function Navbar() {
                             </Link>
                         )}
                       </div>
-
-                      <Link 
-                        to="/upgrade"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 bg-amber-400/10 border border-amber-400/20 rounded transition-all group"
-                      >
-                        <Crown className="w-5 h-5 text-amber-400" />
-                        <span className="text-amber-400 font-headline font-bold text-[10px] uppercase tracking-widest">{isExplorerPlus ? 'Explorer+' : 'Upgrade to Explorer+'}</span>
-                      </Link>
 
                         <button 
                           onClick={() => {

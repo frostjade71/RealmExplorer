@@ -13,6 +13,7 @@ interface AuthContextType {
   isAdmin: boolean
   isModerator: boolean
   isExplorerPlus: boolean
+  hasPremiumPerks: boolean
   refreshProfile: () => Promise<void>
 }
 
@@ -152,7 +153,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut,
       isAdmin: profile?.role === 'admin',
       isModerator: profile?.role === 'moderator' || profile?.role === 'admin',
-      isExplorerPlus: profile?.role === 'explorer+' || profile?.role === 'moderator' || profile?.role === 'admin',
+      isExplorerPlus: profile?.role === 'explorer+',
+      hasPremiumPerks: profile?.role === 'explorer+' || profile?.role === 'admin',
       refreshProfile
     }}>
       {children}

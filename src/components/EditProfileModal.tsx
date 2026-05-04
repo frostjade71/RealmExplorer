@@ -22,8 +22,8 @@ interface EditProfileModalProps {
 import { createPortal } from 'react-dom'
 
 export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: EditProfileModalProps) {
-  const { isExplorerPlus } = useAuth()
-  const linkLimit = isExplorerPlus ? 6 : 2
+  const { hasPremiumPerks } = useAuth()
+  const linkLimit = hasPremiumPerks ? 6 : 2
   const [links, setLinks] = useState<ReorderableSocialLink[]>([])
   const updateMutation = useUpdateProfileMutation()
   
@@ -144,7 +144,7 @@ export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: E
                     type="button"
                     onClick={() => {
                       if (links.length >= linkLimit) {
-                        if (!isExplorerPlus) {
+                        if (!hasPremiumPerks) {
                           toast.info('Explorer+ Feature', {
                             description: 'Upgrade to Explorer+ to add up to 6 personal links!'
                           })

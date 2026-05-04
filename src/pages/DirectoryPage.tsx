@@ -8,8 +8,9 @@ import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, MoreHorizontal, Globe, Shuffle } from 'lucide-react'
+import { Search, X, MoreHorizontal, Globe, Shuffle, Timer } from 'lucide-react'
 import { useIsMobile } from '../hooks/useMediaQuery'
+import { useAuth } from '../contexts/AuthContext'
 import directoryHero from '../assets/hero/directoryhero.jpg'
 
 // Type Icons
@@ -29,6 +30,7 @@ import { MetaTags } from '../components/MetaTags'
 
 export function DirectoryPage() {
   const isMobile = useIsMobile()
+  const { hasPremiumPerks } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const activeType = searchParams.get('type') as ServerType | null
   const activeCategory = searchParams.get('category') as ServerCategory | null
@@ -44,6 +46,23 @@ export function DirectoryPage() {
   }, [activeType, activeCategory, initialSearch])
 
   const [shuffleSeed, setShuffleSeed] = useState(0)
+  const [cooldown, setCooldown] = useState(0)
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setInterval(() => {
+        setCooldown(prev => Math.max(0, prev - 1))
+      }, 1000)
+      return () => clearInterval(timer)
+    }
+  }, [cooldown])
+
+  const handleShuffle = () => {
+    if (cooldown > 0) return
+    setShuffleSeed(s => s + 1)
+    setCooldown(hasPremiumPerks ? 2 : 6)
+  }
 
   // Sync local search when URL changes (e.g. back button)
   useEffect(() => {
@@ -218,11 +237,25 @@ export function DirectoryPage() {
 
           {!isMobile && (
             <button
-              onClick={() => setShuffleSeed(s => s + 1)}
-              className="flex items-center gap-2 px-6 py-3 rounded-lg bg-realm-green text-zinc-950 font-headline font-bold text-xs hover:bg-[#85fc7e] transition-all w-full md:w-auto justify-center"
+              onClick={handleShuffle}
+              disabled={cooldown > 0}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-headline font-bold text-xs transition-all w-full md:w-auto justify-center ${
+                cooldown > 0 
+                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' 
+                  : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'
+              }`}
             >
-              <Shuffle className="w-4 h-4" />
-              Shuffle Exploration
+              {cooldown > 0 ? (
+                <>
+                  <Timer className="w-4 h-4 animate-pulse" />
+                  Wait {cooldown}s
+                </>
+              ) : (
+                <>
+                  <Shuffle className="w-4 h-4" />
+                  Shuffle Exploration
+                </>
+              )}
             </button>
           )}
         </div>
@@ -335,16 +368,25 @@ export function DirectoryPage() {
     </div>
 
       {isMobile && createPortal(
-        <div className="fixed bottom-8 right-6 z-[1000] pointer-events-auto">
+        <div className="fixed bottom-8 right-6 z-[40] pointer-events-auto">
           <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setShuffleSeed(s => s + 1);
+              handleShuffle();
             }}
-            className="w-14 h-14 bg-realm-green text-zinc-950 rounded-lg flex items-center justify-center active:bg-[#85fc7e] touch-none"
+            disabled={cooldown > 0}
+            className={`w-14 h-14 rounded-lg flex flex-col items-center justify-center transition-all shadow-2xl active:scale-95 ${
+              cooldown > 0
+                ? 'bg-zinc-800 text-zinc-500 border border-zinc-700'
+                : 'bg-realm-green text-zinc-950 active:bg-[#85fc7e]'
+            }`}
           >
-            <Shuffle className="w-6 h-6" />
+            {cooldown > 0 ? (
+              <span className="text-[8px] font-pixel">{cooldown}s</span>
+            ) : (
+              <Shuffle className="w-6 h-6" />
+            )}
           </button>
         </div>,
         document.body

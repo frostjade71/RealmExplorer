@@ -17,11 +17,11 @@ import { RoleSelectionModal } from '../components/RoleSelectionModal'
 
 export function DashboardPage() {
   const isMobile = useIsMobile()
-  const { user, isExplorerPlus } = useAuth()
+  const { user, hasPremiumPerks } = useAuth()
   const navigate = useNavigate()
   
   const { data: servers = [], isLoading: loading } = useUserServers(user?.id)
-  const limit = isExplorerPlus ? 5 : 1
+  const limit = hasPremiumPerks ? 5 : 1
   const hasReachedLimit = servers.length >= limit
   const deleteMutation = useDeleteServerMutation()
   
@@ -127,7 +127,7 @@ export function DashboardPage() {
             <button 
               onClick={() => {
                 if (hasReachedLimit) {
-                  if (!isExplorerPlus) {
+                  if (!hasPremiumPerks) {
                     toast.info('Explorer+ Feature', {
                       description: 'Upgrade to Explorer+ to list up to 5 servers!'
                     })

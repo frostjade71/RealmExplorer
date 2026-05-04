@@ -59,15 +59,15 @@ export function SubmitPage() {
   const roleParam = searchParams.get("role") || "Owner";
 
   const isEditing = !!id;
-  const { user, isExplorerPlus } = useAuth();
+  const { user, hasPremiumPerks } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
   const limits = {
-    gallery: isExplorerPlus ? 5 : 1,
-    description: isExplorerPlus ? 5000 : 2000,
-    socialLinks: isExplorerPlus ? 6 : 2,
-    listings: isExplorerPlus ? 5 : 1
+    gallery: hasPremiumPerks ? 5 : 1,
+    description: hasPremiumPerks ? 5000 : 2000,
+    socialLinks: hasPremiumPerks ? 6 : 2,
+    listings: hasPremiumPerks ? 5 : 1
   };
   const [originalImageUrls, setOriginalImageUrls] = useState({
     icon: "",
@@ -659,7 +659,7 @@ export function SubmitPage() {
                   type="button"
                   onClick={() => {
                     if ((formData.social_links?.length || 0) >= limits.socialLinks) {
-                      if (!isExplorerPlus) {
+                      if (!hasPremiumPerks) {
                         toast.info('Explorer+ Feature', {
                           description: 'Upgrade to Explorer+ to add up to 6 social links!'
                         })
@@ -765,7 +765,7 @@ export function SubmitPage() {
                 </p>
                 <span
                   onClick={() => {
-                    if (formData.description.length >= limits.description && !isExplorerPlus) {
+                    if (formData.description.length >= limits.description && !hasPremiumPerks) {
                       toast.info('Explorer+ Feature', {
                         description: 'Upgrade to Explorer+ to increase your description limit to 5,000 characters!'
                       })
@@ -803,7 +803,7 @@ export function SubmitPage() {
                     type="button"
                     onClick={() => {
                       if (formData.gallery.length >= limits.gallery) {
-                        if (!isExplorerPlus) {
+                        if (!hasPremiumPerks) {
                           toast.info('Explorer+ Feature', {
                             description: 'Upgrade to Explorer+ to add up to 5 gallery images!'
                           })
