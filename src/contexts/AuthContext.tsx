@@ -15,6 +15,8 @@ interface AuthContextType {
   isExplorerPlus: boolean
   hasPremiumPerks: boolean
   refreshProfile: () => Promise<void>
+  shuffleCooldown: number
+  startShuffleCooldown: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -23,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [shuffleCooldown, setShuffleCooldown] = useState(0)
 
   // Effect 1: Listen for auth state changes — ONLY set session synchronously.
   // NEVER call supabase.from() inside this callback. It runs within Supabase's
@@ -143,6 +146,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Shuffle Cooldown Logic
+  useEffect(() => {
+    if (shuffleCooldown > 0) {
+      const timer = setInterval(() => {
+        setShuffleCooldown(prev => Math.max(0, prev - 1))
+      }, 1000)
+      return () => clearInterval(timer)
+    }
+  }, [shuffleCooldown])
+
+  const startShuffleCooldown = () => {
+    const hasPremium = profile?.role === 'explorer+' || profile?.role === 'admin'
+    setShuffleCooldown(hasPremium ? 2 : 6)
+  }
+
   return (
     <AuthContext.Provider value={{
       session,
@@ -155,7 +173,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isModerator: profile?.role === 'moderator' || profile?.role === 'admin',
       isExplorerPlus: profile?.role === 'explorer+',
       hasPremiumPerks: profile?.role === 'explorer+' || profile?.role === 'admin',
-      refreshProfile
+      refreshProfile,
+      shuffleCooldown,
+      startShuffleCooldown
     }}>
       {children}
     </AuthContext.Provider>

@@ -30,7 +30,7 @@ import { MetaTags } from '../components/MetaTags'
 
 export function DirectoryPage() {
   const isMobile = useIsMobile()
-  const { hasPremiumPerks } = useAuth()
+  const { shuffleCooldown, startShuffleCooldown } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const activeType = searchParams.get('type') as ServerType | null
   const activeCategory = searchParams.get('category') as ServerCategory | null
@@ -46,22 +46,11 @@ export function DirectoryPage() {
   }, [activeType, activeCategory, initialSearch])
 
   const [shuffleSeed, setShuffleSeed] = useState(0)
-  const [cooldown, setCooldown] = useState(0)
-
-  // Cooldown timer
-  useEffect(() => {
-    if (cooldown > 0) {
-      const timer = setInterval(() => {
-        setCooldown(prev => Math.max(0, prev - 1))
-      }, 1000)
-      return () => clearInterval(timer)
-    }
-  }, [cooldown])
 
   const handleShuffle = () => {
-    if (cooldown > 0) return
+    if (shuffleCooldown > 0) return
     setShuffleSeed(s => s + 1)
-    setCooldown(hasPremiumPerks ? 2 : 6)
+    startShuffleCooldown()
   }
 
   // Sync local search when URL changes (e.g. back button)
@@ -238,17 +227,17 @@ export function DirectoryPage() {
           {!isMobile && (
             <button
               onClick={handleShuffle}
-              disabled={cooldown > 0}
+              disabled={shuffleCooldown > 0}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-headline font-bold text-xs transition-all w-full md:w-auto justify-center ${
-                cooldown > 0 
+                shuffleCooldown > 0 
                   ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' 
                   : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'
               }`}
             >
-              {cooldown > 0 ? (
+              {shuffleCooldown > 0 ? (
                 <>
                   <Timer className="w-4 h-4 animate-pulse" />
-                  Wait {cooldown}s
+                  Wait {shuffleCooldown}s
                 </>
               ) : (
                 <>
@@ -375,15 +364,15 @@ export function DirectoryPage() {
               e.stopPropagation();
               handleShuffle();
             }}
-            disabled={cooldown > 0}
+            disabled={shuffleCooldown > 0}
             className={`w-14 h-14 rounded-lg flex flex-col items-center justify-center transition-all shadow-2xl active:scale-95 ${
-              cooldown > 0
+              shuffleCooldown > 0
                 ? 'bg-zinc-800 text-zinc-500 border border-zinc-700'
                 : 'bg-realm-green text-zinc-950 active:bg-[#85fc7e]'
             }`}
           >
-            {cooldown > 0 ? (
-              <span className="text-[8px] font-pixel">{cooldown}s</span>
+            {shuffleCooldown > 0 ? (
+              <span className="text-[8px] font-pixel">{shuffleCooldown}s</span>
             ) : (
               <Shuffle className="w-6 h-6" />
             )}
