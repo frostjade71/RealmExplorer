@@ -183,7 +183,7 @@ export function Navbar() {
               <motion.button 
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={signInWithDiscord}
+                onClick={() => signInWithDiscord()}
                 className="bg-[#5865F2] text-white px-3 py-1.5 sm:px-6 sm:py-2 rounded font-headline font-bold text-[10px] sm:text-sm shadow-lg shadow-indigo-500/20 flex items-center gap-2"
               >
                 <svg 
@@ -420,7 +420,7 @@ export function Navbar() {
                 <div className="pt-6 border-t border-white/5 flex flex-col gap-4 mt-auto">
                   {!user ? (
                      <button 
-                       onClick={signInWithDiscord}
+                       onClick={() => signInWithDiscord()}
                        className="w-full bg-[#5865F2] text-white py-2.5 rounded font-headline font-bold text-xs shadow-lg flex items-center justify-center gap-2 hover:bg-[#4752c4] transition-colors"
                      >
                       <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

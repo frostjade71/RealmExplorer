@@ -18,7 +18,7 @@ import successGif from '../assets/upgrades/4364-verification-icon.gif'
 
 export function UpgradePage() {
   const isMobile = useIsMobile()
-  const { user, profile } = useAuth()
+  const { user, profile, signInWithDiscord } = useAuth()
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
@@ -258,7 +258,7 @@ export function UpgradePage() {
                   </div>
                 ) : !user ? (
                   <button 
-                    onClick={() => window.location.href = '/login'}
+                    onClick={() => signInWithDiscord('/upgrade')}
                     className="w-full bg-zinc-800 text-white py-4 border-4 border-[#101010] shadow-[4px_4px_0_rgba(0,0,0,0.4)] font-headline font-bold text-sm uppercase tracking-widest hover:bg-zinc-700 transition-all relative"
                   >
                     <div className="absolute inset-0 border-t-2 border-l-2 border-white/5 pointer-events-none" />
@@ -287,9 +287,7 @@ export function UpgradePage() {
                           }}
                           onError={(err) => {
                             console.error("PayPal Checkout Error:", err);
-                            toast.error("PayPal Error", {
-                              description: "The payment window couldn't be opened. This often happens if the Client ID is incorrect or the account is restricted."
-                            });
+                            toast.error("PayPal Error");
                           }}
                           disabled={isProcessing}
                           createOrder={async (_data, actions) => {

@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null
   profile: Profile | null
   loading: boolean
-  signInWithDiscord: () => Promise<void>
+  signInWithDiscord: (redirectToPath?: string) => Promise<void>
   signOut: () => Promise<void>
   isAdmin: boolean
   isModerator: boolean
@@ -105,15 +105,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function signInWithDiscord() {
+  async function signInWithDiscord(redirectToPath?: string) {
     // Determine the base site URL for redirects. Use env var if set (for production),
     // otherwise fallback to current origin (useful for local dev and preview deployments).
     const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin
     
+    const redirectTo = redirectToPath 
+      ? `${siteUrl}/auth/callback?next=${encodeURIComponent(redirectToPath)}`
+      : `${siteUrl}/auth/callback`
+
     await supabase.auth.signInWithOAuth({
       provider: 'discord',
       options: {
-        redirectTo: `${siteUrl}/auth/callback`,
+        redirectTo,
         scopes: 'identify',
         queryParams: {
           scope: 'identify',

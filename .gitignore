@@ -24,3 +24,5 @@ database/
 *.njsproj
 *.sln
 *.sw?
+
+test_dm.js

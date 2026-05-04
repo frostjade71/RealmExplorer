@@ -120,7 +120,64 @@ Deno.serve(async (req: Request) => {
 
     if (paymentError) throw paymentError
 
-    // 4. Send Discord Notification (Fire and Forget)
+    // 4. Send "Welcome to Explorer+" Notifications (In-app + DM)
+    try {
+      // 4a. Get Discord ID for DM
+      const { data: userData } = await supabaseClient
+        .from('profiles')
+        .select('discord_id, discord_username')
+        .eq('id', userId)
+        .single()
+
+      // 4b. Insert In-App Web Notification
+      await supabaseClient.from('notifications').insert({
+        user_id: userId,
+        type: 'welcome',
+        title: 'Welcome to the Explorer+ Family!',
+        message: "You've unlocked exclusive banners, increased limits, and more. Your journey just got legendary!",
+        related_id: null
+      })
+
+      // 4c. Send Discord DM
+      if (userData?.discord_id) {
+        const welcomeMessage = `Hello! We are thrilled to have you as part of our Explorer+ family. Your support means the world to us and helps us keep Realm Explorer growing.
+
+As an Explorer+, you now have access to these exclusive perks:
+- **Submit up to 5 servers**: Expand your reach across the community.
+- **Custom Profile Banner**: Personalize your profile with a custom look.
+- **Extended Gallery**: Show off your servers with up to 5 images per listing.
+- **Priority Shuffle**: Get your listings seen more often.
+- **Golden Profile**: Stand out with a premium look on your profile and servers.
+- **Socials Links**: Add more links to connect with your community.
+- **Faster Shuffle**: Shuffle cooldown reduced to 2 seconds.
+
+If you have any questions or need help setting up your new features, feel free to reach out to our staff in the Discord server.
+
+Thank you for being a part of Realm Explorer!
+— The Realm Explorer Team`
+
+        await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-discord-dm`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+          },
+          body: JSON.stringify({
+            discord_id: userData.discord_id,
+            subject: 'Welcome to Explorer+!',
+            message: '', // The message body is now handled by the 'welcome' type template in the function
+            type: 'welcome',
+            admin_name: 'Realm Explorer Team',
+            icon_url: 'https://bwruljrnltvoojvzgiqm.supabase.co/storage/v1/object/public/main_bucket/Logo-Color-Change-removebg-preview.png'
+          })
+        })
+      }
+    } catch (err) {
+      console.error('Failed to send welcome notifications:', err)
+      // Non-blocking
+    }
+
+    // 5. Send Discord Audit Log Notification (Fire and Forget)
     try {
       console.log(`Sending Discord notification for user: ${profile?.discord_username || 'Unknown'}`)
       

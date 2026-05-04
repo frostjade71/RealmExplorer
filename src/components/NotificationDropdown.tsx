@@ -141,6 +141,7 @@ export function NotificationDropdown() {
                           // Positive / Congratulations / Approved / OTM
                           if (
                             type === 'approval' || 
+                            type === 'welcome' ||
                             type === 'otm_podium' || 
                             type === 'otm_competitor' ||
                             type === 'server_rating' ||
