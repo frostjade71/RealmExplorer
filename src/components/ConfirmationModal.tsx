@@ -13,6 +13,7 @@ interface ConfirmationModalProps {
   variant?: 'modern' | 'pixel'
   isDangerous?: boolean
   isLoading?: boolean
+  confirmDisabled?: boolean
 }
 
 export function ConfirmationModal({
@@ -25,7 +26,8 @@ export function ConfirmationModal({
   cancelLabel = 'Cancel',
   variant = 'modern',
   isDangerous = false,
-  isLoading = false
+  isLoading = false,
+  confirmDisabled = false
 }: ConfirmationModalProps) {
   const isPixel = variant === 'pixel'
 
@@ -101,7 +103,7 @@ export function ConfirmationModal({
                 </button>
                 <button
                   onClick={onConfirm}
-                  disabled={isLoading}
+                  disabled={isLoading || confirmDisabled}
                   className={`flex-[1.5] font-headline font-bold flex items-center justify-center gap-2 transition-all uppercase tracking-widest ${
                     isPixel
                       ? `py-2 px-4 border-2 border-[#101010] text-[9px] shadow-[2px_2px_0_rgba(0,0,0,0.4)] ${isDangerous ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'}`

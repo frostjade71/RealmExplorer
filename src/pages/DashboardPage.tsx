@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { createPortal } from 'react-dom'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { useNavigate } from 'react-router-dom'
@@ -16,11 +17,12 @@ import { RoleSelectionModal } from '../components/RoleSelectionModal'
 
 export function DashboardPage() {
   const isMobile = useIsMobile()
-  const { user } = useAuth()
+  const { user, isExplorerPlus } = useAuth()
   const navigate = useNavigate()
   
   const { data: servers = [], isLoading: loading } = useUserServers(user?.id)
-  const hasReachedLimit = servers.length >= 2
+  const limit = isExplorerPlus ? 5 : 1
+  const hasReachedLimit = servers.length >= limit
   const deleteMutation = useDeleteServerMutation()
   
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -121,24 +123,32 @@ export function DashboardPage() {
             <div className="h-px w-full bg-zinc-800"></div>
           </div>
           
-          <motion.div whileHover={hasReachedLimit ? {} : { scale: 1.05 }} whileTap={hasReachedLimit ? {} : { scale: 0.95 }} className="flex-shrink-0 self-end sm:self-auto relative group/limit">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0 self-end sm:self-auto relative group/limit">
             <button 
-              onClick={() => !hasReachedLimit && setIsRoleModalOpen(true)}
-              disabled={hasReachedLimit}
+              onClick={() => {
+                if (hasReachedLimit) {
+                  if (!isExplorerPlus) {
+                    toast.info('Explorer+ Feature', {
+                      description: 'Upgrade to Explorer+ to list up to 5 servers!'
+                    })
+                  } else {
+                    toast.warning('Limit Reached', {
+                      description: `You have reached the maximum limit of ${limit} listings.`
+                    })
+                  }
+                } else {
+                  setIsRoleModalOpen(true)
+                }
+              }}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm ${
-                hasReachedLimit
-                  ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed opacity-60'
+                hasReachedLimit 
+                  ? 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600' 
                   : 'bg-[#4EC44E] text-[#002202] hover:bg-[#85fc7e]'
               }`}
             >
               <PlusCircle className="w-4 h-4 md:w-5 h-5" />
-              New Listing{hasReachedLimit ? ' (2/2)' : ''}
+              New Listing ({servers.length}/{limit})
             </button>
-            {hasReachedLimit && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-[10px] text-zinc-400 font-headline whitespace-nowrap opacity-0 group-hover/limit:opacity-100 transition-opacity pointer-events-none">
-                Maximum of 2 listings reached
-              </div>
-            )}
           </motion.div>
         </FramerIn>
 

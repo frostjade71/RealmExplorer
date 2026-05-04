@@ -1,9 +1,11 @@
 import type { UserRole } from '../types'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import goldIngot from '../assets/upgrades/9515-mc-gold-ingot.png'
 
 const roleStyles: Record<UserRole, string> = {
   explorer: 'text-zinc-400',
+  'explorer+': 'text-amber-400 font-bold',
   moderator: 'text-blue-400',
   admin: 'text-realm-green'
 }
@@ -18,7 +20,10 @@ export function RoleBadge({ role, className }: { role: UserRole, className?: str
         className
       )
     )}>
-      {role === 'admin' ? 'Administrator' : role}
+      {role === 'explorer+' && (
+        <img src={goldIngot} alt="" className="w-3 h-3 mr-1.5 object-contain" />
+      )}
+      {role === 'admin' ? 'Administrator' : role === 'explorer+' ? 'Explorer+' : role}
     </span>
   )
 }

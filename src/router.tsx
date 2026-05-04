@@ -40,7 +40,8 @@ import {
   AdminBadgesPage,
   TermsPage,
   PrivacyPage,
-  DocsPage
+  DocsPage,
+  UpgradePage
 } from './pages/Pages'
 
 export const router = createBrowserRouter([
@@ -106,6 +107,10 @@ export const router = createBrowserRouter([
       {
         path: '/docs',
         element: <DocsPage />,
+      },
+      {
+        path: '/upgrade',
+        element: <UpgradePage />,
       },
       {
         path: '/profile/:username',

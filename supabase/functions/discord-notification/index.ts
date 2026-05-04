@@ -101,6 +101,24 @@ Deno.serve(async (req: Request) => {
           timestamp: new Date().toISOString()
         }]
       };
+    } else if (type === 'payment') {
+      const { username, amount, currency, orderId } = payload;
+      targetWebhook = LOGS_WEBHOOK_URL;
+      
+      discordPayload = {
+        username: 'Realm Explorer | Payments',
+        embeds: [{
+          title: '💰 New Explorer+ Upgrade!',
+          description: `**${username}** has just purchased **Explorer+**!`,
+          color: 0xf1c40f, // Gold
+          fields: [
+            { name: 'Amount', value: `$${amount} ${currency}`, inline: true },
+            { name: 'Order ID', value: `\`${orderId}\``, inline: true }
+          ],
+          footer: { text: 'Subscription System' },
+          timestamp: new Date().toISOString()
+        }]
+      };
     } else if (type === 'log') {
       const { action, adminName, details, color = 0x34495e } = payload;
       targetWebhook = LOGS_WEBHOOK_URL;
@@ -111,7 +129,11 @@ Deno.serve(async (req: Request) => {
           title: action || 'Log',
           description: details || 'No details provided',
           color: color,
-          fields: adminName ? [{ name: 'Moderator', value: adminName, inline: true }] : [],
+          fields: adminName ? [{ 
+            name: (action?.includes('Subscription Cancelled') || action?.includes('📉')) ? 'User' : 'Moderator', 
+            value: adminName, 
+            inline: true 
+          }] : [],
           footer: { text: 'Internal Audit Log' },
           timestamp: new Date().toISOString()
         }]

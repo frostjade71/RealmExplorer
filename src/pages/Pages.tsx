@@ -21,6 +21,7 @@ export { ProfilePage } from './ProfilePage'
 export { TermsPage } from './TermsPage'
 export { PrivacyPage } from './PrivacyPage'
 export { DocsPage } from './DocsPage'
+export { UpgradePage } from './UpgradePage'
 
 export function NotFoundPage() { return <div className="p-12 text-center text-white font-pixel">404 - Not Found</div> }
 

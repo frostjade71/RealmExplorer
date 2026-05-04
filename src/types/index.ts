@@ -1,7 +1,7 @@
-export type UserRole = 'explorer' | 'moderator' | 'admin'
+export type UserRole = 'explorer' | 'explorer+' | 'moderator' | 'admin'
 export type ServerCategory = 'factions' | 'kitpvp' | 'skyblock' | 'smp' | 'modded' | 'skygen' | 'prison' | 'other'
 export type ServerType = 'server' | 'realm'
-export type ServerStatus = 'pending' | 'approved' | 'rejected' | 'emailed' | 'Review Icon' | 'Review Cover' | 'Review Icon & Cover' | 'Review Gallery' | 'Review Icon & Gallery' | 'Review Cover & Gallery' | 'Review All Assets'
+export type ServerStatus = 'pending' | 'approved' | 'rejected' | 'emailed' | 'archived' | 'Review Icon' | 'Review Cover' | 'Review Icon & Cover' | 'Review Gallery' | 'Review Icon & Gallery' | 'Review Cover & Gallery' | 'Review All Assets'
 
 export interface Profile {
   id: string
@@ -12,6 +12,7 @@ export interface Profile {
   role: UserRole
   social_links: SocialLink[] | null
   bio: string | null
+  subscription_expires_at: string | null
   created_at: string
   updated_at: string
 }

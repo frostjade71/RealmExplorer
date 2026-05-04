@@ -1,13 +1,14 @@
 import { useSearchParams } from 'react-router-dom'
 import { useServers } from '../hooks/queries'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import type { ServerCategory, ServerType } from '../types'
 import { ServerCard } from '../components/ServerCard'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, MoreHorizontal, Sparkles, Clock, Globe, History } from 'lucide-react'
+import { Search, X, MoreHorizontal, Globe, Shuffle } from 'lucide-react'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import directoryHero from '../assets/hero/directoryhero.jpg'
 
@@ -32,7 +33,6 @@ export function DirectoryPage() {
   const activeType = searchParams.get('type') as ServerType | null
   const activeCategory = searchParams.get('category') as ServerCategory | null
   const initialSearch = searchParams.get('q') || ''
-  const sortBy = searchParams.get('sort') || 'newest'
 
   const PAGE_SIZE = 24
   const [page, setPage] = useState(1)
@@ -41,7 +41,9 @@ export function DirectoryPage() {
   // Reset page when filters change
   useEffect(() => {
     setPage(1)
-  }, [activeType, activeCategory, initialSearch, sortBy])
+  }, [activeType, activeCategory, initialSearch])
+
+  const [shuffleSeed, setShuffleSeed] = useState(0)
 
   // Sync local search when URL changes (e.g. back button)
   useEffect(() => {
@@ -64,9 +66,31 @@ export function DirectoryPage() {
     type: activeType || undefined,
     category: activeCategory,
     searchQuery: initialSearch,
-    sortBy,
-    limit: PAGE_SIZE * page
+    sortBy: 'votes', // Fetch by votes initially, but we will re-sort
+    limit: 1000 // Fetch a large batch to shuffle correctly
   })
+
+  const processedServers = useMemo(() => {
+    if (!servers.length) return []
+    
+    // Create a weighted score for each server to provide a "higher chance" 
+    // for Explorer+ without strictly pinning them to the top.
+    return [...servers]
+      .map(server => {
+        const isPremium = server.profiles?.role === 'explorer+'
+        // Premium servers get a random score boost.
+        // A boost of 0.7 ensures they generally float to the top 
+        // but can still be mixed in with standard listings.
+        const score = Math.random() + (isPremium ? 0.7 : 0)
+        return { server, score }
+      })
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.server)
+  }, [servers, shuffleSeed])
+
+  const paginatedServers = useMemo(() => {
+    return processedServers.slice(0, PAGE_SIZE * page)
+  }, [processedServers, PAGE_SIZE, page])
 
   const categories: { id: ServerCategory; label: string; icon: string | any; isImage?: boolean }[] = [
     { id: 'smp', label: 'SMP', icon: smpIcon, isImage: true },
@@ -168,7 +192,7 @@ export function DirectoryPage() {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent z-20 pointer-events-none"></div>
       </header>
 
-      <div className="w-full max-w-7xl mx-auto px-8 py-8 md:py-12 flex-grow">
+      <div className={`w-full max-w-7xl mx-auto px-8 py-8 md:py-12 flex-grow ${isMobile ? 'pb-32' : ''}`}>
 
       <FramerIn delay={0.2} className="w-full space-y-6 md:space-y-8 mb-10 md:mb-12">
         {/* Search and Sort Row */}
@@ -192,25 +216,15 @@ export function DirectoryPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 bg-zinc-900 rounded-xl p-1 border border-zinc-800 w-full md:w-auto overflow-x-auto no-scrollbar">
-            {[
-              { id: 'votes', label: 'Top Rated', icon: Sparkles },
-              { id: 'newest', label: 'Latest', icon: Clock },
-              { id: 'oldest', label: 'Oldest', icon: History }
-            ].map(option => (
-              <button
-                key={option.id}
-                onClick={() => {
-                  searchParams.set('sort', option.id)
-                  setSearchParams(searchParams)
-                }}
-                className={`flex items-center justify-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-headline font-bold transition-all whitespace-nowrap flex-1 md:flex-initial ${sortBy === option.id ? 'bg-zinc-800 text-realm-green shadow-inner' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                <option.icon className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                {option.label}
-              </button>
-            ))}
-          </div>
+          {!isMobile && (
+            <button
+              onClick={() => setShuffleSeed(s => s + 1)}
+              className="flex items-center gap-2 px-6 py-3 rounded-lg bg-realm-green text-zinc-950 font-headline font-bold text-xs hover:bg-[#85fc7e] transition-all w-full md:w-auto justify-center"
+            >
+              <Shuffle className="w-4 h-4" />
+              Shuffle Exploration
+            </button>
+          )}
         </div>
 
         {/* Categories Chips */}
@@ -249,7 +263,7 @@ export function DirectoryPage() {
           >
             <LoadingSpinner />
           </motion.div>
-        ) : servers.length === 0 ? (
+        ) : processedServers.length === 0 ? (
           <motion.div 
             key="empty"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -279,7 +293,7 @@ export function DirectoryPage() {
             }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4"
           >
-            {servers.map(server => (
+            {paginatedServers.map(server => (
               <motion.div
                 key={server.id}
                 layout
@@ -295,7 +309,7 @@ export function DirectoryPage() {
         )}
       </AnimatePresence>
 
-      {!loading && servers.length >= PAGE_SIZE * page && (
+      {!loading && paginatedServers.length < processedServers.length && (
         <FramerIn delay={0.4} className="mt-6 md:mt-8 flex justify-center pb-8">
           <motion.button
             whileHover={{ scale: 1.02 }}
@@ -319,7 +333,23 @@ export function DirectoryPage() {
         </FramerIn>
       )}
     </div>
-  </AnimatedPage>
+
+      {isMobile && createPortal(
+        <div className="fixed bottom-8 right-6 z-[1000] pointer-events-auto">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShuffleSeed(s => s + 1);
+            }}
+            className="w-14 h-14 bg-realm-green text-zinc-950 rounded-lg flex items-center justify-center active:bg-[#85fc7e] touch-none"
+          >
+            <Shuffle className="w-6 h-6" />
+          </button>
+        </div>,
+        document.body
+      )}
+    </AnimatedPage>
   )
 }
 

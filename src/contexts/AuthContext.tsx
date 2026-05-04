@@ -12,6 +12,8 @@ interface AuthContextType {
   signOut: () => Promise<void>
   isAdmin: boolean
   isModerator: boolean
+  isExplorerPlus: boolean
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -79,6 +81,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => { cancelled = true }
   }, [session?.user?.id])
 
+  const refreshProfile = async () => {
+    const userId = session?.user?.id
+    if (!userId) return
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (error) throw error
+      if (data) {
+        setProfile(data as unknown as Profile)
+      }
+    } catch (e) {
+      console.error('Manual profile refresh failed:', e)
+    }
+  }
+
   async function signInWithDiscord() {
     // Determine the base site URL for redirects. Use env var if set (for production),
     // otherwise fallback to current origin (useful for local dev and preview deployments).
@@ -129,7 +151,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signInWithDiscord,
       signOut,
       isAdmin: profile?.role === 'admin',
-      isModerator: profile?.role === 'moderator' || profile?.role === 'admin'
+      isModerator: profile?.role === 'moderator' || profile?.role === 'admin',
+      isExplorerPlus: profile?.role === 'explorer+' || profile?.role === 'moderator' || profile?.role === 'admin',
+      refreshProfile
     }}>
       {children}
     </AuthContext.Provider>

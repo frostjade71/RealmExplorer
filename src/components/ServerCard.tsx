@@ -20,6 +20,7 @@ export function ServerCard({
   showRole?: boolean,
   hideRatings?: boolean
 }) {
+  const isPremium = server.profiles?.role === 'explorer+'
   const statusInfo = {
     approved: { label: 'Active', bg: 'bg-realm-green/10', text: 'text-realm-green' },
     pending: { label: 'Pending', bg: 'bg-yellow-500/10', text: 'text-yellow-500' },
@@ -55,18 +56,36 @@ export function ServerCard({
   }
 
   return (
-    <Link to={`/server/${server.slug || slugify(server.name)}`} className="block h-full group">
+    <Link to={`/server/${server.slug || slugify(server.name)}`} className="block h-full group relative">
+      {isPremium && (
+        <div className="absolute inset-0 z-0 rounded-lg overflow-hidden pointer-events-none">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-[-200%] bg-[conic-gradient(from_0deg,transparent_0deg,transparent_150deg,#FACC15_180deg,transparent_210deg,transparent_360deg)] opacity-60"
+          />
+        </div>
+      )}
       <motion.div 
         variants={cardVariants}
         initial="initial"
         whileHover="hover"
         whileTap="tap"
-        className="bg-surface border border-outline-variant/30 p-4 md:p-6 rounded-lg flex flex-col h-full overflow-hidden relative cursor-pointer shadow-sm hover:border-realm-green/30 transition-colors duration-200 will-change-transform"
+        className={`bg-surface border p-4 md:p-6 rounded-lg flex flex-col h-full overflow-hidden relative cursor-pointer shadow-sm transition-colors duration-200 will-change-transform z-10 ${
+          isPremium 
+            ? 'border-yellow-400/30' 
+            : 'border-outline-variant/30 hover:border-realm-green/30'
+        }`}
+        style={isPremium ? { margin: '2px' } : {}}
       >
         {/* GPU-Friendly Top Highlight Bar */}
         <motion.div 
           variants={highlightVariants}
-          className="absolute top-0 left-0 right-0 h-[3px] bg-realm-green z-20 shadow-[0_0_15px_rgba(78,196,78,0.4)]"
+          className={`absolute top-0 left-0 right-0 h-[3px] z-20 ${
+            isPremium
+              ? 'bg-yellow-400'
+              : 'bg-realm-green shadow-[0_0_15px_rgba(78,196,78,0.4)]'
+          }`}
         />
 
         {/* High-Performance Shadow Layer */}

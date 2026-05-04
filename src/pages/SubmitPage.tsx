@@ -5,7 +5,7 @@ import {
   useSubmitServerMutation,
   useUpdateServerMutation,
 } from "../hooks/mutations";
-import { useServer } from "../hooks/queries";
+import { useServer, useUserServers } from "../hooks/queries";
 import { supabase } from "../lib/supabase";
 import type { ServerCategory, SocialLink } from "../types";
 import {
@@ -59,9 +59,16 @@ export function SubmitPage() {
   const roleParam = searchParams.get("role") || "Owner";
 
   const isEditing = !!id;
-  const { user } = useAuth();
+  const { user, isExplorerPlus } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
+
+  const limits = {
+    gallery: isExplorerPlus ? 5 : 1,
+    description: isExplorerPlus ? 5000 : 2000,
+    socialLinks: isExplorerPlus ? 6 : 2,
+    listings: isExplorerPlus ? 5 : 1
+  };
   const [originalImageUrls, setOriginalImageUrls] = useState({
     icon: "",
     banner: "",
@@ -80,7 +87,7 @@ export function SubmitPage() {
     website_url: "",
     icon_url: "",
     banner_url: "",
-    gallery: ["", ""] as string[],
+    gallery: [] as string[],
     social_links: [] as ReorderableSocialLink[],
     submitter_role: roleParam,
     verify_discord: false,
@@ -105,7 +112,7 @@ export function SubmitPage() {
         gallery:
           Array.isArray(server.gallery) && server.gallery.length > 0
             ? [...server.gallery]
-            : ["", ""],
+            : [],
         social_links: (server.social_links || []).map((link: any) => ({
           ...link,
           localId: Math.random().toString(36).substr(2, 9),
@@ -122,6 +129,17 @@ export function SubmitPage() {
       });
     }
   }, [serverData]);
+
+  const { data: userServers = [] } = useUserServers(user?.id);
+
+  useEffect(() => {
+    if (!isEditing && userServers.length >= limits.listings) {
+      toast.error("Listing Limit Reached", {
+        description: `Your current tier allows up to ${limits.listings} listing${limits.listings > 1 ? 's' : ''}.`
+      });
+      navigate("/dashboard");
+    }
+  }, [isEditing, userServers, limits.listings, navigate]);
 
   const submitMutation = useSubmitServerMutation();
   const updateMutation = useUpdateServerMutation();
@@ -639,8 +657,19 @@ export function SubmitPage() {
                 </label>
                 <button
                   type="button"
-                  disabled={(formData.social_links?.length || 0) >= 6}
                   onClick={() => {
+                    if ((formData.social_links?.length || 0) >= limits.socialLinks) {
+                      if (!isExplorerPlus) {
+                        toast.info('Explorer+ Feature', {
+                          description: 'Upgrade to Explorer+ to add up to 6 social links!'
+                        })
+                      } else {
+                        toast.warning('Limit Reached', {
+                          description: `Maximum of ${limits.socialLinks} social links reached.`
+                        })
+                      }
+                      return
+                    }
                     const newSocialLinks = [
                       ...(formData.social_links || []),
                       {
@@ -651,11 +680,9 @@ export function SubmitPage() {
                     ];
                     setFormData({ ...formData, social_links: newSocialLinks });
                   }}
-                  className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${(formData.social_links?.length || 0) >= 6 ? "text-zinc-600 cursor-not-allowed" : "text-realm-green hover:text-[#85fc7e]"}`}
+                  className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${(formData.social_links?.length || 0) >= limits.socialLinks ? "text-zinc-500 hover:text-zinc-400" : "text-realm-green hover:text-[#85fc7e]"}`}
                 >
-                  <Plus className="w-3 h-3" /> Add Link{" "}
-                  {(formData.social_links?.length || 0) >= 6 &&
-                    "(Limit reached)"}
+                  <Plus className="w-3 h-3" /> Add Link
                 </button>
               </div>
 
@@ -737,13 +764,20 @@ export function SubmitPage() {
                   Provide a detailed description of your server.
                 </p>
                 <span
-                  className={`text-[10px] font-bold font-headline ${formData.description.length >= 3000 ? "text-red-400" : "text-zinc-500"}`}
+                  onClick={() => {
+                    if (formData.description.length >= limits.description && !isExplorerPlus) {
+                      toast.info('Explorer+ Feature', {
+                        description: 'Upgrade to Explorer+ to increase your description limit to 5,000 characters!'
+                      })
+                    }
+                  }}
+                  className={`text-[10px] font-bold font-headline transition-colors ${formData.description.length >= limits.description ? "text-red-400 cursor-pointer hover:text-red-300" : "text-zinc-500"}`}
                 >
-                  {formData.description.length}/3000
+                  {formData.description.length}/{limits.description}
                 </span>
               </div>
               <textarea
-                maxLength={3000}
+                maxLength={limits.description}
                 placeholder="Tell players about your server..."
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white text-[13px] md:text-sm outline-none focus:border-realm-green transition-all font-headline resize-y focus:ring-1 focus:ring-realm-green/30 min-h-[200px]"
                 value={formData.description}
@@ -763,22 +797,32 @@ export function SubmitPage() {
                 </label>
                 <div className="flex items-center gap-4">
                   <span className="text-[10px] text-zinc-500 font-headline uppercase">
-                    {formData.gallery.length}/5 pictures
+                    {formData.gallery.length}/{limits.gallery} pictures
                   </span>
-                  {formData.gallery.length < 5 && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFormData({
-                          ...formData,
-                          gallery: [...formData.gallery, ""],
-                        })
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (formData.gallery.length >= limits.gallery) {
+                        if (!isExplorerPlus) {
+                          toast.info('Explorer+ Feature', {
+                            description: 'Upgrade to Explorer+ to add up to 5 gallery images!'
+                          })
+                        } else {
+                          toast.warning('Limit Reached', {
+                            description: `Maximum of ${limits.gallery} gallery images reached.`
+                          })
+                        }
+                        return
                       }
-                      className="text-[10px] font-bold uppercase tracking-wider text-realm-green hover:text-[#85fc7e] transition-colors flex items-center gap-1"
-                    >
-                      <Plus className="w-3 h-3" /> Add Image
-                    </button>
-                  )}
+                      setFormData({
+                        ...formData,
+                        gallery: [...formData.gallery, ""],
+                      })
+                    }}
+                    className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${formData.gallery.length >= limits.gallery ? "text-zinc-500 hover:text-zinc-400" : "text-realm-green hover:text-[#85fc7e]"} flex items-center gap-1`}
+                  >
+                    <Plus className="w-3 h-3" /> Add Image
+                  </button>
                 </div>
               </div>
 
@@ -795,7 +839,7 @@ export function SubmitPage() {
                       value={url}
                       aspectRatio="square"
                     />
-                    {formData.gallery.length > 2 && (
+                    {formData.gallery.length > 0 && (
                       <button
                         type="button"
                         onClick={() => {

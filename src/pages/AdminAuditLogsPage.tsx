@@ -1,4 +1,4 @@
-import { useAuditLogs, useVoteLogs } from '../hooks/queries'
+import { useAuditLogs, useVoteLogs, usePaymentLogs } from '../hooks/queries'
 import { LoadingSpinner } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
@@ -10,13 +10,14 @@ import { useAuth } from '../contexts/AuthContext'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { toast } from 'sonner'
 
-type LogTab = 'audit' | 'vote' | 'otm'
+type LogTab = 'audit' | 'vote' | 'otm' | 'payment'
 
 export function AdminAuditLogsPage() {
   const { profile } = useAuth()
   const [activeTab, setActiveTab] = useState<LogTab>('audit')
   const { data: logs = [], isLoading: loadingLogs } = useAuditLogs()
   const { data: voteLogs = [], isLoading: loadingVotes } = useVoteLogs()
+  const { data: paymentLogs = [], isLoading: loadingPayments } = usePaymentLogs()
   const [searchQuery, setSearchQuery] = useState('')
   const [isClearModalOpen, setIsClearModalOpen] = useState(false)
   
@@ -65,6 +66,16 @@ export function AdminAuditLogsPage() {
     })
   }, [voteLogs, searchQuery])
 
+  const filteredPaymentLogs = useMemo(() => {
+    return paymentLogs.filter((pay: any) => {
+      const username = pay.profiles?.discord_username || 'Unknown'
+      const orderId = pay.paypal_order_id || ''
+      const amount = `${pay.amount} ${pay.currency}`
+      const content = `${username} ${orderId} ${amount} ${pay.status}`.toLowerCase()
+      return content.includes(searchQuery.toLowerCase())
+    })
+  }, [paymentLogs, searchQuery])
+
   const getActionColor = (action: string) => {
     if (action.includes('APPROVED') || action === 'OTM_VOTE') return 'text-realm-green bg-realm-green/10 border-realm-green/20'
     if (action.includes('REJECTED') || action.includes('RESET') || action.includes('CLEARED') || action === 'OTM_UNVOTE') return 'text-red-500 bg-red-500/10 border-red-500/20'
@@ -83,12 +94,14 @@ export function AdminAuditLogsPage() {
     ))
   }
 
-  const isLoading = activeTab === 'vote' ? loadingVotes : loadingLogs
+  const isLoading = activeTab === 'vote' ? loadingVotes : activeTab === 'payment' ? loadingPayments : loadingLogs
   const currentCount = activeTab === 'audit' 
     ? logs.filter((l: any) => !l.action.startsWith('OTM_')).length 
     : activeTab === 'otm'
       ? logs.filter((l: any) => l.action.startsWith('OTM_')).length
-      : voteLogs.length
+      : activeTab === 'payment'
+        ? paymentLogs.length
+        : voteLogs.length
 
   if (isLoading) return <LoadingSpinner />
 
@@ -105,16 +118,18 @@ export function AdminAuditLogsPage() {
         </FramerIn>
 
         <div className="flex flex-wrap items-center gap-4">
-          <FramerIn delay={0.1}>
-            <button
-              onClick={() => setIsClearModalOpen(true)}
-              disabled={currentCount === 0}
-              className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all font-headline text-[10px] uppercase font-bold tracking-widest disabled:opacity-50 disabled:cursor-not-allowed group"
-            >
-              <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-              Clear {activeTab === 'audit' ? 'Audit' : activeTab === 'otm' ? 'OTM' : 'Vote'}
-            </button>
-          </FramerIn>
+          {activeTab !== 'payment' && (
+            <FramerIn delay={0.1}>
+              <button
+                onClick={() => setIsClearModalOpen(true)}
+                disabled={currentCount === 0}
+                className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all font-headline text-[10px] uppercase font-bold tracking-widest disabled:opacity-50 disabled:cursor-not-allowed group"
+              >
+                <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                Clear {activeTab === 'audit' ? 'Audit' : activeTab === 'otm' ? 'OTM' : 'Vote'}
+              </button>
+            </FramerIn>
+          )}
 
           <FramerIn delay={0.15}>
             <div className="bg-zinc-900 border border-white/10 px-6 py-3 sm:py-4 rounded-lg">
@@ -155,6 +170,15 @@ export function AdminAuditLogsPage() {
           <ThumbsUp className="w-3.5 h-3.5" />
           Vote Logs
         </button>
+        <button
+          onClick={() => { setActiveTab('payment'); setSearchQuery(''); }}
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
+            activeTab === 'payment' ? 'bg-amber-400 text-zinc-950 shadow-md' : 'text-white/40 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          Payment Logs
+        </button>
       </div>
 
       <ConfirmationModal
@@ -191,13 +215,13 @@ export function AdminAuditLogsPage() {
               <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
                 <th className="px-6 py-5">Timestamp</th>
                 <th className="px-6 py-5">
-                  {activeTab === 'audit' ? 'Staff Member' : activeTab === 'otm' ? 'Voter' : 'Voter'}
+                  {activeTab === 'audit' ? 'Staff Member' : activeTab === 'payment' ? 'Customer' : 'Voter'}
                 </th>
                 <th className="px-6 py-5">
-                  {activeTab === 'audit' ? 'Action' : activeTab === 'otm' ? 'Event' : 'Server Name'}
+                  {activeTab === 'audit' ? 'Action' : activeTab === 'payment' ? 'Transaction ID' : activeTab === 'otm' ? 'Event' : 'Server Name'}
                 </th>
                 <th className="px-6 py-5">
-                  {activeTab === 'audit' ? 'Details' : activeTab === 'otm' ? 'Summary' : 'Discord ID'}
+                  {activeTab === 'audit' ? 'Details' : activeTab === 'payment' ? 'Amount / Status' : activeTab === 'otm' ? 'Summary' : 'Discord ID'}
                 </th>
               </tr>
             </thead>
@@ -209,7 +233,48 @@ export function AdminAuditLogsPage() {
                 exit={{ opacity: 0, y: -10 }}
                 className="divide-y divide-white/[0.03]"
               >
-                {activeTab === 'audit' || activeTab === 'otm' ? (
+                {activeTab === 'payment' ? (
+                  filteredPaymentLogs.map((pay: any) => (
+                    <motion.tr key={pay.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex items-center gap-2 text-white/40">
+                          <Calendar className="w-3 h-3" />
+                          <span className="text-[11px] font-mono">
+                            {new Date(pay.created_at).toLocaleString('en-US', {
+                              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                           <div className="w-6 h-6 rounded-lg bg-amber-400/10 flex items-center justify-center border border-amber-400/20 group-hover:border-amber-400/30 transition-colors">
+                              <User className="w-3 h-3 text-amber-400/60 transition-colors" />
+                           </div>
+                           <span className="font-bold text-white group-hover:text-amber-400 transition-colors">
+                            {pay.profiles?.discord_username || 'Unknown'}
+                           </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-5 whitespace-nowrap">
+                        <code className="text-[10px] text-white/40 font-mono bg-white/5 px-2 py-1 rounded border border-white/10 group-hover:border-amber-400/20 transition-colors">
+                          {pay.paypal_order_id}
+                        </code>
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-realm-green font-bold text-sm">${pay.amount}</span>
+                          <span className="text-white/20 text-[10px]">{pay.currency}</span>
+                          <span className={`ml-2 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-tighter ${
+                            pay.status === 'completed' ? 'bg-realm-green/10 text-realm-green' : 'bg-red-500/10 text-red-500'
+                          }`}>
+                            {pay.status}
+                          </span>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))
+                ) : activeTab === 'audit' || activeTab === 'otm' ? (
                   filteredLogs.map((log: any) => (
                     <motion.tr key={log.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-6 py-5 whitespace-nowrap">

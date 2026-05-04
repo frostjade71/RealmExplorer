@@ -31,7 +31,7 @@ export function useServers(params?: {
   return useQuery({
     queryKey: ['servers', params],
     queryFn: async () => {
-      let query = supabase.from('public_servers').select('*').eq('status', 'approved')
+      let query = supabase.from('public_servers').select('*, profiles(*)').eq('status', 'approved')
 
       if (params?.type) query = query.eq('type', params.type)
       if (params?.category) query = query.eq('category', params.category)
@@ -101,13 +101,15 @@ export function useUserServers(userId: string | undefined, status?: ServerStatus
     queryKey: ['userServers', userId, status],
     enabled: !!userId,
     queryFn: async () => {
-      let query = supabase
-        .from('servers')
-        .select('*')
-        .eq('owner_id', userId!)
-        .order('created_at', { ascending: false })
+      const isApproved = status === 'approved'
+      const table = isApproved ? 'public_servers' : 'servers'
+
+      let query: any = supabase.from(table as any).select('*')
       
-      if (status) {
+      query = query.eq('owner_id', userId!)
+      query = query.order('created_at', { ascending: false })
+      
+      if (status && !isApproved) {
         query = query.eq('status', status)
       }
 
@@ -606,7 +608,7 @@ export function useEntityBadges(targetId: string | undefined, targetType: 'user'
         const [topVotesResult, topRatingsResult, serverResult, autoBadgesResult] = await Promise.all([
           supabase.from('public_servers').select('id').eq('status', 'approved').order('votes', { ascending: false }).limit(1).maybeSingle(),
           supabase.from('public_servers').select('id').eq('status', 'approved').order('weighted_rating', { ascending: false }).limit(1).maybeSingle(),
-          supabase.from('servers').select('created_at').eq('id', targetId!).single(),
+          supabase.from('public_servers').select('created_at, profiles(role)').eq('id', targetId!).single(),
           supabase.from('badges').select('*').eq('type', 'automatic')
         ])
 
@@ -633,6 +635,12 @@ export function useEntityBadges(targetId: string | undefined, targetType: 'user'
         }
         if (topRatings?.id === targetId) {
           const b = autoBadges.find(b => b.slug === 'top-ratings')
+          if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
+        }
+
+        // Explorer+ Listing Badge
+        if ((server as any)?.profiles?.role === 'explorer+') {
+          const b = autoBadges.find(b => b.slug === 'explorer-plus')
           if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
         }
       }
@@ -673,4 +681,21 @@ export function useUnassignBadge() {
       if (error) throw error
     }
   }
+}
+
+export function usePaymentLogs() {
+  return useQuery({
+    queryKey: ['paymentLogs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payments' as any)
+        .select(`
+          *,
+          profiles (discord_username, discord_id)
+        `)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data
+    }
+  })
 }

@@ -8,6 +8,7 @@ import {
   sendLogNotification, 
   sendErrorNotification 
 } from '../lib/discord'
+import { useAuth } from '../contexts/AuthContext'
 
 export function useVoteMutation() {
   const queryClient = useQueryClient()
@@ -235,6 +236,74 @@ export function useUpdateUserRoleMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+    }
+  })
+}
+
+export function useCancelSubscriptionMutation() {
+  const queryClient = useQueryClient()
+  const { refreshProfile } = useAuth()
+  return useMutation({
+    mutationFn: async ({ userId }: { userId: string }) => {
+      // 1. Get current profile for social links trimming and banner check
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single()
+      
+      // 2. Prepare trimmed social links (Standard limit: 2)
+      const trimmedLinks = Array.isArray(profile?.social_links) ? profile.social_links.slice(0, 2) : []
+      
+      // 3. Update profile: role to explorer, clear banner, trim social links
+      const { error: profileError } = await supabase.from('profiles').update({
+        role: 'explorer',
+        discord_banner: null,
+        social_links: trimmedLinks
+      }).eq('id', userId)
+      
+      if (profileError) throw profileError
+
+      // 4. Handle Server Listings (Standard limit: 1)
+      const { data: servers } = await supabase
+        .from('servers')
+        .select('id, status')
+        .eq('owner_id', userId)
+        .order('created_at', { ascending: true })
+
+      let archivedCount = 0
+      if (servers && servers.length > 1) {
+        const extraServerIds = servers.slice(1).map(s => s.id)
+        archivedCount = extraServerIds.length
+        const { error: serverError } = await supabase
+          .from('servers')
+          .update({ status: 'archived' })
+          .in('id', extraServerIds)
+        
+        if (serverError) throw serverError
+      }
+
+      // 5. Log Action
+      await logAction('SUBSCRIPTION_CANCELLED', { 
+        userId, 
+        clearedBanner: !!profile?.discord_banner,
+        archivedServers: archivedCount 
+      }, userId, profile?.discord_username)
+      
+      await sendLogNotification({
+        action: '📉 Subscription Cancelled',
+        adminName: profile?.discord_username || 'User',
+        details: `**${profile?.discord_username}** has cancelled their Explorer+ subscription. 
+- Role reverted to **Explorer**.
+- Custom profile banner **cleared**.
+- Social links **trimmed** to standard limit (2).
+- **${archivedCount}** extra server(s) moved to **archived** status.`,
+        color: 0x95a5a6 // Gray
+      })
+    },
+    onSuccess: () => {
+      refreshProfile()
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ['userServers'] })
+      queryClient.invalidateQueries({ queryKey: ['servers'] })
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
     }
   })
 }
@@ -242,10 +311,11 @@ export function useUpdateUserRoleMutation() {
 export function useUpdateProfileMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, social_links, bio }: { id: string, social_links?: any[], bio?: string | null }) => {
+    mutationFn: async ({ id, social_links, bio, discord_banner }: { id: string, social_links?: any[], bio?: string | null, discord_banner?: string | null }) => {
       const updateData: any = {}
       if (social_links !== undefined) updateData.social_links = social_links
       if (bio !== undefined) updateData.bio = bio
+      if (discord_banner !== undefined) updateData.discord_banner = discord_banner
       
       const { error } = await supabase.from('profiles').update(updateData).eq('id', id)
       if (error) throw error

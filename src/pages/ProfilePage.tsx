@@ -11,6 +11,7 @@ import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch } fro
 import { RoleBadge } from '../components/RoleBadge'
 import { EditProfileModal } from '../components/EditProfileModal'
 import { EditBioModal } from '../components/EditBioModal'
+import { EditBannerModal } from '../components/EditBannerModal'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -24,11 +25,13 @@ export function ProfilePage() {
   const { data: profile, isLoading: profileLoading, error: profileError } = useProfileByUsername(username)
   const { data: servers = [], isLoading: serversLoading } = useUserServers(profile?.id, 'approved')
   const { data: badges = [] } = useEntityBadges(profile?.id, 'user')
-  const { user } = useAuth()
+  const { user, isExplorerPlus } = useAuth()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isBioModalOpen, setIsBioModalOpen] = useState(false)
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false)
 
   const isOwnProfile = user?.id === profile?.id
+  const isProfileExplorerPlus = profile?.role === 'explorer+'
 
   const getSocialIcon = (platform: string) => {
     switch (platform) {
@@ -143,6 +146,24 @@ export function ProfilePage() {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        
+        {isOwnProfile && (
+          <button 
+            onClick={() => {
+              if (isExplorerPlus) {
+                setIsBannerModalOpen(true)
+              } else {
+                toast.info('Explorer+ Feature', {
+                  description: 'Upgrade to Explorer+ to customize your profile banner!'
+                })
+              }
+            }}
+            className="absolute top-4 right-6 z-30 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-lg border border-white/10 text-white/70 hover:text-white transition-all shadow-xl group"
+            title={isExplorerPlus ? "Update Profile Banner" : "Upgrade to unlock Banner"}
+          >
+            <Pencil className="w-4 h-4 group-hover:scale-110 transition-transform" />
+          </button>
+        )}
       </div>
 
       <div className="max-w-6xl mx-auto px-6 relative">
@@ -152,14 +173,14 @@ export function ProfilePage() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="w-24 h-24 md:w-28 md:h-28 rounded-xl bg-zinc-900 border-4 border-black overflow-hidden shadow-2xl relative group"
+            className={`w-24 h-24 md:w-28 md:h-28 rounded-xl bg-zinc-900 overflow-hidden shadow-2xl relative group ${isProfileExplorerPlus ? 'border-2 border-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.2)]' : 'border-4 border-black'}`}
           >
             <img 
               src={profile.discord_avatar || ''} 
               alt={profile.discord_username || ''} 
               className="w-full h-full object-cover p-1"
             />
-            <div className="absolute inset-0 border border-white/10 rounded-[20px] pointer-events-none" />
+            <div className={`absolute inset-0 border rounded-[20px] pointer-events-none ${isProfileExplorerPlus ? 'border-yellow-400/20' : 'border-white/10'}`} />
           </motion.div>
 
           <FramerIn delay={0.3} className="flex-1 text-left pt-2 md:pt-12">
@@ -310,7 +331,7 @@ export function ProfilePage() {
           <div className="lg:col-span-3">
             <FramerIn delay={0.5} className="mb-6 flex items-center justify-between">
               <h2 className="font-pixel text-xs md:text-sm text-white">Public Listings</h2>
-              <div className="h-px flex-1 bg-zinc-800 mx-4 hidden md:block"></div>
+              <div className={`h-px flex-1 ${isProfileExplorerPlus ? 'bg-yellow-400/40' : 'bg-zinc-800'} mx-4 hidden md:block`}></div>
               {isOwnProfile && (
                 <Link 
                   to="/dashboard"
@@ -385,6 +406,11 @@ export function ProfilePage() {
         </>
       )}
     </AnimatedPage>
+      <EditBannerModal 
+        isOpen={isBannerModalOpen}
+        onClose={() => setIsBannerModalOpen(false)}
+        profile={profile}
+      />
     </>
   )
 }

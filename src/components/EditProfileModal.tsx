@@ -5,6 +5,7 @@ import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch } fro
 import { CustomSelect } from './CustomSelect'
 import type { SocialLink, SocialPlatform } from '../types'
 import { useUpdateProfileMutation } from '../hooks/mutations'
+import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
 
 interface ReorderableSocialLink extends SocialLink {
@@ -21,6 +22,8 @@ interface EditProfileModalProps {
 import { createPortal } from 'react-dom'
 
 export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: EditProfileModalProps) {
+  const { isExplorerPlus } = useAuth()
+  const linkLimit = isExplorerPlus ? 6 : 2
   const [links, setLinks] = useState<ReorderableSocialLink[]>([])
   const updateMutation = useUpdateProfileMutation()
   
@@ -139,11 +142,24 @@ export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: E
                   </label>
                   <button
                     type="button"
-                    disabled={links.length >= 6}
-                    onClick={handleAddLink}
-                    className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${links.length >= 6 ? 'text-zinc-600 cursor-not-allowed' : 'text-realm-green hover:text-[#85fc7e]'}`}
+                    onClick={() => {
+                      if (links.length >= linkLimit) {
+                        if (!isExplorerPlus) {
+                          toast.info('Explorer+ Feature', {
+                            description: 'Upgrade to Explorer+ to add up to 6 personal links!'
+                          })
+                        } else {
+                          toast.warning('Limit Reached', {
+                            description: `Maximum of ${linkLimit} personal links reached.`
+                          })
+                        }
+                        return
+                      }
+                      handleAddLink()
+                    }}
+                    className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${links.length >= linkLimit ? 'text-zinc-500 hover:text-zinc-400' : 'text-realm-green hover:text-[#85fc7e]'}`}
                   >
-                    <Plus className="w-3 h-3" /> Add Link {links.length >= 6 && '(Limit reached)'}
+                    <Plus className="w-3 h-3" /> Add Link
                   </button>
                 </div>
 

@@ -2,13 +2,13 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useGlobalStats } from '../hooks/queries'
 import { useEffect, useState, useRef } from 'react'
-import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Users, BookOpen, ShieldCheck, Medal, ChevronsUp, Pickaxe, Code2, Award } from 'lucide-react'
+import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Users, BookOpen, ShieldCheck, Medal, ChevronsUp, Pickaxe, Code2, Award, Crown } from 'lucide-react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { NotificationDropdown } from './NotificationDropdown'
 // logo imported from public/logoRE.png as /logoRE.png
 
 export function Navbar() {
-  const { user, profile, signInWithDiscord, signOut, isModerator } = useAuth()
+  const { user, profile, signInWithDiscord, signOut, isModerator, isExplorerPlus } = useAuth()
   const { data: stats } = useGlobalStats()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -249,6 +249,14 @@ export function Navbar() {
                             Panel
                           </Link>
                         )}
+                        <Link 
+                          to="/upgrade"
+                          onClick={() => setUserMenuOpen(false)} 
+                          className="flex items-center gap-3 px-4 py-2 text-xs text-amber-400 font-bold hover:bg-amber-400/10 transition-colors"
+                        >
+                          <Crown className="w-4 h-4" />
+                          {isExplorerPlus ? 'Explorer+' : 'Upgrade to Explorer+'}
+                        </Link>
                         <button 
                           onClick={() => {
                             setUserMenuOpen(false)
@@ -416,6 +424,15 @@ export function Navbar() {
                             </Link>
                         )}
                       </div>
+
+                      <Link 
+                        to="/upgrade"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 bg-amber-400/10 border border-amber-400/20 rounded transition-all group"
+                      >
+                        <Crown className="w-5 h-5 text-amber-400" />
+                        <span className="text-amber-400 font-headline font-bold text-[10px] uppercase tracking-widest">{isExplorerPlus ? 'Explorer+' : 'Upgrade to Explorer+'}</span>
+                      </Link>
 
                         <button 
                           onClick={() => {

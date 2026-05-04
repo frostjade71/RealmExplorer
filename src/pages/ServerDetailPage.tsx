@@ -33,6 +33,7 @@ export function ServerDetailPage() {
   const { data, isLoading: loading, refetch: refetchServer } = useServer(slug)
   const server = data?.server
   const owner = data?.owner
+  const isPremium = owner?.role === 'explorer+'
 
   // Canonical URL redirect: if accessed via UUID, redirect to Slug
   useEffect(() => {
@@ -211,7 +212,7 @@ export function ServerDetailPage() {
     />
     <AnimatedPage className="max-w-5xl mx-auto w-full px-4 md:px-8 py-8 md:py-12">
       {/* Banner */}
-      <FramerIn delay={0.1} className="w-full h-32 md:h-64 bg-zinc-950 rounded-t-lg overflow-hidden relative border border-zinc-800">
+      <FramerIn delay={0.1} className={`w-full h-32 md:h-64 bg-zinc-950 rounded-t-lg overflow-hidden relative border-t border-x ${isPremium ? 'border-yellow-400/50' : 'border-zinc-800'}`}>
         {server.banner_url ? (
            <motion.img 
             initial={isMobile ? { opacity: 0.8 } : { scale: 1.1, opacity: 0 }}
@@ -226,8 +227,8 @@ export function ServerDetailPage() {
       </FramerIn>
 
       {/* Header Info */}
-      <FramerIn delay={0.2} className="bg-zinc-950 border-x border-b border-zinc-800 rounded-b-lg p-5 md:p-8 mb-4 md:mb-4 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative -mt-4 shadow-xl will-change-transform">
-        <div className="w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-md overflow-hidden flex-shrink-0 border-4 border-zinc-950 -mt-10 md:-mt-12 z-10 shadow-lg will-change-transform">
+      <FramerIn delay={0.2} className={`bg-zinc-950 border-x border-b ${isPremium ? 'border-yellow-400/50' : 'border-zinc-800 shadow-xl'} rounded-b-lg p-5 md:p-8 mb-4 md:mb-4 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative -mt-4 will-change-transform`}>
+        <div className={`w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-md overflow-hidden flex-shrink-0 border-4 ${isPremium ? 'border-yellow-400/20' : 'border-zinc-950'} -mt-10 md:-mt-12 z-10 shadow-lg will-change-transform`}>
 
           {server.icon_url ? (
             <img src={server.icon_url} alt="Icon" className="w-full h-full object-cover" />
@@ -258,7 +259,7 @@ export function ServerDetailPage() {
               
               {/* Mobile Badges (Original Position) */}
               {badges.length > 0 && (
-                <div className="flex flex-wrap items-center gap-3 mb-4 md:hidden">
+                <div className="flex flex-wrap items-center gap-1.5 mb-4 md:hidden">
                   {badges.map((badge, index) => (
                     <div 
                       key={`${badge.id}-${badge.month}`} 
@@ -271,7 +272,7 @@ export function ServerDetailPage() {
                       />
                       
                       {/* Premium Tooltip */}
-                      <div className={`absolute bottom-full mb-3 w-48 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50 translate-y-2 group-hover:translate-y-0 ${index === 0 ? 'left-0' : 'left-1/2 -translate-x-1/2'}`}>
+                      <div className={`absolute bottom-full mb-3 w-48 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50 translate-y-2 group-hover:translate-y-0 ${index <= 1 ? 'left-0' : 'left-1/2 -translate-x-1/2'}`}>
                         <div className="bg-zinc-950/90 border border-white/10 rounded-xl p-3 backdrop-blur-xl shadow-2xl overflow-hidden relative">
                           <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-realm-green/50 to-transparent" />
                           <p className="text-[10px] font-pixel text-realm-green uppercase mb-1.5 tracking-tighter text-center">
@@ -280,7 +281,7 @@ export function ServerDetailPage() {
                           </p>
                           <p className="text-[10px] text-white/70 font-headline leading-tight italic text-center">"{badge.description}"</p>
                         </div>
-                        <div className={`w-2 h-2 bg-zinc-950 border-r border-b border-white/10 rotate-45 -mt-1 relative z-10 ${index === 0 ? 'ml-2.5' : 'mx-auto'}`} />
+                        <div className={`w-2 h-2 bg-zinc-950 border-r border-b border-white/10 rotate-45 -mt-1 relative z-10 ${index <= 1 ? 'ml-2.5' : 'mx-auto'}`} />
                       </div>
                     </div>
                   ))}
@@ -292,7 +293,7 @@ export function ServerDetailPage() {
               <div className="flex items-center gap-1.5 w-full md:w-auto justify-center md:justify-end">
                 {/* Desktop Badges (Besides Vote) */}
                 {badges.length > 0 && (
-                  <div className="hidden md:flex items-center gap-2 mr-2">
+                  <div className="hidden md:flex items-center gap-1 mr-2">
                     {badges.map((badge) => (
                       <div 
                         key={`${badge.id}-${badge.month}`} 
@@ -485,7 +486,7 @@ export function ServerDetailPage() {
 
       <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-4">
         <FramerIn delay={0.3} className="md:col-span-2 w-full space-y-4 md:space-y-4">
-          <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-lg">
+          <div className={`w-full bg-zinc-900/50 border ${isPremium ? 'border-yellow-400/30' : 'border-zinc-800'} p-5 md:p-8 rounded-lg`}>
             <h2 className="font-pixel text-white text-base md:text-lg mb-4 md:mb-6">About</h2>
             <div className="text-zinc-300 font-body leading-relaxed text-[13px]">
               {server.description ? (
@@ -498,7 +499,7 @@ export function ServerDetailPage() {
 
           {/* Gallery Carousel */}
           {gallery.length > 0 && (
-            <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-lg overflow-hidden">
+            <div className={`w-full bg-zinc-900/50 border ${isPremium ? 'border-yellow-400/30' : 'border-zinc-800'} p-5 md:p-8 rounded-lg overflow-hidden`}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-pixel text-white text-base md:text-lg flex items-center gap-2">
                   <span className="material-symbols-outlined text-sm text-realm-green">photo_library</span>
@@ -571,7 +572,7 @@ export function ServerDetailPage() {
         </FramerIn>
         
         <FramerIn delay={0.4} className="w-full space-y-4 md:space-y-4">
-          <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-6 rounded-lg">
+          <div className={`w-full bg-zinc-900/50 border ${isPremium ? 'border-yellow-400/30' : 'border-zinc-800'} p-5 md:p-6 rounded-lg`}>
             <h3 className="font-headline font-bold text-zinc-500 uppercase tracking-widest text-[10px] md:text-xs mb-4">Statistics</h3>
             <div className="flex flex-col gap-3 md:gap-4">
               <div className="flex justify-between items-center">
@@ -603,13 +604,13 @@ export function ServerDetailPage() {
               {owner && (
                 <Link 
                   to={`/profile/${owner.discord_username}`}
-                  className="pt-4 mt-1 border-t border-zinc-800/50 flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group transition-all duration-300"
+                  className={`pt-4 mt-1 border-t ${isPremium ? 'border-yellow-400/20' : 'border-zinc-800/50'} flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group transition-all duration-300`}
                 >
                   <img src={owner.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-zinc-700 bg-zinc-800" alt="Owner" />
                   <div className="flex-1">
                     <p className="text-white text-xs md:text-sm leading-tight">{owner.discord_username}</p>
                     <p className={`text-[8px] md:text-[9px] uppercase tracking-widest font-headline mt-0.5 ${
-                      (server.submitter_role || 'Owner') === 'Owner' ? 'text-yellow-400' : 'text-realm-green'
+                      isPremium ? 'text-yellow-400' : (server.submitter_role || 'Owner') === 'Owner' ? 'text-yellow-400' : 'text-realm-green'
                     }`}>
                       {server.submitter_role || 'Owner'}
                     </p>
@@ -642,7 +643,7 @@ export function ServerDetailPage() {
 
       {/* Ratings Section */}
       <FramerIn delay={0.5} className="w-full mt-4 md:mt-4">
-        <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-lg">
+        <div className={`w-full bg-zinc-900/50 border ${isPremium ? 'border-yellow-400/30' : 'border-zinc-800'} p-5 md:p-8 rounded-lg`}>
           <div className="flex items-center justify-between mb-6 md:mb-8">
             <h2 className="font-pixel text-white text-base md:text-lg">Ratings</h2>
             <div className="flex items-center gap-2 md:gap-4 text-[10px] md:text-sm font-headline text-zinc-500 uppercase tracking-widest">
