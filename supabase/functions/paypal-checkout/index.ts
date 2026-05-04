@@ -48,9 +48,12 @@ Deno.serve(async (req: Request) => {
     })
 
     const captureData = await captureResponse.json()
+    console.log('Capture Data:', JSON.stringify(captureData, null, 2))
 
     if (captureData.status !== 'COMPLETED') {
-      throw new Error(`Capture failed: ${captureData.message || 'Unknown error'}`)
+      const errorMessage = captureData.message || captureData.name || 'Unknown error'
+      const details = captureData.details ? JSON.stringify(captureData.details) : ''
+      throw new Error(`Capture failed: ${errorMessage} ${details}`)
     }
 
     // 3. Update Database (Supabase)

@@ -276,7 +276,7 @@ export function UpgradePage() {
                       <PayPalScriptProvider options={{ 
                         clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "sb",
                         currency: "USD",
-                        intent: "capture"
+                        intent: "CAPTURE"
                       }}>
                         <PayPalButtons 
                           style={{ 
@@ -284,6 +284,12 @@ export function UpgradePage() {
                             color: "gold",
                             shape: "rect",
                             label: "pay"
+                          }}
+                          onError={(err) => {
+                            console.error("PayPal Checkout Error:", err);
+                            toast.error("PayPal Error", {
+                              description: "The payment window couldn't be opened. This often happens if the Client ID is incorrect or the account is restricted."
+                            });
                           }}
                           disabled={isProcessing}
                           createOrder={async (_data, actions) => {
