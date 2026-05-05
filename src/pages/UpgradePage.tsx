@@ -106,7 +106,7 @@ export function UpgradePage() {
     { 
       title: 'Profile Banner', 
       desc: 'Add a custom banner to your explorer profile.', 
-      icon: <ImageIcon className="w-5 h-5 text-pink-400" /> 
+      icon: <ImageIcon className="w-5 h-5 text-realm-green" /> 
     },
     { 
       title: 'Extended Gallery', 
