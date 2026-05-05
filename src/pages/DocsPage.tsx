@@ -13,25 +13,26 @@ export function DocsPage() {
       />
       
       <div className="w-full max-w-2xl mx-auto px-4 py-8 md:py-24 flex flex-col items-center">
-        <FramerIn className="mb-10 md:mb-16 text-center w-full flex flex-col items-center">
-          <div className="inline-flex p-3 rounded-2xl bg-realm-green/10 text-realm-green mb-6">
+        <FramerIn className="mb-10 md:mb-16 text-center w-full flex flex-col items-center justify-center">
+          <div className="inline-flex p-3 rounded-xl bg-realm-green/10 text-realm-green mb-6">
             <Book size={28} className="md:w-10 md:h-10" />
           </div>
-          <h1 className="text-xl sm:text-3xl md:text-5xl font-pixel text-white uppercase tracking-tight mb-4 break-words w-full text-center px-4">
-            Documentation
+          <h1 className="text-[18px] sm:text-3xl md:text-5xl font-pixel text-white uppercase tracking-tight mb-4 text-center flex flex-col items-center justify-center">
+            <span className="sm:hidden">Docs</span>
+            <span className="hidden sm:inline">Documentation</span>
           </h1>
-          <p className="text-zinc-500 font-headline text-[10px] sm:text-xs md:text-lg max-w-xs sm:max-w-md mx-auto">
+          <p className="text-zinc-500 font-headline text-[9px] sm:text-xs md:text-lg max-w-xs sm:max-w-md mx-auto text-center">
             Everything you need to know about Realm Explorer.
           </p>
         </FramerIn>
 
         <div className="space-y-8 md:space-y-12 font-headline w-full">
-          <section className="bg-zinc-900/30 border border-white/5 rounded-2xl p-6 md:p-10 backdrop-blur-sm flex flex-col items-center text-center w-full">
+          <section className="bg-zinc-900/30 border border-white/5 rounded-xl p-6 md:p-10 backdrop-blur-sm flex flex-col items-center text-center w-full">
             <div className="w-full flex flex-col items-center justify-center gap-3 mb-6">
               <div className="p-2.5 rounded-xl bg-realm-green/10 flex items-center justify-center">
                 <Rocket className="text-realm-green w-5 h-5 md:w-6 md:h-6" />
               </div>
-              <h2 className="text-lg md:text-2xl font-pixel text-white uppercase tracking-wide text-center w-full">Getting Started</h2>
+              <h2 className="text-[12px] md:text-2xl font-pixel text-white uppercase tracking-tighter text-center w-full leading-tight">Getting Started</h2>
             </div>
             <div className="text-zinc-400 text-[11px] md:text-sm space-y-4 leading-relaxed max-w-xl w-full">
               <p>
@@ -47,12 +48,12 @@ export function DocsPage() {
             </div>
           </section>
 
-          <section className="bg-zinc-900/30 border border-white/5 rounded-2xl p-6 md:p-10 backdrop-blur-sm flex flex-col items-center text-center w-full">
+          <section className="bg-zinc-900/30 border border-white/5 rounded-xl p-6 md:p-10 backdrop-blur-sm flex flex-col items-center text-center w-full">
             <div className="w-full flex flex-col items-center justify-center gap-3 mb-6">
               <div className="p-2.5 rounded-xl bg-realm-green/10 flex items-center justify-center">
                 <Compass className="text-realm-green w-5 h-5 md:w-6 md:h-6" />
               </div>
-              <h2 className="text-lg md:text-2xl font-pixel text-white uppercase tracking-wide text-center w-full">Listing Your Server</h2>
+              <h2 className="text-[12px] md:text-2xl font-pixel text-white uppercase tracking-tighter text-center w-full leading-tight">Listing Your Server</h2>
             </div>
             <div className="text-zinc-400 text-[11px] md:text-sm space-y-4 leading-relaxed max-w-xl w-full">
               <p>
@@ -69,17 +70,25 @@ export function DocsPage() {
             </div>
           </section>
 
-          <section className="bg-zinc-900/30 border border-white/5 rounded-2xl p-6 md:p-10 backdrop-blur-sm flex flex-col items-center text-center w-full">
+          <section className="bg-zinc-900/30 border border-white/5 rounded-xl p-6 md:p-10 backdrop-blur-sm flex flex-col items-center text-center w-full">
             <div className="w-full flex flex-col items-center justify-center gap-3 mb-6">
               <div className="p-2.5 rounded-xl bg-realm-green/10 flex items-center justify-center">
                 <HelpCircle className="text-realm-green w-5 h-5 md:w-6 md:h-6" />
               </div>
-              <h2 className="text-lg md:text-2xl font-pixel text-white uppercase tracking-wide text-center w-full">Need Help?</h2>
+              <h2 className="text-[12px] md:text-2xl font-pixel text-white uppercase tracking-tighter text-center w-full leading-tight">Need Help?</h2>
             </div>
-            <div className="text-zinc-400 text-[11px] md:text-sm space-y-4 leading-relaxed max-w-xl w-full">
+            <div className="text-zinc-400 text-[11px] md:text-sm space-y-6 leading-relaxed max-w-xl w-full flex flex-col items-center">
               <p>
                 Can't find what you're looking for? Our Discord community is the best place to ask questions and get help from the team and other creators.
               </p>
+              <a 
+                href="https://discord.gg/JZ39eTGSgN" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white px-4 py-2 rounded-lg font-pixel text-[8px] uppercase tracking-wider transition-all shadow-lg hover:scale-105 active:scale-95"
+              >
+                Join Discord
+              </a>
             </div>
           </section>
         </div>
