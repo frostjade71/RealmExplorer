@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion'
-import { Check, Zap, ShieldCheck, Image as ImageIcon, PlusCircle, Share2, FileText, Sparkles, ArrowUp, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Check, Zap, ShieldCheck, Image as ImageIcon, PlusCircle, Share2, FileText, Sparkles, ArrowUp, X, Ticket, ChevronDown } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { useAuth } from '../contexts/AuthContext'
@@ -24,6 +24,49 @@ export function UpgradePage() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [countdown, setCountdown] = useState(0)
   const cancelMutation = useCancelSubscriptionMutation()
+  const [voucherCode, setVoucherCode] = useState('')
+  const [isRedeeming, setIsRedeeming] = useState(false)
+  const [isVoucherOpen, setIsVoucherOpen] = useState(false)
+
+  const handleRedeemVoucher = async () => {
+    if (!voucherCode.trim()) {
+      toast.error('Please enter a voucher code')
+      return
+    }
+
+    setIsRedeeming(true)
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/redeem-voucher`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          code: voucherCode.trim(),
+          userId: user?.id
+        })
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        toast.success('Voucher Redeemed!', {
+          description: 'Your Explorer+ benefits are now active.'
+        })
+        setIsSuccess(true)
+      } else {
+        throw new Error(result.error || 'Failed to redeem voucher')
+      }
+    } catch (err: any) {
+      console.error("Voucher Redemption Error", err)
+      toast.error('Redemption Failed', {
+        description: err.message || 'Invalid or expired code.'
+      })
+    } finally {
+      setIsRedeeming(false)
+    }
+  }
 
   useEffect(() => {
     let timer: any
@@ -265,7 +308,7 @@ export function UpgradePage() {
                     Login to Upgrade
                   </button>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {isProcessing && (
                       <div className="absolute inset-0 bg-zinc-900/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
                         <LoadingSpinner />
@@ -333,6 +376,52 @@ export function UpgradePage() {
                           }}
                         />
                       </PayPalScriptProvider>
+                    </div>
+
+                    {/* Voucher Section */}
+                    <div className="relative">
+                      <button 
+                        onClick={() => setIsVoucherOpen(!isVoucherOpen)}
+                        className="flex items-center gap-2 mx-auto text-zinc-500 hover:text-amber-400 transition-colors group/vbtn"
+                      >
+                        <Ticket className={`w-3 h-3 ${isVoucherOpen ? 'text-amber-400' : 'text-zinc-600 group-hover/vbtn:text-amber-400'}`} />
+                        <span className="font-pixel text-[8px] uppercase tracking-widest">
+                          {isVoucherOpen ? 'Close Voucher' : 'Have a voucher?'}
+                        </span>
+                        <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isVoucherOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      <AnimatePresence>
+                        {isVoucherOpen && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                            animate={{ height: 'auto', opacity: 1, marginTop: 16 }}
+                            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="bg-zinc-950/40 border-2 border-[#101010] p-4 relative">
+                              <div className="absolute inset-0 border-t border-l border-white/5 pointer-events-none" />
+                              <div className="flex flex-col sm:flex-row gap-2">
+                                <input 
+                                  type="text" 
+                                  placeholder="ENTER CODE"
+                                  value={voucherCode}
+                                  onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                                  className="w-full sm:flex-1 bg-zinc-900 border-2 border-[#101010] px-3 py-2 text-white font-pixel text-[10px] focus:border-amber-400/50 outline-none transition-all placeholder:text-zinc-700 text-center sm:text-left"
+                                />
+                                <button 
+                                  onClick={handleRedeemVoucher}
+                                  disabled={isRedeeming || !voucherCode.trim()}
+                                  className="w-full sm:w-auto bg-zinc-800 text-white px-6 py-2 border-2 border-[#101010] font-pixel text-[8px] uppercase hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all relative"
+                                >
+                                  <div className="absolute inset-0 border-t border-l border-white/10 pointer-events-none" />
+                                  {isRedeeming ? '...' : 'Redeem'}
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
                 )}

@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { Navbar } from './Navbar'
 import { Footer } from './Footer'
 import { AnimatePresence } from 'framer-motion'
+import { CommunityOneWidget } from './CommunityOneWidget'
 
 function scrollToTop() {
   const doScroll = () => {
@@ -29,6 +30,7 @@ export function Layout() {
         </AnimatePresence>
       </main>
       <Footer />
+      <CommunityOneWidget />
     </div>
   )
 }
