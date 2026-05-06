@@ -166,7 +166,7 @@ export function AdminBadgesPage() {
               >
                 <div className="w-12 h-12 bg-black/40 rounded-lg border border-white/10 flex items-center justify-center shrink-0 p-2 overflow-hidden">
                    <img 
-                    src={new URL(`../assets/badges/${badge.image_url}`, import.meta.url).href} 
+                    src={new URL(`../assets/${badge.image_url.includes('/') ? badge.image_url : `badges/${badge.image_url}`}`, import.meta.url).href} 
                     alt={badge.name} 
                     className="w-full h-full object-contain"
                   />
@@ -211,7 +211,7 @@ export function AdminBadgesPage() {
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 bg-realm-green/10 rounded-lg border border-realm-green/20 flex items-center justify-center p-2 overflow-hidden">
                        <img 
-                        src={new URL(`../assets/badges/${selectedBadge.image_url}`, import.meta.url).href} 
+                        src={new URL(`../assets/${selectedBadge.image_url.includes('/') ? selectedBadge.image_url : `badges/${selectedBadge.image_url}`}`, import.meta.url).href} 
                         alt="" 
                         className="w-full h-full object-contain"
                       />
@@ -345,7 +345,7 @@ export function AdminBadgesPage() {
                                 <div className="flex items-center gap-3">
                                   <div className="w-10 h-10 bg-white/5 rounded-lg border border-white/10 p-1.5 overflow-hidden">
                                     <img 
-                                      src={new URL(`../assets/badges/${ab.badge?.image_url}`, import.meta.url).href} 
+                                      src={new URL(`../assets/${ab.badge?.image_url.includes('/') ? ab.badge.image_url : `badges/${ab.badge?.image_url}`}`, import.meta.url).href} 
                                       alt="" 
                                       className="w-full h-full object-contain"
                                     />

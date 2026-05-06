@@ -22,6 +22,11 @@ import { useIsMobile } from '../hooks/useMediaQuery'
 import serverTypeIcon from '../assets/category/gif/6128-minecraft.gif'
 import realmTypeIcon from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
 
+// Frames
+import goldFrame from '../assets/upgrades/golden-avatar.png'
+import goldIngot from '../assets/upgrades/9515-mc-gold-ingot.png'
+import goldenBg from '../assets/upgrades/golden-bg.webp'
+
 import { MetaTags } from '../components/MetaTags'
 
 export function ServerDetailPage() {
@@ -210,9 +215,26 @@ export function ServerDetailPage() {
       url={`/server/${server.slug || server.id}`}
       type="website"
     />
+
+    {/* Premium Background */}
+    {isPremium && (
+      <div className="fixed inset-0 -z-50 pointer-events-none overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-[0.07] mix-blend-luminosity scale-110"
+          style={{ 
+            backgroundImage: `url(${goldenBg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed'
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
+      </div>
+    )}
+
     <AnimatedPage className="max-w-5xl mx-auto w-full px-4 md:px-8 py-8 md:py-12">
       {/* Banner */}
-      <FramerIn delay={0.1} className={`w-full h-32 md:h-64 bg-zinc-950 rounded-t-lg overflow-hidden relative border-t border-x ${isPremium ? 'border-yellow-400/50' : 'border-zinc-800'}`}>
+      <FramerIn delay={0.1} className={`w-full h-32 md:h-64 bg-zinc-950 rounded-t-lg overflow-hidden relative ${isPremium ? 'border-t-2 border-x-2 border-[#f2a929]' : 'border-t border-x border-zinc-800'}`}>
         {server.banner_url ? (
            <motion.img 
             initial={isMobile ? { opacity: 0.8 } : { scale: 1.1, opacity: 0 }}
@@ -227,15 +249,23 @@ export function ServerDetailPage() {
       </FramerIn>
 
       {/* Header Info */}
-      <FramerIn delay={0.2} className={`bg-zinc-950 border-x border-b ${isPremium ? 'border-yellow-400/50' : 'border-zinc-800 shadow-xl'} rounded-b-lg p-5 md:p-8 mb-4 md:mb-4 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative -mt-4 will-change-transform`}>
-        <div className={`w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-md overflow-hidden flex-shrink-0 border-4 ${isPremium ? 'border-yellow-400/20' : 'border-zinc-950'} -mt-10 md:-mt-12 z-10 shadow-lg will-change-transform`}>
-
-          {server.icon_url ? (
-            <img src={server.icon_url} alt="Icon" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-zinc-600 font-pixel text-lg md:text-xl">
-              {server.name.substring(0, 2).toUpperCase()}
-            </div>
+      <FramerIn delay={0.2} className={`bg-zinc-950 rounded-b-lg p-5 md:p-8 mb-4 md:mb-4 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative -mt-4 will-change-transform ${isPremium ? 'border-x-2 border-b-2 border-[#f2a929]' : 'border-x border-b border-zinc-800 shadow-xl'}`}>
+        <div className="relative -mt-10 md:-mt-12 z-10 flex-shrink-0">
+          <div className={`w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-md overflow-hidden border-4 ${isPremium ? 'border-transparent' : 'border-zinc-950'} shadow-lg will-change-transform relative z-10`}>
+            {server.icon_url ? (
+              <img src={server.icon_url} alt="Icon" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-zinc-600 font-pixel text-lg md:text-xl">
+                {server.name.substring(0, 2).toUpperCase()}
+              </div>
+            )}
+          </div>
+          {isPremium && (
+            <img 
+              src={goldFrame} 
+              alt="Frame" 
+              className="absolute -top-[12%] -left-[12%] w-[124%] h-[124%] object-contain pointer-events-none z-20 max-w-none" 
+            />
           )}
         </div>
         
@@ -266,7 +296,7 @@ export function ServerDetailPage() {
                       className="group relative cursor-help"
                     >
                       <img 
-                        src={new URL(`../assets/badges/${badge.image_url}`, import.meta.url).href} 
+                        src={new URL(`../assets/${badge.image_url.includes('/') ? badge.image_url : `badges/${badge.image_url}`}`, import.meta.url).href} 
                         alt={badge.name} 
                         className="w-7 h-7 object-contain"
                       />
@@ -300,7 +330,7 @@ export function ServerDetailPage() {
                         className="group relative cursor-help"
                       >
                         <img 
-                          src={new URL(`../assets/badges/${badge.image_url}`, import.meta.url).href} 
+                          src={new URL(`../assets/${badge.image_url.includes('/') ? badge.image_url : `badges/${badge.image_url}`}`, import.meta.url).href} 
                           alt={badge.name} 
                           className="w-9 h-9 object-contain"
                         />
@@ -486,7 +516,7 @@ export function ServerDetailPage() {
 
       <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-4">
         <FramerIn delay={0.3} className="md:col-span-2 w-full space-y-4 md:space-y-4">
-          <div className={`w-full bg-zinc-900/50 border ${isPremium ? 'border-yellow-400/30' : 'border-zinc-800'} p-5 md:p-8 rounded-lg`}>
+          <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-lg">
             <h2 className="font-pixel text-white text-base md:text-lg mb-4 md:mb-6">About</h2>
             <div className="text-zinc-300 font-body leading-relaxed text-[13px]">
               {server.description ? (
@@ -499,7 +529,7 @@ export function ServerDetailPage() {
 
           {/* Gallery Carousel */}
           {gallery.length > 0 && (
-            <div className={`w-full bg-zinc-900/50 border ${isPremium ? 'border-yellow-400/30' : 'border-zinc-800'} p-5 md:p-8 rounded-lg overflow-hidden`}>
+            <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-lg overflow-hidden">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-pixel text-white text-base md:text-lg flex items-center gap-2">
                   <span className="material-symbols-outlined text-sm text-realm-green">photo_library</span>
@@ -572,7 +602,7 @@ export function ServerDetailPage() {
         </FramerIn>
         
         <FramerIn delay={0.4} className="w-full space-y-4 md:space-y-4">
-          <div className={`w-full bg-zinc-900/50 border ${isPremium ? 'border-yellow-400/30' : 'border-zinc-800'} p-5 md:p-6 rounded-lg`}>
+          <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-6 rounded-lg">
             <h3 className="font-headline font-bold text-zinc-500 uppercase tracking-widest text-[10px] md:text-xs mb-4">Statistics</h3>
             <div className="flex flex-col gap-3 md:gap-4">
               <div className="flex justify-between items-center">
@@ -604,11 +634,16 @@ export function ServerDetailPage() {
               {owner && (
                 <Link 
                   to={`/profile/${owner.discord_username}`}
-                  className={`pt-4 mt-1 border-t ${isPremium ? 'border-yellow-400/20' : 'border-zinc-800/50'} flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group transition-all duration-300`}
+                  className="pt-4 mt-1 border-t border-zinc-800/50 flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group transition-all duration-300"
                 >
-                  <img src={owner.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-zinc-700 bg-zinc-800" alt="Owner" />
+                  <img src={owner.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} className={`w-8 h-8 md:w-10 md:h-10 rounded-full border bg-zinc-800 ${isPremium ? 'border-[#f2a929]' : 'border-zinc-700'}`} alt="Owner" />
                   <div className="flex-1">
-                    <p className="text-white text-xs md:text-sm leading-tight">{owner.discord_username}</p>
+                    <p className="text-white text-xs md:text-sm leading-tight flex items-center gap-1.5">
+                      {owner.discord_username}
+                      {isPremium && (
+                        <img src={goldIngot} alt="Premium" className="w-3.5 h-3.5 md:w-4 md:h-4 object-contain" />
+                      )}
+                    </p>
                     <p className={`text-[8px] md:text-[9px] uppercase tracking-widest font-headline mt-0.5 ${
                       isPremium ? 'text-yellow-400' : (server.submitter_role || 'Owner') === 'Owner' ? 'text-yellow-400' : 'text-realm-green'
                     }`}>
@@ -643,7 +678,7 @@ export function ServerDetailPage() {
 
       {/* Ratings Section */}
       <FramerIn delay={0.5} className="w-full mt-4 md:mt-4">
-        <div className={`w-full bg-zinc-900/50 border ${isPremium ? 'border-yellow-400/30' : 'border-zinc-800'} p-5 md:p-8 rounded-lg`}>
+        <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-lg">
           <div className="flex items-center justify-between mb-6 md:mb-8">
             <h2 className="font-pixel text-white text-base md:text-lg">Ratings</h2>
             <div className="flex items-center gap-2 md:gap-4 text-[10px] md:text-sm font-headline text-zinc-500 uppercase tracking-widest">

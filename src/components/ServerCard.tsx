@@ -100,7 +100,9 @@ export function ServerCard({
         <div className="flex items-start justify-between mb-3 md:mb-4">
           <div className="flex items-center gap-3 md:gap-4 w-full">
             <div 
-              className="w-12 h-12 md:w-14 md:h-14 bg-zinc-900 rounded md:rounded-lg overflow-hidden flex-shrink-0 border border-zinc-800"
+              className={`w-12 h-12 md:w-14 md:h-14 bg-zinc-900 rounded md:rounded-lg overflow-hidden flex-shrink-0 border ${
+                isPremium ? 'border-[#f2a929]' : 'border-zinc-800'
+              }`}
             >
               {server.icon_url ? (
                 <img src={server.icon_url} alt={server.name} className="w-full h-full object-cover" />
