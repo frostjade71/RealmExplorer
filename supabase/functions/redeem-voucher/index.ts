@@ -173,33 +173,6 @@ Deno.serve(async (req: Request) => {
       
       if (logError) {
         console.error('Failed to invoke discord-notification:', logError)
-        
-        // CRITICAL FALLBACK: If internal function call fails, try calling the webhook directly
-        // This ensures the owner gets the log even if function-to-function auth is broken
-        const FALLBACK_WEBHOOK = 'https://discord.com/api/webhooks/1493420461206540349/h7aOy6B6KykqDzMRlIxZ1HXEOwHDQvFA-ORvOtHUhKhhmp2wtlZrbJd6QAlmsiQ6B9id'
-        try {
-          await fetch(FALLBACK_WEBHOOK, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              username: 'Realm Explorer | Web Logs',
-              embeds: [{
-                title: '💰 Voucher Redeemed',
-                description: `**${profile?.discord_username || 'Unknown User'}** redeemed a voucher.`,
-                color: 0xf1c40f,
-                fields: [
-                  { name: 'Voucher Code', value: `\`${code}\``, inline: true },
-                  { name: 'Duration', value: `${monthsToAdd} Months`, inline: true }
-                ],
-                footer: { text: 'Internal Audit Log' },
-                timestamp: new Date().toISOString()
-              }]
-            })
-          })
-          console.log('Successfully sent fallback Discord notification')
-        } catch (fallbackErr) {
-          console.error('Failed to send fallback notification:', fallbackErr)
-        }
       } else {
         console.log('discord-notification response:', logData)
       }

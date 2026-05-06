@@ -16,12 +16,7 @@ Deno.serve(async (req: Request) => {
 
     const WEBHOOK_URL = Deno.env.get('DISCORD_WEBHOOK_URL');
     const STAFF_WEBHOOK_URL = Deno.env.get('DISCORD_STAFF_WEBHOOK_URL');
-    let LOGS_WEBHOOK_URL = Deno.env.get('DISCORD_LOGS_WEBHOOK_URL');
-    
-    // Fallback to provided webhook if not set in environment
-    if (!LOGS_WEBHOOK_URL) {
-      LOGS_WEBHOOK_URL = 'https://discord.com/api/webhooks/1493420461206540349/h7aOy6B6KykqDzMRlIxZ1HXEOwHDQvFA-ORvOtHUhKhhmp2wtlZrbJd6QAlmsiQ6B9id';
-    }
+    const LOGS_WEBHOOK_URL = Deno.env.get('DISCORD_LOGS_WEBHOOK_URL');
 
     const STAFF_ROLE_ID = Deno.env.get('DISCORD_STAFF_ROLE_ID');
     const MEMBER_ROLE_ID = Deno.env.get('DISCORD_MEMBER_ROLE_ID');
