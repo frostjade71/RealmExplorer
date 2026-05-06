@@ -114,52 +114,72 @@ Deno.serve(async (req: Request) => {
 
     // 4. Send Notifications
     try {
-      // In-App Notification
-      await supabaseClient.from('notifications').insert({
-        user_id: userId,
-        type: 'welcome',
-        title: 'Redeemed!',
-        message: `You have successfully redeemed a subscription to explorer+ for ${monthsToAdd} month! Enjoy all premium benefits!`,
-        related_id: 'upgrade'
-      })
+      console.log(`Sending notifications for user ${userId}...`)
+      
+      const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
+      const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-      // Discord DM (if available)
-      if (profile?.discord_id) {
-        await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-discord-dm`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-          },
-          body: JSON.stringify({
-            discord_id: profile.discord_id,
-            subject: 'Voucher Redeemed - Welcome to Explorer+!',
-            message: `You have successfully redeemed your ${monthsToAdd} month subscription for Explorer+, enjoy your benefits! You now have access to increased server limits, custom banners, priority shuffle, and more. Thank you for supporting Realm Explorer!`,
-            type: 'welcome',
-            admin_name: 'Realm Explorer Team'
-          })
+      if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+        console.error('Missing environment variables for notifications')
+      } else {
+        // In-App Notification
+        const { error: notifError } = await supabaseClient.from('notifications').insert({
+          user_id: userId,
+          type: 'welcome',
+          title: 'Redeemed!',
+          message: `You have successfully redeemed a subscription to explorer+ for ${monthsToAdd} month! Enjoy all premium benefits!`,
+          related_id: 'upgrade'
         })
-      }
+        if (notifError) console.error('Failed to send in-app notification:', notifError)
 
-      // Discord Audit Log
-      await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/discord-notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-        },
-        body: JSON.stringify({
-          type: 'payment', // We can reuse payment type or create a new one, but payment fits the "upgrade" event
-          payload: {
-            username: profile?.discord_username || 'Unknown User',
-            amount: 'Voucher',
-            currency: code,
-            orderId: 'VOUCHER-REDEEM'
+        // Discord DM (if available)
+        if (profile?.discord_id) {
+          try {
+            const dmResp = await fetch(`${SUPABASE_URL}/functions/v1/send-discord-dm`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SERVICE_ROLE_KEY}`
+              },
+              body: JSON.stringify({
+                discord_id: profile.discord_id,
+                subject: 'Voucher Redeemed - Welcome to Explorer+!',
+                message: `You have successfully redeemed your ${monthsToAdd} month subscription for Explorer+, enjoy your benefits! You now have access to increased server limits, custom banners, priority shuffle, and more. Thank you for supporting Realm Explorer!`,
+                type: 'welcome',
+                admin_name: 'Realm Explorer Team'
+              })
+            })
+            if (!dmResp.ok) console.error(`Discord DM failed with status ${dmResp.status}: ${await dmResp.text()}`)
+          } catch (e) {
+            console.error('Discord DM fetch failed:', e)
           }
-        })
-      })
+        }
+
+        // Discord Audit Log
+        try {
+          const logResp = await fetch(`${SUPABASE_URL}/functions/v1/discord-notification`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${SERVICE_ROLE_KEY}`
+            },
+            body: JSON.stringify({
+              type: 'payment',
+              payload: {
+                username: profile?.discord_username || 'Unknown User',
+                amount: 'Voucher',
+                currency: code,
+                orderId: 'VOUCHER-REDEEM'
+              }
+            })
+          })
+          if (!logResp.ok) console.error(`Discord notification failed with status ${logResp.status}: ${await logResp.text()}`)
+        } catch (e) {
+          console.error('Discord notification fetch failed:', e)
+        }
+      }
     } catch (err) {
-      console.error('Failed to send notifications:', err)
+      console.error('Unexpected error in notification block:', err)
     }
 
     return new Response(JSON.stringify({ success: true, message: 'Voucher redeemed successfully' }), {

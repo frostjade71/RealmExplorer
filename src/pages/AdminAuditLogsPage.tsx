@@ -67,14 +67,38 @@ export function AdminAuditLogsPage() {
   }, [voteLogs, searchQuery])
 
   const filteredPaymentLogs = useMemo(() => {
-    return paymentLogs.filter((pay: any) => {
-      const username = pay.profiles?.discord_username || 'Unknown'
-      const orderId = pay.paypal_order_id || ''
-      const amount = `${pay.amount} ${pay.currency}`
-      const content = `${username} ${orderId} ${amount} ${pay.status}`.toLowerCase()
+    // 1. Regular payment logs
+    const mappedPayments = paymentLogs.map((pay: any) => ({
+      ...pay,
+      type: 'paypal',
+      display_amount: `$${pay.amount}`,
+      display_id: pay.paypal_order_id,
+      display_username: pay.profiles?.discord_username || 'Unknown'
+    }))
+
+    // 2. Voucher redemption logs from audit table
+    const voucherLogs = logs
+      .filter((log: any) => log.action === 'redeem_voucher')
+      .map((log: any) => ({
+        id: log.id,
+        created_at: log.created_at,
+        type: 'voucher',
+        display_amount: 'Voucher',
+        display_id: log.details?.voucher_code || 'VOUCHER-REDEEM',
+        display_username: log.discord_username || 'Unknown',
+        status: 'completed',
+        currency: log.details?.voucher_code // Temporary for search
+      }))
+
+    const combined = [...mappedPayments, ...voucherLogs].sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+
+    return combined.filter((item: any) => {
+      const content = `${item.display_username} ${item.display_id} ${item.display_amount} ${item.status}`.toLowerCase()
       return content.includes(searchQuery.toLowerCase())
     })
-  }, [paymentLogs, searchQuery])
+  }, [paymentLogs, logs, searchQuery])
 
   const getActionColor = (action: string) => {
     if (action.includes('APPROVED') || action === 'OTM_VOTE') return 'text-realm-green bg-realm-green/10 border-realm-green/20'
@@ -248,23 +272,32 @@ export function AdminAuditLogsPage() {
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                           <div className="w-6 h-6 rounded-lg bg-amber-400/10 flex items-center justify-center border border-amber-400/20 group-hover:border-amber-400/30 transition-colors">
-                              <User className="w-3 h-3 text-amber-400/60 transition-colors" />
+                           <div className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-colors ${
+                             pay.type === 'voucher' ? 'bg-purple-500/10 border-purple-500/20 group-hover:border-purple-500/30' : 'bg-amber-400/10 border-amber-400/20 group-hover:border-amber-400/30'
+                           }`}>
+                              <User className={`w-3 h-3 transition-colors ${pay.type === 'voucher' ? 'text-purple-400/60' : 'text-amber-400/60'}`} />
                            </div>
-                           <span className="font-bold text-white group-hover:text-amber-400 transition-colors">
-                            {pay.profiles?.discord_username || 'Unknown'}
+                           <span className={`font-bold text-white transition-colors ${pay.type === 'voucher' ? 'group-hover:text-purple-400' : 'group-hover:text-amber-400'}`}>
+                            {pay.display_username}
                            </span>
                         </div>
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap">
-                        <code className="text-[10px] text-white/40 font-mono bg-white/5 px-2 py-1 rounded border border-white/10 group-hover:border-amber-400/20 transition-colors">
-                          {pay.paypal_order_id}
-                        </code>
+                        <div className="flex items-center gap-2">
+                          <code className="text-[10px] text-white/40 font-mono bg-white/5 px-2 py-1 rounded border border-white/10 group-hover:border-amber-400/20 transition-colors">
+                            {pay.display_id}
+                          </code>
+                          {pay.type === 'voucher' && (
+                            <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 text-[8px] font-bold uppercase">Voucher</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-2">
-                          <span className="text-realm-green font-bold text-sm">${pay.amount}</span>
-                          <span className="text-white/20 text-[10px]">{pay.currency}</span>
+                          <span className={`${pay.type === 'voucher' ? 'text-purple-400' : 'text-realm-green'} font-bold text-sm`}>
+                            {pay.display_amount}
+                          </span>
+                          {pay.currency && pay.type === 'paypal' && <span className="text-white/20 text-[10px]">{pay.currency}</span>}
                           <span className={`ml-2 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-tighter ${
                             pay.status === 'completed' ? 'bg-realm-green/10 text-realm-green' : 'bg-red-500/10 text-red-500'
                           }`}>

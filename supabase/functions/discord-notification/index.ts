@@ -112,8 +112,16 @@ Deno.serve(async (req: Request) => {
           description: `**${username}** has just purchased **Explorer+**!`,
           color: 0xf1c40f, // Gold
           fields: [
-            { name: 'Amount', value: `$${amount} ${currency}`, inline: true },
-            { name: 'Order ID', value: `\`${orderId}\``, inline: true }
+            { 
+              name: 'Amount', 
+              value: amount === 'Voucher' ? `**Voucher**` : `$${amount} ${currency}`, 
+              inline: true 
+            },
+            { 
+              name: amount === 'Voucher' ? 'Voucher Code' : 'Order ID', 
+              value: `\`${orderId === 'VOUCHER-REDEEM' ? currency : orderId}\``, 
+              inline: true 
+            }
           ],
           footer: { text: 'Subscription System' },
           timestamp: new Date().toISOString()
