@@ -1,7 +1,7 @@
 import type { UserRole } from '../types'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import goldIngot from '../assets/upgrades/9515-mc-gold-ingot.png'
+const goldIngot = '/upgrades/9515-mc-gold-ingot.png'
 
 const roleStyles: Record<UserRole, string> = {
   explorer: 'text-zinc-400',

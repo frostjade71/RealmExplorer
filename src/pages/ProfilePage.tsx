@@ -217,7 +217,7 @@ export function ProfilePage() {
                     className="group relative cursor-help"
                   >
                     <img 
-                      src={new URL(`../assets/${badge.image_url.includes('/') ? badge.image_url : `badges/${badge.image_url}`}`, import.meta.url).href} 
+                      src={badge.image_url.startsWith('http') ? badge.image_url : (badge.image_url.includes('/') ? `/${badge.image_url}` : `/badges/${badge.image_url}`)} 
                       alt={badge.name} 
                       className="w-7 h-7 md:w-9 md:h-9 object-contain"
                     />

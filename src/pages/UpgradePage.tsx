@@ -10,11 +10,11 @@ import { useIsMobile } from '../hooks/useMediaQuery'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { useCancelSubscriptionMutation } from '../hooks/mutations'
 import { toast } from 'sonner'
-import upgradeHero from '../assets/upgrades/upgradehero.webp'
-import goldGradient from '../assets/upgrades/Gold Minecraft Gradient.webp'
-import goldIngot from '../assets/upgrades/9515-mc-gold-ingot.png'
+const upgradeHero = '/upgrades/upgradehero.webp'
+const goldGradient = '/upgrades/gold-minecraft-gradient.webp'
+const goldIngot = '/upgrades/9515-mc-gold-ingot.png'
 import directoryHero from '../assets/hero/directoryhero.jpg'
-import successGif from '../assets/upgrades/4364-verification-icon.gif'
+const successGif = '/upgrades/4364-verification-icon.gif'
 
 export function UpgradePage() {
   const isMobile = useIsMobile()

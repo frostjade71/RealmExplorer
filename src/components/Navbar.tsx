@@ -5,8 +5,8 @@ import { useEffect, useState, useRef } from 'react'
 import { Menu, LogOut, LayoutDashboard, Home, Calendar, Globe, Info, Trophy, ChevronDown, Users, BookOpen, ShieldCheck, Medal, ChevronsUp, Pickaxe, Code2, Award } from 'lucide-react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { NotificationDropdown } from './NotificationDropdown'
-import GoldIngot from '../assets/upgrades/9515-mc-gold-ingot.png'
-import GoldGradient from '../assets/upgrades/Gold Minecraft Gradient.webp'
+const GoldIngot = '/upgrades/9515-mc-gold-ingot.png'
+const GoldGradient = '/upgrades/gold-minecraft-gradient.webp'
 
 export function Navbar() {
   const { user, profile, signInWithDiscord, signOut, isModerator, isExplorerPlus } = useAuth()

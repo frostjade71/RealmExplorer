@@ -23,9 +23,9 @@ import serverTypeIcon from '../assets/category/gif/6128-minecraft.gif'
 import realmTypeIcon from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
 
 // Frames
-import goldFrame from '../assets/upgrades/golden-avatar.png'
-import goldIngot from '../assets/upgrades/9515-mc-gold-ingot.png'
-import goldenBg from '../assets/upgrades/golden-bg.webp'
+const goldFrame = '/upgrades/golden-avatar.png'
+const goldIngot = '/upgrades/9515-mc-gold-ingot.png'
+const goldenBg = '/upgrades/golden-bg.webp'
 
 import { MetaTags } from '../components/MetaTags'
 
@@ -296,7 +296,7 @@ export function ServerDetailPage() {
                       className="group relative cursor-help"
                     >
                       <img 
-                        src={new URL(`../assets/${badge.image_url.includes('/') ? badge.image_url : `badges/${badge.image_url}`}`, import.meta.url).href} 
+                        src={badge.image_url.startsWith('http') ? badge.image_url : (badge.image_url.includes('/') ? `/${badge.image_url}` : `/badges/${badge.image_url}`)} 
                         alt={badge.name} 
                         className="w-7 h-7 object-contain"
                       />
@@ -330,7 +330,7 @@ export function ServerDetailPage() {
                         className="group relative cursor-help"
                       >
                         <img 
-                          src={new URL(`../assets/${badge.image_url.includes('/') ? badge.image_url : `badges/${badge.image_url}`}`, import.meta.url).href} 
+                          src={badge.image_url.startsWith('http') ? badge.image_url : (badge.image_url.includes('/') ? `/${badge.image_url}` : `/badges/${badge.image_url}`)} 
                           alt={badge.name} 
                           className="w-9 h-9 object-contain"
                         />
