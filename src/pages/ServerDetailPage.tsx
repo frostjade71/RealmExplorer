@@ -271,10 +271,10 @@ export function ServerDetailPage() {
         
         <div className="flex-1 w-full pt-1 md:pt-2">
 
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-2 md:gap-4">
             <div className="min-w-0 md:flex-1 w-full md:w-auto">
               <h1 className="text-lg md:text-2xl font-pixel text-white mb-2 md:mb-3 break-words whitespace-normal leading-tight">{server.name}</h1>
-              <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
+              <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-2 md:mb-4">
                 {!isApproved && statusInfo && (
                   <span className={`px-2 py-0.5 text-[9px] md:text-[10px] font-bold uppercase tracking-wider rounded border border-current/10 ${statusInfo.bg} ${statusInfo.text}`}>
                     {statusInfo.label}
@@ -289,7 +289,7 @@ export function ServerDetailPage() {
               
               {/* Mobile Badges (Original Position) */}
               {badges.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 mb-4 md:hidden">
+                <div className="flex flex-wrap items-center gap-1.5 mb-2 md:hidden">
                   {badges.map((badge, index) => (
                     <div 
                       key={`${badge.id}-${badge.month}`} 
@@ -298,7 +298,7 @@ export function ServerDetailPage() {
                       <img 
                         src={badge.image_url.startsWith('http') ? badge.image_url : (badge.image_url.includes('/') ? `/${badge.image_url}` : `/badges/${badge.image_url}`)} 
                         alt={badge.name} 
-                        className="w-7 h-7 object-contain"
+                        className="w-6 h-6 object-contain"
                       />
                       
                       {/* Premium Tooltip */}
@@ -319,7 +319,7 @@ export function ServerDetailPage() {
               )}
             </div>
 
-            <div className="flex flex-col items-center md:items-end gap-2 w-full md:w-auto mt-2 md:mt-0">
+            <div className="flex flex-col items-center md:items-end gap-2 w-full md:w-auto mt-0 md:mt-0">
               <div className="flex items-center gap-1.5 w-full md:w-auto justify-center md:justify-end">
                 {/* Desktop Badges (Besides Vote) */}
                 {badges.length > 0 && (
@@ -332,7 +332,7 @@ export function ServerDetailPage() {
                         <img 
                           src={badge.image_url.startsWith('http') ? badge.image_url : (badge.image_url.includes('/') ? `/${badge.image_url}` : `/badges/${badge.image_url}`)} 
                           alt={badge.name} 
-                          className="w-9 h-9 object-contain"
+                          className="w-7 h-7 object-contain"
                         />
                         
                         {/* Premium Tooltip */}
@@ -489,7 +489,7 @@ export function ServerDetailPage() {
                     website: { text: 'text-white', border: 'hover:border-white/30' },
                     instagram: { text: 'text-pink-500', border: 'hover:border-pink-500/40' },
                     youtube: { text: 'text-red-600', border: 'hover:border-red-600/40' },
-                    tiktok: { text: 'text-cyan-400', border: 'hover:border-cyan-400/40' },
+                    tiktok: { text: 'text-white', border: 'hover:border-white/40' },
                     facebook: { text: 'text-blue-600', border: 'hover:border-blue-600/40' },
                     twitch: { text: 'text-purple-500', border: 'hover:border-purple-500/40' },
                     discord: { text: 'text-[#5865F2]', border: 'hover:border-[#5865F2]/40' },

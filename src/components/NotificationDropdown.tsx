@@ -64,6 +64,9 @@ export function NotificationDropdown() {
     } else if (n.type === 'badge_award_server') {
       navigate(`/server/${n.related_id}`)
       setIsOpen(false)
+    } else if (n.related_id === 'upgrade') {
+      navigate('/upgrade')
+      setIsOpen(false)
     } else if (n.related_id) {
       navigate(`/server/${n.related_id}`)
       setIsOpen(false)

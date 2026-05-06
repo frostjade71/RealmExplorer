@@ -18,9 +18,15 @@ Deno.serve(async (req: Request) => {
       throw new Error('Voucher code and User ID are required')
     }
 
+    const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY') || ''
+    console.log('Service Role Key detected, length:', SERVICE_ROLE_KEY.length)
+    if (SERVICE_ROLE_KEY.length === 0) {
+      console.error('CRITICAL: Service Role Key is missing from environment!')
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      SERVICE_ROLE_KEY
     )
 
     // 1. Validate Voucher
@@ -116,67 +122,86 @@ Deno.serve(async (req: Request) => {
     try {
       console.log(`Sending notifications for user ${userId}...`)
       
-      const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
-      const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+      // In-App Notification
+      const { error: notifError } = await supabaseClient.from('notifications').insert({
+        user_id: userId,
+        type: 'welcome',
+        title: 'Redeemed!',
+        message: `You have successfully redeemed a subscription to explorer+ for ${monthsToAdd} month! Enjoy all premium benefits!`,
+        related_id: 'upgrade'
+      })
+      if (notifError) console.error('Failed to send in-app notification:', notifError)
 
-      if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
-        console.error('Missing environment variables for notifications')
-      } else {
-        // In-App Notification
-        const { error: notifError } = await supabaseClient.from('notifications').insert({
-          user_id: userId,
-          type: 'welcome',
-          title: 'Redeemed!',
-          message: `You have successfully redeemed a subscription to explorer+ for ${monthsToAdd} month! Enjoy all premium benefits!`,
-          related_id: 'upgrade'
+      // Discord DM (if available)
+      if (profile?.discord_id) {
+        console.log(`Invoking send-discord-dm for ${profile.discord_id}...`)
+        const { data: dmData, error: dmError } = await supabaseClient.functions.invoke('send-discord-dm', {
+          headers: {
+            'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+          },
+          body: {
+            discord_id: profile.discord_id,
+            subject: 'Voucher Redeemed - Welcome to Explorer+!',
+            message: `You have successfully redeemed your ${monthsToAdd} month subscription for Explorer+, enjoy your benefits! You now have access to increased server limits, custom banners, priority shuffle, and more. Thank you for supporting Realm Explorer!`,
+            type: 'welcome',
+            admin_name: 'Realm Explorer Team'
+          }
         })
-        if (notifError) console.error('Failed to send in-app notification:', notifError)
+        if (dmError) {
+          console.error('Failed to invoke send-discord-dm:', dmError)
+        } else {
+          console.log('send-discord-dm response:', dmData)
+        }
+      }
 
-        // Discord DM (if available)
-        if (profile?.discord_id) {
-          try {
-            const dmResp = await fetch(`${SUPABASE_URL}/functions/v1/send-discord-dm`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${SERVICE_ROLE_KEY}`
-              },
-              body: JSON.stringify({
-                discord_id: profile.discord_id,
-                subject: 'Voucher Redeemed - Welcome to Explorer+!',
-                message: `You have successfully redeemed your ${monthsToAdd} month subscription for Explorer+, enjoy your benefits! You now have access to increased server limits, custom banners, priority shuffle, and more. Thank you for supporting Realm Explorer!`,
-                type: 'welcome',
-                admin_name: 'Realm Explorer Team'
-              })
-            })
-            if (!dmResp.ok) console.error(`Discord DM failed with status ${dmResp.status}: ${await dmResp.text()}`)
-          } catch (e) {
-            console.error('Discord DM fetch failed:', e)
+      // Discord Audit Log
+      console.log('Invoking discord-notification...')
+      const { data: logData, error: logError } = await supabaseClient.functions.invoke('discord-notification', {
+        headers: {
+          'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        },
+        body: {
+          type: 'payment',
+          payload: {
+            username: profile?.discord_username || 'Unknown User',
+            amount: 'Voucher',
+            currency: code,
+            orderId: 'VOUCHER-REDEEM'
           }
         }
-
-        // Discord Audit Log
+      })
+      
+      if (logError) {
+        console.error('Failed to invoke discord-notification:', logError)
+        
+        // CRITICAL FALLBACK: If internal function call fails, try calling the webhook directly
+        // This ensures the owner gets the log even if function-to-function auth is broken
+        const FALLBACK_WEBHOOK = 'https://discord.com/api/webhooks/1493420461206540349/h7aOy6B6KykqDzMRlIxZ1HXEOwHDQvFA-ORvOtHUhKhhmp2wtlZrbJd6QAlmsiQ6B9id'
         try {
-          const logResp = await fetch(`${SUPABASE_URL}/functions/v1/discord-notification`, {
+          await fetch(FALLBACK_WEBHOOK, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${SERVICE_ROLE_KEY}`
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              type: 'payment',
-              payload: {
-                username: profile?.discord_username || 'Unknown User',
-                amount: 'Voucher',
-                currency: code,
-                orderId: 'VOUCHER-REDEEM'
-              }
+              username: 'Realm Explorer | Web Logs',
+              embeds: [{
+                title: '💰 Voucher Redeemed',
+                description: `**${profile?.discord_username || 'Unknown User'}** redeemed a voucher.`,
+                color: 0xf1c40f,
+                fields: [
+                  { name: 'Voucher Code', value: `\`${code}\``, inline: true },
+                  { name: 'Duration', value: `${monthsToAdd} Months`, inline: true }
+                ],
+                footer: { text: 'Internal Audit Log' },
+                timestamp: new Date().toISOString()
+              }]
             })
           })
-          if (!logResp.ok) console.error(`Discord notification failed with status ${logResp.status}: ${await logResp.text()}`)
-        } catch (e) {
-          console.error('Discord notification fetch failed:', e)
+          console.log('Successfully sent fallback Discord notification')
+        } catch (fallbackErr) {
+          console.error('Failed to send fallback notification:', fallbackErr)
         }
+      } else {
+        console.log('discord-notification response:', logData)
       }
     } catch (err) {
       console.error('Unexpected error in notification block:', err)

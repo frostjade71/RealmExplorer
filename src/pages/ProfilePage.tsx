@@ -51,21 +51,21 @@ export function ProfilePage() {
       case 'discord': return 'text-[#5865F2]'
       case 'instagram': return 'text-[#E4405F]'
       case 'youtube': return 'text-[#FF0000]'
-      case 'tiktok': return 'text-[#00f2ea]' 
-      case 'facebook': return 'text-[#1877F2]'
-      case 'twitch': return 'text-[#9146FF]'
-      case 'email': return 'text-white'
-      case 'website': return 'text-blue-400'
-      default: return 'text-zinc-400'
-    }
+      case 'tiktok': return 'text-white' 
+    case 'facebook': return 'text-[#1877F2]'
+    case 'twitch': return 'text-[#9146FF]'
+    case 'email': return 'text-white'
+    case 'website': return 'text-blue-400'
+    default: return 'text-zinc-400'
   }
+}
 
-  const getPlatformBorderColor = (platform: string) => {
-    switch (platform) {
-      case 'discord': return 'border-[#5865F2]/20 hover:border-[#5865F2]/40'
-      case 'instagram': return 'border-[#E4405F]/20 hover:border-[#E4405F]/40'
-      case 'youtube': return 'border-[#FF0000]/20 hover:border-[#FF0000]/40'
-      case 'tiktok': return 'border-[#00f2ea]/20 hover:border-[#00f2ea]/40'
+const getPlatformBorderColor = (platform: string) => {
+  switch (platform) {
+    case 'discord': return 'border-[#5865F2]/20 hover:border-[#5865F2]/40'
+    case 'instagram': return 'border-[#E4405F]/20 hover:border-[#E4405F]/40'
+    case 'youtube': return 'border-[#FF0000]/20 hover:border-[#FF0000]/40'
+    case 'tiktok': return 'border-white/20 hover:border-white/40'
       case 'facebook': return 'border-[#1877F2]/20 hover:border-[#1877F2]/40'
       case 'twitch': return 'border-[#9146FF]/20 hover:border-[#9146FF]/40'
       case 'email': return 'border-white/10 hover:border-white/20'

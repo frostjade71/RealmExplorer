@@ -81,7 +81,7 @@ Deno.serve(async (req: Request) => {
       title: isRejection 
         ? '❌ Server Listing Update' 
         : isWelcome 
-          ? '✨ WELCOME TO THE EXPLORER+ FAMILY! ✨' 
+          ? 'Welcome to Explorer+' 
           : '📧 Staff Message — Realm Explorer',
       description: isRejection
         ? `Your server **${server_name}** requires attention from our team.`

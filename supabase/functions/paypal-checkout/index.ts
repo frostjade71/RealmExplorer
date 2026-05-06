@@ -65,7 +65,7 @@ Deno.serve(async (req: Request) => {
     // Calculate Expiration: 1 month from now, or 1 month from current expiration if still active
     const { data: currentProfile } = await supabaseClient
       .from('profiles')
-      .select('subscription_expires_at')
+      .select('subscription_expires_at, discord_username, discord_id')
       .eq('id', userId)
       .single()
 
@@ -73,7 +73,7 @@ Deno.serve(async (req: Request) => {
     if (currentProfile?.subscription_expires_at) {
       const currentExp = new Date(currentProfile.subscription_expires_at)
       if (currentExp > new Date()) {
-        newExpiration = currentExp
+        newExpiration = new Date(currentExp)
       }
     }
     newExpiration.setMonth(newExpiration.getMonth() + 1)
@@ -86,22 +86,19 @@ Deno.serve(async (req: Request) => {
         subscription_expires_at: newExpiration.toISOString()
       })
       .eq('id', userId)
-      .select('discord_username')
+      .select('discord_username, discord_id')
       .single()
 
     if (profileError) throw profileError
 
-    // RESTORE ARCHIVED SERVERS: If the user had servers archived during cancellation, re-approve them
+    // RESTORE ARCHIVED SERVERS
     const { error: restoreError } = await supabaseClient
       .from('servers')
       .update({ status: 'approved' })
       .eq('owner_id', userId)
       .eq('status', 'archived')
     
-    if (restoreError) {
-      console.error('Failed to restore archived servers:', restoreError)
-      // We don't fail the whole payment if this fails, but it's good to log
-    }
+    if (restoreError) console.error('Failed to restore archived servers:', restoreError)
 
     // Insert Payment Record
     const amountValue = captureData.purchase_units[0].payments.captures[0].amount.value
@@ -120,74 +117,56 @@ Deno.serve(async (req: Request) => {
 
     if (paymentError) throw paymentError
 
-    // 4. Send "Welcome to Explorer+" Notifications (In-app + DM)
-    try {
-      // 4a. Get Discord ID for DM
-      const { data: userData } = await supabaseClient
-        .from('profiles')
-        .select('discord_id, discord_username')
-        .eq('id', userId)
-        .single()
+    // Record Audit Log (New: Consistent with vouchers)
+    await supabaseClient.from('audit_logs').insert({
+      user_id: userId,
+      discord_username: profile?.discord_username,
+      action: 'payment_success',
+      target_id: orderId,
+      details: {
+        amount: amountValue,
+        currency: currencyCode,
+        method: 'paypal',
+        new_expiration: newExpiration.toISOString()
+      }
+    })
 
-      // 4b. Insert In-App Web Notification
+    // 4. Send Notifications
+    try {
+      // 4a. In-App Web Notification
       await supabaseClient.from('notifications').insert({
         user_id: userId,
         type: 'welcome',
         title: 'Welcome to the Explorer+ Family!',
         message: "You've unlocked exclusive banners, increased limits, and more. Your journey just got legendary!",
-        related_id: null
+        related_id: 'upgrade'
       })
 
-      // 4c. Send Discord DM
-      if (userData?.discord_id) {
-        const welcomeMessage = `Hello! We are thrilled to have you as part of our Explorer+ family. Your support means the world to us and helps us keep Realm Explorer growing.
-
-As an Explorer+, you now have access to these exclusive perks:
-- **Submit up to 5 servers**: Expand your reach across the community.
-- **Custom Profile Banner**: Personalize your profile with a custom look.
-- **Extended Gallery**: Show off your servers with up to 5 images per listing.
-- **Priority Shuffle**: Get your listings seen more often.
-- **Golden Profile**: Stand out with a premium look on your profile and servers.
-- **Socials Links**: Add more links to connect with your community.
-- **Faster Shuffle**: Shuffle cooldown reduced to 2 seconds.
-
-If you have any questions or need help setting up your new features, feel free to reach out to our staff in the Discord server.
-
-Thank you for being a part of Realm Explorer!
-— The Realm Explorer Team`
-
-        await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-discord-dm`, {
-          method: 'POST',
+      // 4b. Discord DM (Internal Function Call)
+      if (profile?.discord_id) {
+        console.log(`Invoking send-discord-dm for ${profile.discord_id}...`)
+        await supabaseClient.functions.invoke('send-discord-dm', {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+            'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
           },
-          body: JSON.stringify({
-            discord_id: userData.discord_id,
+          body: {
+            discord_id: profile.discord_id,
             subject: 'Welcome to Explorer+!',
-            message: '', // The message body is now handled by the 'welcome' type template in the function
+            message: '', // The message body is handled by the 'welcome' type template
             type: 'welcome',
             admin_name: 'Realm Explorer Team',
             icon_url: 'https://bwruljrnltvoojvzgiqm.supabase.co/storage/v1/object/public/main_bucket/Logo-Color-Change-removebg-preview.png'
-          })
+          }
         })
       }
-    } catch (err) {
-      console.error('Failed to send welcome notifications:', err)
-      // Non-blocking
-    }
 
-    // 5. Send Discord Audit Log Notification (Fire and Forget)
-    try {
-      console.log(`Sending Discord notification for user: ${profile?.discord_username || 'Unknown'}`)
-      
-      const notifyResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/discord-notification`, {
-        method: 'POST',
+      // 4c. Discord Audit Log Notification (Internal Function Call)
+      console.log('Invoking discord-notification...')
+      await supabaseClient.functions.invoke('discord-notification', {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+          'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         },
-        body: JSON.stringify({
+        body: {
           type: 'payment',
           payload: {
             username: profile?.discord_username || 'Unknown User',
@@ -195,18 +174,10 @@ Thank you for being a part of Realm Explorer!
             currency: currencyCode,
             orderId: orderId
           }
-        })
+        }
       })
-
-      if (!notifyResponse.ok) {
-        const errorText = await notifyResponse.text()
-        console.error(`Discord notification failed with status ${notifyResponse.status}: ${errorText}`)
-      } else {
-        console.log('Discord notification sent successfully')
-      }
     } catch (err) {
-      console.error('Discord Notification Error:', err)
-      // Don't fail the whole request if notification fails
+      console.error('Failed to send welcome notifications:', err)
     }
 
     return new Response(JSON.stringify({ success: true, data: captureData }), {
