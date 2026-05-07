@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom'
 import { useServers } from '../hooks/queries'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import type { ServerCategory, ServerType } from '../types'
 import { ServerCard } from '../components/ServerCard'
@@ -39,6 +39,35 @@ export function DirectoryPage() {
   const PAGE_SIZE = 24
   const [page, setPage] = useState(1)
   const [localSearch, setLocalSearch] = useState(initialSearch)
+  const [scrolled, setScrolled] = useState(false)
+  const searchBarRef = useRef<HTMLDivElement>(null)
+
+  // Track scroll for shuffle button transition using IntersectionObserver
+  useEffect(() => {
+    if (isMobile) return; // Mobile always shows floating button, no need to track
+
+    // Delay observer to prevent jitter during page entry animation and scrollToTop
+    const timer = setTimeout(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          setScrolled(!entry.isIntersecting)
+        },
+        { 
+          threshold: 0,
+          rootMargin: '-80px 0px 0px 0px'
+        }
+      )
+
+      if (searchBarRef.current) {
+        observer.observe(searchBarRef.current)
+      }
+      
+      // Cleanup observer inside the timeout return
+      return () => observer.disconnect()
+    }, 800)
+
+    return () => clearTimeout(timer)
+  }, [isMobile])
 
   // Reset page when filters change
   useEffect(() => {
@@ -150,28 +179,37 @@ export function DirectoryPage() {
       <header className="relative pt-32 pb-16 md:pb-20 px-8 overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}
         <motion.img 
-          initial={isMobile ? { opacity: 0.5 } : { scale: 1.1, opacity: 0 }}
-          animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.5 }}
+          transition={{ duration: 1, ease: "easeOut" }}
           src={directoryHero} 
           alt="Directory Background" 
-          className="absolute inset-0 w-full h-full object-cover z-0 block will-change-[opacity,transform]"
+          className="absolute inset-0 w-full h-full object-cover z-0 block"
           fetchPriority="high"
         />
         {/* Dark Cinematic Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10 pointer-events-none"></div>
         
-        <div className="max-w-7xl mx-auto w-full relative z-20 flex flex-col items-center text-center will-change-transform">
-          <FramerIn>
+        <div className="max-w-7xl mx-auto w-full relative z-20 flex flex-col items-center text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
             <h1 className="text-3xl md:text-5xl font-pixel text-white mb-4 md:mb-6 drop-shadow-2xl">
               {activeType ? `${activeType.charAt(0).toUpperCase() + activeType.slice(1)} Explorer` : 'Realm Explorer'}
             </h1>
             <p className="text-white/80 font-headline text-sm md:text-lg max-w-2xl mx-auto mb-8 md:mb-10 drop-shadow-lg leading-relaxed px-4">
               Discover the top-rated {activeType || 'realms and servers'} from our community.
             </p>
-          </FramerIn>
+          </motion.div>
           
-          <FramerIn delay={0.2} className={`flex gap-1.5 md:gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className={`flex gap-1.5 md:gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}
+          >
             {[
               { id: null, label: 'All', icon: <Globe className="w-3.5 h-3.5 md:w-4 h-4" /> },
               { id: 'server' as const, label: 'Servers', icon: <img src={serverGif} alt="" className="w-3.5 h-3.5 md:w-4 h-4 object-contain rounded-sm" /> },
@@ -193,7 +231,7 @@ export function DirectoryPage() {
                 <span className="relative">{type.label}</span>
               </button>
             ))}
-          </FramerIn>
+          </motion.div>
         </div>
         
         {/* Cinematic Fade into next section */}
@@ -202,9 +240,14 @@ export function DirectoryPage() {
 
       <div className={`w-full max-w-7xl mx-auto px-8 py-8 md:py-12 flex-grow ${isMobile ? 'pb-32' : ''}`}>
 
-      <FramerIn delay={0.2} className="w-full space-y-6 md:space-y-8 mb-10 md:mb-12">
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="w-full space-y-6 md:space-y-8 mb-10 md:mb-12"
+      >
         {/* Search and Sort Row */}
-        <div className="w-full flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div ref={searchBarRef} className="w-full flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full max-w-md group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-realm-green transition-colors" />
             <input 
@@ -224,28 +267,30 @@ export function DirectoryPage() {
             )}
           </div>
 
-          {!isMobile && (
-            <button
-              onClick={handleShuffle}
-              disabled={shuffleCooldown > 0}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-headline font-bold text-xs transition-all w-full md:w-auto justify-center ${
-                shuffleCooldown > 0 
-                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' 
-                  : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'
-              }`}
-            >
-              {shuffleCooldown > 0 ? (
-                <>
-                  <Timer className="w-4 h-4 animate-pulse" />
-                  Wait {shuffleCooldown}s
-                </>
-              ) : (
-                <>
-                  <Shuffle className="w-4 h-4" />
-                  Shuffle Exploration
-                </>
-              )}
-            </button>
+          {!isMobile && !scrolled && (
+            <div className="w-full md:w-auto">
+              <button
+                onClick={handleShuffle}
+                disabled={shuffleCooldown > 0}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-headline font-bold text-xs transition-all w-full md:w-auto justify-center ${
+                  shuffleCooldown > 0 
+                    ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' 
+                    : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'
+                }`}
+              >
+                {shuffleCooldown > 0 ? (
+                  <>
+                    <Timer className="w-4 h-4 animate-pulse" />
+                    Wait {shuffleCooldown}s
+                  </>
+                ) : (
+                  <>
+                    <Shuffle className="w-4 h-4" />
+                    Shuffle Exploration
+                  </>
+                )}
+              </button>
+            </div>
           )}
         </div>
 
@@ -272,7 +317,7 @@ export function DirectoryPage() {
             </button>
           ))}
         </div>
-      </FramerIn>
+      </motion.div>
 
       <AnimatePresence mode="popLayout">
         {loading ? (
@@ -303,7 +348,6 @@ export function DirectoryPage() {
             key="grid"
             initial="hidden"
             animate="visible"
-            layout
             variants={{
               hidden: { opacity: 0 },
               visible: {
@@ -318,7 +362,6 @@ export function DirectoryPage() {
             {paginatedServers.map(server => (
               <motion.div
                 key={server.id}
-                layout
                 variants={{
                   hidden: { opacity: 0, y: 10 },
                   visible: { opacity: 1, y: 0 }
@@ -356,28 +399,38 @@ export function DirectoryPage() {
       )}
     </div>
 
-      {isMobile && createPortal(
-        <div className="fixed bottom-8 right-6 z-[40] pointer-events-auto">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleShuffle();
-            }}
-            disabled={shuffleCooldown > 0}
-            className={`w-14 h-14 rounded-lg flex flex-col items-center justify-center transition-all shadow-2xl active:scale-95 ${
-              shuffleCooldown > 0
-                ? 'bg-zinc-800 text-zinc-500 border border-zinc-700'
-                : 'bg-realm-green text-zinc-950 active:bg-[#85fc7e]'
-            }`}
-          >
-            {shuffleCooldown > 0 ? (
-              <span className="text-[8px] font-pixel">{shuffleCooldown}s</span>
-            ) : (
-              <Shuffle className="w-6 h-6" />
-            )}
-          </button>
-        </div>,
+      {createPortal(
+        <AnimatePresence>
+          {(isMobile || (scrolled && !isMobile)) && (
+            <motion.div 
+              key="floating-shuffle"
+              initial={{ opacity: 0, scale: 0.5, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.5, y: 20 }}
+              className="fixed bottom-8 right-6 z-[40] pointer-events-auto"
+            >
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleShuffle();
+                }}
+                disabled={shuffleCooldown > 0}
+                className={`w-14 h-14 rounded-lg flex flex-col items-center justify-center transition-all shadow-2xl active:scale-95 ${
+                  shuffleCooldown > 0
+                    ? 'bg-zinc-800 text-zinc-500 border border-zinc-700'
+                    : 'bg-realm-green text-zinc-950 active:bg-[#85fc7e]'
+                }`}
+              >
+                {shuffleCooldown > 0 ? (
+                  <span className="text-[8px] font-pixel">{shuffleCooldown}s</span>
+                ) : (
+                  <Shuffle className="w-6 h-6" />
+                )}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>,
         document.body
       )}
     </AnimatedPage>
