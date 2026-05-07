@@ -606,13 +606,13 @@ export function useEntityBadges(targetId: string | undefined, targetType: 'user'
       // 2. Fetch automatic badges if it's a server
       if (targetType === 'server') {
         const [topVotesResult, topRatingsResult, serverResult, autoBadgesResult] = await Promise.all([
-          supabase.from('public_servers').select('id').eq('status', 'approved').order('votes', { ascending: false }).limit(1).maybeSingle(),
+          supabase.from('public_servers').select('id').eq('status', 'approved').order('votes', { ascending: false }).limit(10),
           supabase.from('public_servers').select('id').eq('status', 'approved').order('weighted_rating', { ascending: false }).limit(1).maybeSingle(),
           supabase.from('public_servers').select('created_at, profiles(role)').eq('id', targetId!).single(),
           supabase.from('badges').select('*').eq('type', 'automatic')
         ])
 
-        const topVotes = topVotesResult.data
+        const topVotes = topVotesResult.data || []
         const topRatings = topRatingsResult.data
         const server = serverResult.data
         const autoBadges = autoBadgesResult.data || []
@@ -629,9 +629,24 @@ export function useEntityBadges(targetId: string | undefined, targetType: 'user'
           }
         }
 
-        if (topVotes?.id === targetId) {
-          const b = autoBadges.find(b => b.slug === 'top-votes')
-          if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
+        // Tiered Voting Rank Badges
+        const voteRank = topVotes.findIndex(s => s.id === targetId) + 1
+        if (voteRank > 0) {
+          let badgeSlug = ''
+          if (voteRank <= 3) badgeSlug = 'top-3-votes'
+          else if (voteRank <= 5) badgeSlug = 'top-5-votes'
+          else if (voteRank <= 10) badgeSlug = 'top-10-votes'
+
+          if (badgeSlug) {
+            const b = autoBadges.find(b => b.slug === badgeSlug)
+            if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
+          }
+
+          // Also keep the old #1 badge if they are #1
+          if (voteRank === 1) {
+            const b = autoBadges.find(b => b.slug === 'top-votes')
+            if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
+          }
         }
         if (topRatings?.id === targetId) {
           const b = autoBadges.find(b => b.slug === 'top-ratings')

@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import { Github } from 'lucide-react'
-import { SiDiscord, SiKofi } from 'react-icons/si'
+import { SiDiscord } from 'react-icons/si'
 import logo from '../assets/rerealm.webp'
+import kofiIcon from '../assets/footer/16354-kofi-pixel.png'
 
 export function Footer() {
   return (
@@ -47,7 +48,7 @@ export function Footer() {
               className="px-3 md:px-4 h-9 md:h-10 bg-white/5 rounded-lg flex items-center gap-2 text-white hover:bg-[#FF5E5B] hover:text-white transition-all hover:scale-105"
               title="Support Frost on Ko-fi"
             >
-              <SiKofi className="w-4 h-4 md:w-5 md:h-5" />
+              <img src={kofiIcon} alt="Ko-fi" className="w-5 h-5 md:w-6 md:h-6 object-contain" />
               <span className="text-[10px] md:text-xs font-headline font-medium">Support Frost on Ko-fi</span>
             </a>
             <a 
@@ -69,7 +70,7 @@ export function Footer() {
               <Github className="w-4 h-4 md:w-5 md:h-5" />
             </a>
           </div>
-          <p className="font-body text-[10px] md:text-xs text-white/40">v1.4.5 | © 2026 Realm Explorer</p>
+          <p className="font-body text-[10px] md:text-xs text-white/40">v1.4.8 | © 2026 Realm Explorer</p>
         </div>
       </div>
     </footer>

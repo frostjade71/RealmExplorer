@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import cookieImg from '../assets/cookie.png'
+import cookieImg from '../assets/9598-mc-cookie.png'
 
 export function CookieBanner() {
   const [isVisible, setIsVisible] = useState(false)

@@ -188,9 +188,8 @@ const getPlatformBorderColor = (platform: string) => {
               <h1 className={`${(profile.discord_username?.length || 0) > 15 ? 'text-[8px]' : (profile.discord_username?.length || 0) > 10 ? 'text-[10px]' : (profile.discord_username?.length || 0) > 7 ? 'text-[13px]' : 'text-[15px]'} md:text-2xl font-pixel text-white leading-tight break-all`}>
                 {profile.discord_username}
               </h1>
-              {profile.role !== 'explorer' && (
-                <RoleBadge role={profile.role} className="ml-0" />
-              )}
+              <RoleBadge role={profile.role} className="ml-0" />
+
             </div>
             
             <div className="flex flex-wrap items-center justify-start gap-3 text-zinc-500 font-headline text-[10px] italic">
