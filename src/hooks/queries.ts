@@ -635,9 +635,15 @@ export function useEntityBadges(targetId: string | undefined, targetType: 'user'
           const b = autoBadges.find(b => b.slug === 're-cod')
           if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
 
-          // Also keep the old #1 badge if they are #1
+          // Top 1, 2, 3 Specific Badges
           if (voteRank === 1) {
             const b = autoBadges.find(b => b.slug === 'top-votes')
+            if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
+          } else if (voteRank === 2) {
+            const b = autoBadges.find(b => b.slug === 'top-2-votes')
+            if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
+          } else if (voteRank === 3) {
+            const b = autoBadges.find(b => b.slug === 'top-3-votes')
             if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
           }
         }

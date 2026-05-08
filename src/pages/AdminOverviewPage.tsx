@@ -5,7 +5,8 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { AlertTriangle, HardDrive, ExternalLink, RefreshCw } from 'lucide-react'
+import { HardDrive, RefreshCw } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function AdminOverviewPage() {
   const { profile, isAdmin } = useAuth()
@@ -23,10 +24,10 @@ export function AdminOverviewPage() {
   const pendingCatRequests = catRequests.filter(r => r.status === 'pending').length
   const totalVotes = servers.reduce((acc, s) => acc + (s.votes || 0), 0)
 
-  const fetchStorageHealth = async () => {
+  const fetchTopUploaders = async () => {
     setLoadingStorage(true)
     try {
-      const { data, error } = await supabase.rpc('get_top_storage_consumers' as any)
+      const { data, error } = await supabase.rpc('get_top_uploaders' as any)
       if (error) throw error
       setTopFiles((data as any[]) || [])
     } catch (e) {
@@ -51,7 +52,7 @@ export function AdminOverviewPage() {
     }
 
     checkHealth()
-    fetchStorageHealth()
+    fetchTopUploaders()
     const interval = setInterval(checkHealth, 30000)
     return () => clearInterval(interval)
   }, [])
@@ -112,15 +113,34 @@ export function AdminOverviewPage() {
 
       <FramerInList className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-12">
         {quickStats.map((stat, i) => {
-          // Map futuristic labels to grounded ones
           const displayLabel = stat.label === 'Total Influence' ? 'Total Votes' : stat.label
-          return (
-            <div key={i} className="bg-zinc-900/60 border border-white/5 rounded-lg p-6 group hover:border-white/20 transition-all duration-500">
+          const isPendingApprovals = stat.label === 'Pending Approvals'
+          
+          const CardContent = (
+            <>
               <div className={`w-12 h-12 rounded-lg ${stat.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500`}>
                 <span className={`material-symbols-outlined ${stat.color}`}>{stat.icon}</span>
               </div>
               <div className="text-2xl font-pixel text-white mb-1">{stat.value.toLocaleString()}</div>
               <div className="text-[10px] font-headline text-white/40 uppercase tracking-widest font-bold">{displayLabel}</div>
+            </>
+          )
+
+          if (isPendingApprovals) {
+            return (
+              <Link 
+                key={i} 
+                to="/admin/servers" 
+                className="bg-zinc-900/60 border border-white/5 rounded-lg p-6 group hover:border-orange-500/40 hover:bg-orange-500/5 transition-all duration-500 block"
+              >
+                {CardContent}
+              </Link>
+            )
+          }
+
+          return (
+            <div key={i} className="bg-zinc-900/60 border border-white/5 rounded-lg p-6 group hover:border-white/20 transition-all duration-500">
+              {CardContent}
             </div>
           )
         })}
@@ -216,15 +236,15 @@ export function AdminOverviewPage() {
             </div>
           </div>
 
-          {/* Storage Health Audit */}
+          {/* Storage Health */}
           <div className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden">
             <div className="p-6 border-b border-white/5 flex items-center justify-between">
-              <h3 className="font-pixel text-white text-[10px] uppercase tracking-widest flex items-center gap-2">
+              <h3 className="font-headline font-bold text-white text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
                 <HardDrive className="w-3.5 h-3.5 text-realm-green" />
-                Storage Egress Health
+                Storage Health
               </h3>
               <button 
-                onClick={fetchStorageHealth}
+                onClick={fetchTopUploaders}
                 disabled={loadingStorage}
                 className="hover:rotate-180 transition-transform duration-500"
               >
@@ -234,32 +254,30 @@ export function AdminOverviewPage() {
             <div className="p-4 space-y-4">
                {topFiles.length > 0 ? (
                  <div className="space-y-3">
-                    {topFiles.map((file, i) => {
-                      const isDanger = file.size_kb > 500
-                      const isWarning = file.size_kb > 250
+                    {topFiles.map((uploader, i) => {
                       return (
                         <div key={i} className="flex items-center justify-between group">
                           <div className="flex flex-col min-w-0 flex-1 pr-4">
-                            <span className="text-[10px] text-white/60 font-mono truncate">{file.name.split('/').pop()}</span>
-                            <div className="flex items-center gap-2 mt-1">
-                               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded leading-none ${
-                                 isDanger ? 'bg-red-500 text-white' : 
-                                 isWarning ? 'bg-orange-500 text-zinc-950' : 
-                                 'bg-zinc-800 text-zinc-400'
-                               }`}>
-                                 {Math.round(file.size_kb)} KB
+                            <span className="text-[10px] text-white/80 font-bold truncate">{uploader.username}</span>
+                            <div className="flex flex-col gap-0.5 mt-1">
+                               <span className="text-[9px] font-headline font-bold text-realm-green uppercase tracking-wider">
+                                 {uploader.upload_count} Uploads
                                </span>
-                               {isWarning && <AlertTriangle className={`w-3 h-3 ${isDanger ? 'text-red-500' : 'text-orange-500'}`} />}
+                               <button 
+                                 onClick={() => {
+                                   navigator.clipboard.writeText(uploader.user_id)
+                                   toast.success('User ID copied to clipboard')
+                                 }}
+                                 className="text-[8px] text-white/20 font-mono uppercase hover:text-realm-green transition-colors text-left"
+                                 title="Click to copy ID"
+                               >
+                                 ID: {uploader.user_id}
+                               </button>
                             </div>
                           </div>
-                          <a 
-                            href={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${file.bucket_id}/${file.name}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="p-2 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-realm-green hover:text-zinc-950"
-                          >
-                             <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
+                          <div className="p-2 text-white/10">
+                             <span className="material-symbols-outlined text-[14px]">image</span>
+                          </div>
                         </div>
                       )
                     })}
@@ -268,7 +286,7 @@ export function AdminOverviewPage() {
                  <div className="py-4 text-center text-white/20 text-[10px] italic">No storage data available.</div>
                )}
                <p className="text-[8px] text-white/20 uppercase tracking-tighter leading-tight mt-4 border-t border-white/5 pt-4">
-                 Files {'>'} 250KB hit your egress limits quickly. Convert to WebP and resize images before uploading.
+                 Top contributors by volume of uploaded assets. Encourage optimized formats for high-volume users.
                </p>
             </div>
           </div>
