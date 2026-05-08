@@ -629,18 +629,11 @@ export function useEntityBadges(targetId: string | undefined, targetType: 'user'
           }
         }
 
-        // Tiered Voting Rank Badges
+        // Voting Rank Badge (RE Cod? for Top 10)
         const voteRank = topVotes.findIndex(s => s.id === targetId) + 1
-        if (voteRank > 0) {
-          let badgeSlug = ''
-          if (voteRank <= 3) badgeSlug = 'top-3-votes'
-          else if (voteRank <= 5) badgeSlug = 'top-5-votes'
-          else if (voteRank <= 10) badgeSlug = 'top-10-votes'
-
-          if (badgeSlug) {
-            const b = autoBadges.find(b => b.slug === badgeSlug)
-            if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
-          }
+        if (voteRank > 0 && voteRank <= 10) {
+          const b = autoBadges.find(b => b.slug === 're-cod')
+          if (b) results.push({ ...(b as unknown as Badge), granted_at: new Date().toISOString(), month: null })
 
           // Also keep the old #1 badge if they are #1
           if (voteRank === 1) {
