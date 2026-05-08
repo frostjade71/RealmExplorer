@@ -11,6 +11,8 @@ import { Layout } from './components/Layout'
 import {
   HomePage,
   ServersPage,
+  ProjectsPage,
+  WhyProjectsPage,
   ROTMPage,
   SOTMPage,
   BOTMPage,
@@ -55,6 +57,14 @@ export const router = createBrowserRouter([
       {
         path: '/servers',
         element: <ServersPage />,
+      },
+      {
+        path: '/projects',
+        element: <ProjectsPage />,
+      },
+      {
+        path: '/pj',
+        element: <WhyProjectsPage />,
       },
       {
         path: '/rotm',

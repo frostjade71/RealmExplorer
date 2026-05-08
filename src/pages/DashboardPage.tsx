@@ -13,6 +13,7 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RoleSelectionModal } from '../components/RoleSelectionModal'
+import { ProjectSelectionModal } from '../components/ProjectSelectionModal'
 
 
 export function DashboardPage() {
@@ -28,10 +29,11 @@ export function DashboardPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteName, setDeleteName] = useState('')
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false)
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
 
   // Lock body scroll when any modal is open
   useEffect(() => {
-    if (deleteId || isRoleModalOpen) {
+    if (deleteId || isRoleModalOpen || isProjectModalOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
@@ -116,6 +118,11 @@ export function DashboardPage() {
         }}
       />
 
+      <ProjectSelectionModal 
+        isOpen={isProjectModalOpen}
+        onClose={() => setIsProjectModalOpen(false)}
+      />
+
       <AnimatedPage className="max-w-7xl mx-auto px-8 py-12">
         <FramerIn delay={0.1} className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
@@ -123,33 +130,45 @@ export function DashboardPage() {
             <div className="h-px w-full bg-zinc-800"></div>
           </div>
           
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0 self-end sm:self-auto relative group/limit">
-            <button 
-              onClick={() => {
-                if (hasReachedLimit) {
-                  if (!hasPremiumPerks) {
-                    toast.info('Explorer+ Feature', {
-                      description: 'Upgrade to Explorer+ to list up to 5 servers!'
-                    })
+          <div className="flex flex-wrap items-center gap-3 self-end sm:self-auto">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0">
+              <button 
+                onClick={() => setIsProjectModalOpen(true)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm bg-blue-500 text-white hover:bg-blue-400"
+              >
+                <PlusCircle className="w-4 h-4 md:w-5 h-5" />
+                New Project
+              </button>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0 relative group/limit">
+              <button 
+                onClick={() => {
+                  if (hasReachedLimit) {
+                    if (!hasPremiumPerks) {
+                      toast.info('Explorer+ Feature', {
+                        description: 'Upgrade to Explorer+ to list up to 5 servers!'
+                      })
+                    } else {
+                      toast.warning('Limit Reached', {
+                        description: `You have reached the maximum limit of ${limit} listings.`
+                      })
+                    }
                   } else {
-                    toast.warning('Limit Reached', {
-                      description: `You have reached the maximum limit of ${limit} listings.`
-                    })
+                    setIsRoleModalOpen(true)
                   }
-                } else {
-                  setIsRoleModalOpen(true)
-                }
-              }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm ${
-                hasReachedLimit 
-                  ? 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600' 
-                  : 'bg-[#4EC44E] text-[#002202] hover:bg-[#85fc7e]'
-              }`}
-            >
-              <PlusCircle className="w-4 h-4 md:w-5 h-5" />
-              New Listing ({servers.length}/{limit})
-            </button>
-          </motion.div>
+                }}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm ${
+                  hasReachedLimit 
+                    ? 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600' 
+                    : 'bg-[#4EC44E] text-[#002202] hover:bg-[#85fc7e]'
+                }`}
+              >
+                <PlusCircle className="w-4 h-4 md:w-5 h-5" />
+                New Listing ({servers.length}/{limit})
+              </button>
+            </motion.div>
+          </div>
         </FramerIn>
 
 

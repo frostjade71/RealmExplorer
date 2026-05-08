@@ -57,6 +57,12 @@ export function Navbar() {
       ]
     },
     { 
+      label: 'Projects', 
+      path: '/projects', 
+      icon: <Pickaxe className="w-4 h-4" />,
+      badge: 'Beta'
+    },
+    { 
       label: 'About', 
       path: '/about', 
       icon: <Info className="w-4 h-4" />,
@@ -126,6 +132,11 @@ export function Navbar() {
                       <span className={`relative flex items-center gap-2 ${isActive ? 'text-white font-bold' : 'text-white/80 group-hover:text-white font-medium'}`}>
                         {item.icon}
                         {item.label}
+                        {item.badge && (
+                          <span className="ml-1 px-1 py-0.5 bg-blue-500 text-[8px] font-pixel text-white leading-none rounded uppercase tracking-tighter">
+                            {item.badge}
+                          </span>
+                        )}
                         {hasChildren && (
                           <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${activeDropdown === item.label ? 'rotate-180' : ''}`} />
                         )}
@@ -380,6 +391,12 @@ export function Navbar() {
                                {item.icon}
                              </span>
                              {item.label}
+
+                             {item.badge && (
+                               <span className="ml-2 px-1 py-0.5 bg-blue-500 text-[7px] font-pixel text-white leading-none rounded uppercase tracking-tighter self-center">
+                                 {item.badge}
+                               </span>
+                             )}
                              
                              {isServers && (
                                <span className="ml-auto text-realm-green text-[9px] font-mono font-bold">

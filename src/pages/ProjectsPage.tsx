@@ -1,0 +1,262 @@
+import { useSearchParams, Link } from 'react-router-dom'
+import { useServers } from '../hooks/queries'
+import { useState, useMemo } from 'react'
+import type { Server } from '../types'
+import { ServerCard } from '../components/ServerCard'
+import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
+import { AnimatedPage } from '../components/AnimatedPage'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Search, X, Globe } from 'lucide-react'
+import { useIsMobile } from '../hooks/useMediaQuery'
+import projectsHero from '../assets/hero/directoryprojets.jpg'
+import { MetaTags } from '../components/MetaTags'
+
+// Asset imports
+import golemGif from '../assets/pjdirectory/20756-irongolem (1).gif'
+import modsIcon from '../assets/pjdirectory/Banner_Pattern_JE1_BE1.png'
+import buildsIcon from '../assets/pjdirectory/4441_MCdiamondpickaxe.png'
+
+export function ProjectsPage() {
+  const isMobile = useIsMobile()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeCategory = searchParams.get('category')
+  const initialSearch = searchParams.get('q') || ''
+
+  const PAGE_SIZE = 24
+  const [localSearch, setLocalSearch] = useState(initialSearch)
+
+  // For now, projects are not yet in the DB, so we'll show an empty state or use a placeholder
+  // We'll use useServers with a filter that returns nothing for now, or just hardcode empty
+  const { isLoading: loading } = useServers({
+    searchQuery: initialSearch,
+    limit: 1000
+  })
+
+  // Filter out non-projects if we were using the same table, 
+  // but since we don't have a project type yet, we'll just show empty for now
+  // to match "Soon" functionality
+  const filteredProjects = useMemo<Server[]>(() => {
+    // Return empty array for now as projects are "Coming Soon"
+    return []
+  }, [])
+
+  const paginatedProjects = useMemo(() => {
+    return filteredProjects.slice(0, PAGE_SIZE)
+  }, [filteredProjects, PAGE_SIZE])
+
+  const categories = [
+    { id: 'mods', label: 'Mods/Addons' },
+    { id: 'builds', label: 'Builds' },
+  ]
+
+  const setCategory = (cat: string | null) => {
+    if (cat === activeCategory) {
+      searchParams.delete('category')
+    } else if (cat) {
+      searchParams.set('category', cat)
+    } else {
+      searchParams.delete('category')
+    }
+    setSearchParams(searchParams)
+  }
+
+  return (
+    <AnimatedPage>
+      <MetaTags 
+        title="Browse Community Projects"
+        description="Discover the best Minecraft mods, addons, and builds created by our community."
+        url={`/projects${window.location.search}`}
+      />
+      <header className="relative pt-32 pb-16 md:pb-20 px-8 overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
+        <motion.img 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.5 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          src={projectsHero} 
+          alt="Projects Background" 
+          className="absolute inset-0 w-full h-full object-cover z-0 block"
+          fetchPriority="high"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-blue-950/90 z-10 pointer-events-none"></div>
+        
+        <div className="max-w-7xl mx-auto w-full relative z-20 flex flex-col items-center text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <h1 className="text-3xl md:text-5xl font-pixel text-white mb-4 md:mb-6 drop-shadow-2xl">
+              Project Explorer
+            </h1>
+            <p className="text-white/80 font-headline text-sm md:text-lg max-w-2xl mx-auto mb-8 md:mb-10 drop-shadow-lg leading-relaxed px-4">
+              Discover the top-rated community projects, mods, and builds.
+            </p>
+          </motion.div>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className={`flex flex-wrap justify-center gap-1.5 md:gap-2 bg-zinc-900/50 p-1.5 rounded-2xl border border-zinc-800 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}
+          >
+            <button
+              onClick={() => setCategory(null)}
+              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${!activeCategory ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              {!activeCategory && (
+                <motion.div 
+                  layoutId="hero-cat"
+                  className="absolute inset-0 bg-blue-400/10 border border-blue-400/20 rounded-xl"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              <Globe className="w-4 h-4" />
+              <span className="relative">All Projects</span>
+            </button>
+
+            <button
+              onClick={() => setCategory('mods')}
+              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeCategory === 'mods' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              {activeCategory === 'mods' && (
+                <motion.div 
+                  layoutId="hero-cat"
+                  className="absolute inset-0 bg-blue-400/10 border border-blue-400/20 rounded-xl"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              <img src={modsIcon} alt="Mods" className="w-4 h-4 object-contain relative z-10" />
+              <span className="relative">Mods/Addons</span>
+            </button>
+
+            <button
+              onClick={() => setCategory('builds')}
+              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeCategory === 'builds' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              {activeCategory === 'builds' && (
+                <motion.div 
+                  layoutId="hero-cat"
+                  className="absolute inset-0 bg-blue-400/10 border border-blue-400/20 rounded-xl"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              <img src={buildsIcon} alt="Builds" className="w-4 h-4 object-contain relative z-10" />
+              <span className="relative">Builds</span>
+            </button>
+          </motion.div>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent z-20 pointer-events-none"></div>
+      </header>
+
+      <div className={`w-full max-w-7xl mx-auto px-8 py-8 md:py-12 flex-grow ${isMobile ? 'pb-32' : ''}`}>
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="w-full space-y-6 md:space-y-8 mb-10 md:mb-12"
+        >
+          <div className="w-full flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="relative w-full max-w-md group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
+              <input 
+                type="text" 
+                placeholder="Search projects..." 
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-11 pr-10 py-2.5 md:py-3 text-[13px] md:text-sm text-white placeholder-zinc-500 outline-none focus:border-blue-400 transition-all font-headline focus:ring-1 focus:ring-blue-400/50 shadow-xl"
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+              />
+              {localSearch && (
+                <button 
+                  onClick={() => setLocalSearch('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="w-full flex flex-wrap gap-1.5 md:gap-2">
+            <button
+              onClick={() => setCategory(null)}
+              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${!activeCategory ? 'bg-blue-500 text-white border-blue-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+            >
+              All Categories
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setCategory(cat.id)}
+                className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-blue-500 text-white border-blue-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        <AnimatePresence mode="popLayout">
+          {loading ? (
+            <motion.div 
+              key="spinner"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full py-12 md:py-20 flex justify-center"
+            >
+              <LoadingSpinner />
+            </motion.div>
+          ) : filteredProjects.length === 0 ? (
+            <motion.div 
+              key="empty"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full py-12 md:py-20 flex flex-col items-center"
+            >
+              <EmptyState 
+                title="Coming Soon" 
+                message="We're currently preparing our community projects directory. Stay tuned for some amazing mods and builds!" 
+                action={
+                  <Link 
+                    to="/pj"
+                    className="flex items-center gap-2 text-zinc-500 hover:text-blue-400 transition-all font-headline font-bold text-sm group underline decoration-zinc-800 underline-offset-4 hover:decoration-blue-400/50"
+                  >
+                    <span>why are we doing this?</span>
+                    <img src={golemGif} alt="Iron Golem" className="w-6 h-6 object-contain group-hover:scale-110 transition-transform" />
+                  </Link>
+                }
+              />
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="grid"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: { staggerChildren: 0.03 }
+                }
+              }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4"
+            >
+              {paginatedProjects.map(project => (
+                <motion.div
+                  key={project.id}
+                  variants={{
+                    hidden: { opacity: 0, y: 10 },
+                    visible: { opacity: 1, y: 0 }
+                  }}
+                >
+                  <ServerCard server={project} />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </AnimatedPage>
+  )
+}

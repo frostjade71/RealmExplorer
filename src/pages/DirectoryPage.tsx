@@ -103,13 +103,18 @@ export function DirectoryPage() {
     type: activeType || undefined,
     category: activeCategory,
     searchQuery: initialSearch,
-    sortBy: 'votes', // Fetch by votes initially, but we will re-sort
+    sortBy: searchParams.get('sort') === 'latest' ? 'latest' : 'votes', // Fetch by votes initially, but we will re-sort
     limit: 1000 // Fetch a large batch to shuffle correctly
   })
+
+  const isLatest = searchParams.get('sort') === 'latest'
 
   const processedServers = useMemo(() => {
     if (!servers.length) return []
     
+    // If "Latest" sort is active, we don't shuffle, we keep the DB order (created_at desc)
+    if (isLatest) return servers
+
     // Create a weighted score for each server to provide a "higher chance" 
     // for Explorer+ without strictly pinning them to the top.
     return [...servers]
@@ -123,7 +128,7 @@ export function DirectoryPage() {
       })
       .sort((a, b) => b.score - a.score)
       .map(item => item.server)
-  }, [servers, shuffleSeed])
+  }, [servers, shuffleSeed, isLatest])
 
   const paginatedServers = useMemo(() => {
     return processedServers.slice(0, PAGE_SIZE * page)
@@ -267,7 +272,7 @@ export function DirectoryPage() {
             )}
           </div>
 
-          {!isMobile && !scrolled && (
+          {!isMobile && !scrolled && !isLatest && (
             <div className="w-full md:w-auto">
               <button
                 onClick={handleShuffle}
@@ -301,6 +306,16 @@ export function DirectoryPage() {
             className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${!activeCategory ? 'bg-realm-green text-[#002202] border-realm-green' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
           >
             All Categories
+          </button>
+          <button
+            onClick={() => {
+              if (isLatest) searchParams.delete('sort')
+              else searchParams.set('sort', 'latest')
+              setSearchParams(searchParams)
+            }}
+            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${isLatest ? 'bg-blue-500 text-white border-blue-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+          >
+            Latest
           </button>
           {categories.map((cat) => (
             <button
@@ -401,7 +416,7 @@ export function DirectoryPage() {
 
       {createPortal(
         <AnimatePresence>
-          {(isMobile || (scrolled && !isMobile)) && (
+          {(isMobile || (scrolled && !isMobile)) && !isLatest && (
             <motion.div 
               key="floating-shuffle"
               initial={{ opacity: 0, scale: 0.5, y: 20 }}

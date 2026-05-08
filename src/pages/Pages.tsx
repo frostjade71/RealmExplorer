@@ -1,6 +1,8 @@
 export { HomePage } from './HomePage'
 export { ServerDetailPage } from './ServerDetailPage'
 export { DirectoryPage as ServersPage } from './DirectoryPage'
+export { ProjectsPage } from './ProjectsPage'
+export { WhyProjectsPage } from './WhyProjectsPage'
 import { EventsPage } from './EventsPage'
 export { EventsPage }
 export const ROTMPage = () => <EventsPage category="realm" />

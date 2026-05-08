@@ -1,0 +1,107 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { createPortal } from 'react-dom'
+import { X } from 'lucide-react'
+import { toast } from 'sonner'
+import modsBg from '../assets/dashboard/iocnsdev.webp'
+import buildsBg from '../assets/dashboard/building.webp'
+
+interface ProjectSelectionModalProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export function ProjectSelectionModal({ isOpen, onClose }: ProjectSelectionModalProps) {
+  const projects = [
+    {
+      id: 'Mods/Addons',
+      title: 'Mods/Addons',
+      desc: 'Submit your community mods, addons, or plugins.',
+      bg: modsBg,
+      icon: 'extension'
+    },
+    {
+      id: 'Builds',
+      title: 'Builds',
+      desc: 'Showcase your amazing builds and maps.',
+      bg: buildsBg,
+      icon: 'architecture'
+    }
+  ]
+
+  const handleSelect = () => {
+    toast.info('Soon', {
+        description: 'Project submissions are coming soon!'
+    })
+    onClose()
+  }
+
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+          />
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl overflow-hidden"
+          >
+            <div className="p-5 border-b border-zinc-800 flex justify-between items-center relative z-10 bg-zinc-900">
+              <h2 className="font-pixel text-white text-xs md:text-sm uppercase tracking-widest">Select a Project</h2>
+              <button 
+                onClick={onClose}
+                className="p-2 text-zinc-500 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto max-h-[70vh]">
+              {projects.map((project) => (
+                <button 
+                  key={project.id} 
+                  onClick={handleSelect}
+                  className="relative bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden transition-all group min-h-[120px] flex flex-col justify-end p-5 text-left"
+                >
+                  {/* Background Image with Overlay */}
+                  <div className="absolute inset-0 z-0">
+                    <img 
+                      src={project.bg} 
+                      alt="" 
+                      className="w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-all duration-500 group-hover:scale-110" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>
+                  </div>
+
+                  <div className="relative z-10 pointer-events-none">
+                    <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-500 transition-all duration-300">
+                      <span className="material-symbols-outlined text-white text-lg">
+                        {project.icon}
+                      </span>
+                    </div>
+                    <h3 className="font-pixel text-[11px] mb-1 text-white">{project.title}</h3>
+                    <p className="text-zinc-300 text-[10px] leading-relaxed line-clamp-2">{project.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="p-5 bg-zinc-950 border-t border-zinc-800 text-center">
+              <p className="text-zinc-500 font-headline text-[9px] uppercase tracking-widest">
+                Choose the type of project you want to list.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body
+  )
+}
