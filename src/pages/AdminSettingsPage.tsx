@@ -234,6 +234,7 @@ export function AdminSettingsPage() {
       </div>
 
       <ConfirmationModal
+        key={`cooldowns-${showConfirmModal}`}
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         onConfirm={handleResetCooldowns}
@@ -242,9 +243,11 @@ export function AdminSettingsPage() {
         confirmLabel="Reset All"
         isDangerous
         isLoading={loading}
+        countdownSeconds={5}
       />
 
       <ConfirmationModal
+        key={`otm-votes-${showOTMConfirm}`}
         isOpen={showOTMConfirm}
         onClose={() => setShowOTMConfirm(false)}
         onConfirm={handleResetOTMVotes}
@@ -253,9 +256,11 @@ export function AdminSettingsPage() {
         confirmLabel="Reset All Votes"
         isDangerous
         isLoading={loadingOTM}
+        countdownSeconds={5}
       />
 
       <ConfirmationModal
+        key={`otm-cooldowns-${showOTMCooldownConfirm}`}
         isOpen={showOTMCooldownConfirm}
         onClose={() => setShowOTMCooldownConfirm(false)}
         onConfirm={handleResetOTMCooldowns}
@@ -264,6 +269,7 @@ export function AdminSettingsPage() {
         confirmLabel="Reset Cooldowns"
         isDangerous
         isLoading={loadingOTMCooldown}
+        countdownSeconds={5}
       />
     </AnimatedPage>
   )

@@ -22,6 +22,7 @@ export { BlogPostDetailPage } from './BlogPostDetailPage'
 export { ProfilePage } from './ProfilePage'
 export { TermsPage } from './TermsPage'
 export { PrivacyPage } from './PrivacyPage'
+export { CopyrightPage } from './CopyrightPage'
 export { DocsPage } from './DocsPage'
 export { UpgradePage } from './UpgradePage'
 

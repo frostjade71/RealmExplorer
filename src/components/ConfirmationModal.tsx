@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
+import { useState, useEffect } from 'react'
 
 interface ConfirmationModalProps {
   isOpen: boolean
@@ -14,6 +15,7 @@ interface ConfirmationModalProps {
   isDangerous?: boolean
   isLoading?: boolean
   confirmDisabled?: boolean
+  countdownSeconds?: number
 }
 
 export function ConfirmationModal({
@@ -27,9 +29,30 @@ export function ConfirmationModal({
   variant = 'modern',
   isDangerous = false,
   isLoading = false,
-  confirmDisabled = false
+  confirmDisabled = false,
+  countdownSeconds = 0
 }: ConfirmationModalProps) {
   const isPixel = variant === 'pixel'
+  const [timeLeft, setTimeLeft] = useState(0)
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    
+    if (isOpen && countdownSeconds > 0) {
+      setTimeLeft(countdownSeconds)
+      timer = setInterval(() => {
+        setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0))
+      }, 1000)
+    } else if (!isOpen) {
+      setTimeLeft(0)
+    }
+
+    return () => {
+      if (timer) clearInterval(timer)
+    }
+  }, [isOpen, countdownSeconds])
+
+  const isCountingDown = timeLeft > 0
 
   const modalContent = (
     <AnimatePresence>
@@ -103,7 +126,7 @@ export function ConfirmationModal({
                 </button>
                 <button
                   onClick={onConfirm}
-                  disabled={isLoading || confirmDisabled}
+                  disabled={isLoading || confirmDisabled || isCountingDown}
                   className={`flex-[1.5] font-headline font-bold flex items-center justify-center gap-2 transition-all uppercase tracking-widest ${
                     isPixel
                       ? `py-2 px-4 border-2 border-[#101010] text-[9px] shadow-[2px_2px_0_rgba(0,0,0,0.4)] ${isDangerous ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'}`
@@ -112,6 +135,8 @@ export function ConfirmationModal({
                 >
                   {isLoading ? (
                     <div className="w-4 h-4 border-2 border-current/20 border-t-current rounded-full animate-spin" />
+                  ) : isCountingDown ? (
+                    `${confirmLabel} (${timeLeft}s)`
                   ) : (
                     confirmLabel
                   )}

@@ -42,6 +42,7 @@ import {
   AdminBadgesPage,
   TermsPage,
   PrivacyPage,
+  CopyrightPage,
   DocsPage,
   UpgradePage
 } from './pages/Pages'
@@ -113,6 +114,10 @@ export const router = createBrowserRouter([
       {
         path: '/privacy',
         element: <PrivacyPage />,
+      },
+      {
+        path: '/copyright',
+        element: <CopyrightPage />,
       },
       {
         path: '/docs',

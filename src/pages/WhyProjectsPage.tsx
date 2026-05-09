@@ -71,7 +71,7 @@ export function WhyProjectsPage() {
               <p className="text-zinc-400 font-headline text-sm leading-relaxed">
                 Project owners can share their scripts, plugins, and addons. Players can visit and download directly from the source, ensuring they always have the latest versions.
               </p>
-              <div className="pt-4 flex items-center gap-2 text-blue-400 text-xs font-bold uppercase tracking-widest">
+              <div className="pt-4 flex items-center gap-2 text-blue-400 text-[10px] font-bold uppercase tracking-widest">
                 <Download className="w-4 h-4" />
                 Show your addons scripts
               </div>
@@ -88,7 +88,7 @@ export function WhyProjectsPage() {
               <p className="text-zinc-400 font-headline text-sm leading-relaxed">
                 Showcase your amazing builds and maps. Let the community explore your creations and draw inspiration from your architectural skills.
               </p>
-              <div className="pt-4 flex items-center gap-2 text-orange-400 text-xs font-bold uppercase tracking-widest">
+              <div className="pt-4 flex items-center gap-2 text-orange-400 text-[10px] font-bold uppercase tracking-widest">
                 <Eye className="w-4 h-4" />
                 Showcase your builds
               </div>

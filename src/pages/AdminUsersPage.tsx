@@ -7,8 +7,8 @@ import { RoleBadge } from '../components/RoleBadge'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
-import { useState, useMemo } from 'react'
-import { Search, X } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -19,6 +19,8 @@ export function AdminUsersPage() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 20
 
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
@@ -29,6 +31,27 @@ export function AdminUsersPage() {
       return matchesSearch && matchesRole
     })
   }, [users, searchQuery, roleFilter])
+
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE)
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredUsers.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredUsers, currentPage])
+
+  // Reset to first page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, roleFilter])
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    const main = document.querySelector('main')
+    if (main) {
+      main.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [currentPage])
 
   const handleUpdateRole = (id: string, newRole: UserRole) => {
     if (confirm(`Elevate/Modify user role to ${newRole.toUpperCase()}?`)) {
@@ -128,8 +151,8 @@ export function AdminUsersPage() {
         </div>
       </FramerIn>
 
-      <FramerIn delay={0.2} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+      <FramerIn delay={0.2} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden min-h-[500px]">
+        <div className="overflow-x-auto min-h-[500px]">
           <table className="w-full text-left font-headline text-sm border-collapse">
             <thead>
               <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
@@ -140,6 +163,7 @@ export function AdminUsersPage() {
               </tr>
             </thead>
             <motion.tbody 
+              key={`${currentPage}-${roleFilter}`}
               initial="hidden"
               animate="visible"
               variants={{
@@ -153,7 +177,7 @@ export function AdminUsersPage() {
               }}
               className="divide-y divide-white/[0.03]"
             >
-              {filteredUsers.map(user => (
+              {paginatedUsers.map(user => (
                 <motion.tr 
                   key={user.id} 
                   variants={{
@@ -223,6 +247,61 @@ export function AdminUsersPage() {
           </table>
         </div>
       </FramerIn>
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between bg-zinc-900/60 border border-white/5 rounded-lg px-6 py-4">
+          <div className="text-[10px] font-headline font-bold uppercase tracking-widest text-white/40">
+            Showing <span className="text-white">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="text-white">{Math.min(currentPage * ITEMS_PER_PAGE, filteredUsers.length)}</span> of <span className="text-white">{filteredUsers.length}</span> users
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                // Show pages around current page if many pages
+                let pageNum = i + 1;
+                if (totalPages > 5) {
+                  if (currentPage > 3) {
+                    pageNum = currentPage - 2 + i;
+                    if (pageNum + 2 > totalPages) pageNum = totalPages - 4 + i;
+                  }
+                }
+                
+                if (pageNum > totalPages) return null;
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 rounded-lg text-[10px] font-bold transition-all ${
+                      currentPage === pageNum 
+                        ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' 
+                        : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white border border-white/5'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </AnimatedPage>
   )
 }

@@ -20,16 +20,26 @@ Deno.serve(async (req: Request) => {
 
     const STAFF_ROLE_ID = Deno.env.get('DISCORD_STAFF_ROLE_ID');
     const MEMBER_ROLE_ID = Deno.env.get('DISCORD_MEMBER_ROLE_ID');
+    const DISCORD_BOT_TOKEN = Deno.env.get('DISCORD_BOT_TOKEN');
+    const PUBLIC_CHANNEL_ID = Deno.env.get('DISCORD_PUBLIC_CHANNEL_ID');
 
     let discordPayload: any = null;
-    let targetWebhook: string | undefined;
+    let targetEndpoint: string | undefined;
+    let useBotApi = false;
 
     if (type === 'approval') {
       const { serverName, adminName, slug, iconUrl, approvalType = 'new_listing', target = 'public', previousStatus } = payload;
-      targetWebhook = target === 'public' ? WEBHOOK_URL : LOGS_WEBHOOK_URL;
+      
+      // Determine if we should use Bot API or Webhook
+      if (target === 'public' && DISCORD_BOT_TOKEN && PUBLIC_CHANNEL_ID) {
+        useBotApi = true;
+        targetEndpoint = `https://discord.com/api/v10/channels/${PUBLIC_CHANNEL_ID}/messages`;
+      } else {
+        targetEndpoint = target === 'public' ? WEBHOOK_URL : LOGS_WEBHOOK_URL;
+      }
       
       const serverUrl = `https://www.realmexplorer.xyz/server/${slug}`;
-      const title = approvalType === 'new_listing' ? 'New Server Published!' : 'Visual Assets Approved';
+      const title = approvalType === 'new_listing' ? '<:icon:1296934822362742937> New Server Published!' : 'Visual Assets Approved';
       let description = approvalType === 'new_listing'
         ? `**${serverName}** has been approved and been Listed !`
         : `**${serverName}**'s new visual assets have been reviewed and approved.`;
@@ -48,16 +58,24 @@ Deno.serve(async (req: Request) => {
           color: 0x00ff00, // Realm Green
           thumbnail: iconUrl ? { url: iconUrl } : undefined,
           fields: [
-            { name: 'Moderator', value: adminName || 'Unknown', inline: true },
-            { name: 'Listing URL', value: `[View Server](${serverUrl})`, inline: true }
+            { name: '<:icon:1429212335830077642> Moderator', value: adminName || 'Unknown', inline: true }
           ],
           footer: { text: target === 'public' ? 'Web Notification' : 'Internal Audit Log' },
           timestamp: new Date().toISOString()
-        }]
+        }],
+        components: useBotApi ? [{
+          type: 1,
+          components: [{
+            type: 2,
+            style: 5, // Link Style
+            label: "View Listing",
+            url: serverUrl
+          }]
+        }] : undefined
       };
     } else if (type === 'staff_review') {
       const { serverName, status = 'pending', iconUrl } = payload;
-      targetWebhook = STAFF_WEBHOOK_URL;
+      targetEndpoint = STAFF_WEBHOOK_URL;
       const adminPanelUrl = 'https://www.realmexplorer.xyz/admin/servers';
 
       let alertMessage = `**${serverName}** needs reviewing !`;
@@ -104,7 +122,7 @@ Deno.serve(async (req: Request) => {
       };
     } else if (type === 'payment') {
       const { username, amount, currency, orderId } = payload;
-      targetWebhook = LOGS_WEBHOOK_URL;
+      targetEndpoint = LOGS_WEBHOOK_URL;
       
       discordPayload = {
         username: 'Realm Explorer | Payments',
@@ -130,7 +148,7 @@ Deno.serve(async (req: Request) => {
       };
     } else if (type === 'log') {
       const { action, adminName, details, color = 0x34495e } = payload;
-      targetWebhook = LOGS_WEBHOOK_URL;
+      targetEndpoint = LOGS_WEBHOOK_URL;
       
       discordPayload = {
         username: 'Realm Explorer | Web Logs',
@@ -149,7 +167,7 @@ Deno.serve(async (req: Request) => {
       };
     } else if (type === 'error') {
       const { error, context, userEmail } = payload;
-      targetWebhook = LOGS_WEBHOOK_URL;
+      targetEndpoint = LOGS_WEBHOOK_URL;
       
       const errorMessage = typeof error === 'string' ? error : JSON.stringify(error);
 
@@ -171,22 +189,33 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (!targetWebhook) {
-      console.warn(`Target webhook for type ${type} is not configured.`);
-      return new Response(JSON.stringify({ message: 'Webhook not configured' }), {
+    if (!targetEndpoint) {
+      console.warn(`Target endpoint for type ${type} is not configured.`);
+      return new Response(JSON.stringify({ message: 'Endpoint not configured' }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const response = await fetch(targetWebhook, {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (useBotApi && DISCORD_BOT_TOKEN) {
+      headers['Authorization'] = `Bot ${DISCORD_BOT_TOKEN}`;
+      
+      // Bot API (/messages) doesn't allow 'username' or 'avatar_url' in the root payload
+      if (discordPayload.username) delete discordPayload.username;
+      if (discordPayload.avatar_url) delete discordPayload.avatar_url;
+    }
+
+    const response = await fetch(targetEndpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify(discordPayload),
     });
 
     if (!response.ok) {
-      throw new Error(`Discord Webhook failed with status ${response.status}`);
+      const errorBody = await response.text();
+      console.error(`Discord API Error (${targetEndpoint}):`, errorBody);
+      throw new Error(`Discord request failed with status ${response.status}: ${errorBody}`);
     }
 
     return new Response(JSON.stringify({ success: true }), {

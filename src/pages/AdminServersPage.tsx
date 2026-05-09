@@ -9,8 +9,9 @@ import { useState, useMemo } from 'react'
 import { ContactOwnerModal } from '../components/ContactOwnerModal'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, X, Check, Clock } from 'lucide-react'
+import { Search, X, Check, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { toast } from 'sonner'
 
 export function AdminServersPage() {
@@ -23,6 +24,8 @@ export function AdminServersPage() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('review')
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 20
 
   const [serverToDelete, setServerToDelete] = useState<Server | null>(null)
 
@@ -31,15 +34,34 @@ export function AdminServersPage() {
       const matchesSearch = server.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (server.ip_or_code?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
       
-      const matchesStatus = statusFilter === 'all' 
-        ? true 
-        : statusFilter === 'review' 
+      const matchesStatus = statusFilter === 'review' 
           ? server.status.startsWith('Review') || server.status === 'pending' || server.status.includes('Gallery')
           : server.status === statusFilter
 
       return matchesSearch && matchesStatus
     })
   }, [servers, searchQuery, statusFilter])
+
+  const totalPages = Math.ceil(filteredServers.length / ITEMS_PER_PAGE)
+  const paginatedServers = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredServers.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredServers, currentPage])
+
+  // Reset to first page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, statusFilter])
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    const main = document.querySelector('main')
+    if (main) {
+      main.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [currentPage])
 
   const [modalConfig, setModalConfig] = useState<{
     isOpen: boolean
@@ -189,8 +211,7 @@ export function AdminServersPage() {
           {[
             { id: 'review', label: 'Review' },
             { id: 'approved', label: 'Approved' },
-            { id: 'rejected', label: 'Rejected' },
-            { id: 'all', label: 'All' }
+            { id: 'rejected', label: 'Rejected' }
           ].map(f => (
             <button
               key={f.id}
@@ -209,8 +230,8 @@ export function AdminServersPage() {
         </div>
       </FramerIn>
 
-      <FramerIn delay={0.2} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+      <FramerIn delay={0.2} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden min-h-[500px]">
+        <div className="overflow-x-auto min-h-[500px]">
           <table className="w-full text-left font-headline text-sm border-collapse">
             <thead>
               <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
@@ -222,6 +243,7 @@ export function AdminServersPage() {
               </tr>
             </thead>
             <motion.tbody 
+              key={`${currentPage}-${statusFilter}`}
               initial="hidden"
               animate="visible"
               variants={{
@@ -235,7 +257,7 @@ export function AdminServersPage() {
               }}
               className="divide-y divide-white/[0.03]"
             >
-              {filteredServers.map(server => (
+              {paginatedServers.map(server => (
                 <motion.tr 
                   key={server.id} 
                   variants={{
@@ -371,6 +393,60 @@ export function AdminServersPage() {
           </table>
         </div>
       </FramerIn>
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between bg-zinc-900/60 border border-white/5 rounded-lg px-6 py-4">
+          <div className="text-[10px] font-headline font-bold uppercase tracking-widest text-white/40">
+            Showing <span className="text-white">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="text-white">{Math.min(currentPage * ITEMS_PER_PAGE, filteredServers.length)}</span> of <span className="text-white">{filteredServers.length}</span> servers
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum = i + 1;
+                if (totalPages > 5) {
+                  if (currentPage > 3) {
+                    pageNum = currentPage - 2 + i;
+                    if (pageNum + 2 > totalPages) pageNum = totalPages - 4 + i;
+                  }
+                }
+                
+                if (pageNum > totalPages) return null;
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 rounded-lg text-[10px] font-bold transition-all ${
+                      currentPage === pageNum 
+                        ? 'bg-realm-green text-zinc-950 shadow-lg shadow-realm-green/20' 
+                        : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white border border-white/5'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <ContactOwnerModal
         isOpen={modalConfig.isOpen}
