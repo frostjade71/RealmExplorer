@@ -192,7 +192,7 @@ function generateEmbed(standings: any[]) {
     description: description,
     color: 11032055, // Realm Purple (#a855f7)
     timestamp: new Date().toISOString(),
-    footer: { text: "Updates every 30 minutes • Realm Explorer Bot" }
+    footer: { text: "Updates every 10 minutes • Realm Explorer Bot" }
   };
 }
 
