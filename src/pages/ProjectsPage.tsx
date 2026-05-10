@@ -19,6 +19,7 @@ import buildsIcon from '../assets/pjdirectory/4441_MCdiamondpickaxe.png'
 export function ProjectsPage() {
   const isMobile = useIsMobile()
   const [searchParams, setSearchParams] = useSearchParams()
+  const activeType = searchParams.get('type')
   const activeCategory = searchParams.get('category')
   const initialSearch = searchParams.get('q') || ''
 
@@ -44,10 +45,35 @@ export function ProjectsPage() {
     return filteredProjects.slice(0, PAGE_SIZE)
   }, [filteredProjects, PAGE_SIZE])
 
-  const categories = [
-    { id: 'mods', label: 'Mods/Addons' },
+  const projectTypes = [
+    { id: 'addons', label: 'Add-ons' },
     { id: 'builds', label: 'Builds' },
   ]
+
+  const projectCategories: Record<string, { id: string, label: string }[]> = {
+    addons: [
+      { id: 'resource', label: 'Resource' },
+      { id: 'behavior', label: 'Behavior' },
+      { id: 'scripts', label: 'Scripts' },
+    ],
+    builds: [
+      { id: 'maps', label: 'Maps' },
+      { id: 'schematics', label: 'Schematics' },
+    ]
+  }
+
+  const setType = (type: string | null) => {
+    if (type === activeType) {
+      searchParams.delete('type')
+    } else if (type) {
+      searchParams.set('type', type)
+    } else {
+      searchParams.delete('type')
+    }
+    // Reset category when type changes
+    searchParams.delete('category')
+    setSearchParams(searchParams)
+  }
 
   const setCategory = (cat: string | null) => {
     if (cat === activeCategory) {
@@ -64,7 +90,7 @@ export function ProjectsPage() {
     <AnimatedPage>
       <MetaTags 
         title="Browse Community Projects"
-        description="Discover the best Minecraft mods, addons, and builds created by our community."
+        description="Discover the best Minecraft Add-ons and builds created by our community."
         url={`/projects${window.location.search}`}
       />
       <header className="relative pt-32 pb-16 md:pb-20 px-8 overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
@@ -89,7 +115,7 @@ export function ProjectsPage() {
               Project Explorer
             </h1>
             <p className="text-white/80 font-headline text-sm md:text-lg max-w-2xl mx-auto mb-8 md:mb-10 drop-shadow-lg leading-relaxed px-4">
-              Discover the top-rated community projects, mods, and builds.
+              Discover the top-rated community projects, Add-ons, and builds.
             </p>
           </motion.div>
           
@@ -100,10 +126,10 @@ export function ProjectsPage() {
             className={`flex flex-wrap justify-center gap-1.5 md:gap-2 bg-zinc-900/50 p-1.5 rounded-2xl border border-zinc-800 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}
           >
             <button
-              onClick={() => setCategory(null)}
-              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${!activeCategory ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+              onClick={() => setType(null)}
+              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${!activeType ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
-              {!activeCategory && (
+              {!activeType && (
                 <motion.div 
                   layoutId="hero-cat"
                   className="absolute inset-0 bg-blue-400/10 border border-blue-400/20 rounded-xl"
@@ -111,29 +137,29 @@ export function ProjectsPage() {
                 />
               )}
               <Globe className="w-4 h-4" />
-              <span className="relative">All Projects</span>
+              <span className="relative">All</span>
             </button>
 
             <button
-              onClick={() => setCategory('mods')}
-              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeCategory === 'mods' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+              onClick={() => setType('addons')}
+              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeType === 'addons' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
-              {activeCategory === 'mods' && (
+              {activeType === 'addons' && (
                 <motion.div 
                   layoutId="hero-cat"
                   className="absolute inset-0 bg-blue-400/10 border border-blue-400/20 rounded-xl"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
-              <img src={modsIcon} alt="Mods" className="w-4 h-4 object-contain relative z-10" />
-              <span className="relative">Mods/Addons</span>
+              <img src={modsIcon} alt="Add-ons" className="w-4 h-4 object-contain relative z-10" />
+              <span className="relative">Add-ons</span>
             </button>
 
             <button
-              onClick={() => setCategory('builds')}
-              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeCategory === 'builds' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+              onClick={() => setType('builds')}
+              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeType === 'builds' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
-              {activeCategory === 'builds' && (
+              {activeType === 'builds' && (
                 <motion.div 
                   layoutId="hero-cat"
                   className="absolute inset-0 bg-blue-400/10 border border-blue-400/20 rounded-xl"
@@ -178,20 +204,35 @@ export function ProjectsPage() {
 
           <div className="w-full flex flex-wrap gap-1.5 md:gap-2">
             <button
-              onClick={() => setCategory(null)}
-              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${!activeCategory ? 'bg-blue-500 text-white border-blue-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+              onClick={() => setType(null)}
+              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${!activeType ? 'bg-blue-500 text-white border-blue-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
             >
-              All Categories
+              All Types
             </button>
-            {categories.map((cat) => (
+            {projectTypes.map((type) => (
               <button
-                key={cat.id}
-                onClick={() => setCategory(cat.id)}
-                className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-blue-500 text-white border-blue-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+                key={type.id}
+                onClick={() => setType(type.id)}
+                className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeType === type.id ? 'bg-blue-500 text-white border-blue-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
               >
-                {cat.label}
+                {type.label}
               </button>
             ))}
+
+            {activeType && projectCategories[activeType] && (
+              <>
+                <div className="h-6 w-px bg-zinc-800 mx-1 self-center" />
+                {projectCategories[activeType].map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setCategory(cat.id)}
+                    className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-zinc-100 text-zinc-900 border-zinc-100' : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700'}`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </>
+            )}
           </div>
         </motion.div>
 

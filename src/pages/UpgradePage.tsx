@@ -250,7 +250,7 @@ export function UpgradePage() {
                   <div>
                     <h3 className="font-pixel text-lg text-white uppercase mb-2 drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">Monthly Subscription</h3>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-pixel text-amber-400 drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">$2.99</span>
+                      <span className="text-4xl font-pixel text-amber-400 drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">$2.49</span>
                       <span className="text-zinc-500 font-headline text-xs line-through">$4.99</span>
                       <span className="text-zinc-500 font-headline text-xs">/mo</span>
                     </div>
@@ -339,7 +339,7 @@ export function UpgradePage() {
                               purchase_units: [{
                                 amount: {
                                   currency_code: "USD",
-                                  value: "2.99"
+                                  value: "2.49"
                                 },
                                 description: "Explorer+ Monthly Subscription"
                               }]

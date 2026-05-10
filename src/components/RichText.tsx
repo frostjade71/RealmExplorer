@@ -1,102 +1,95 @@
 import React, { useState } from 'react'
 import { Terminal, Globe, MessageSquare, Link2, Copy, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks'
 
 interface RichTextProps {
   content: string
   className?: string
 }
 
+const KEYWORDS = {
+  'Java IP:': { icon: Terminal, color: 'text-green-400', bg: 'bg-green-400/5', border: 'border-green-400/10' },
+  'Bedrock IP:': { icon: Globe, color: 'text-blue-400', bg: 'bg-blue-400/5', border: 'border-blue-400/10' },
+  'Discord:': { icon: MessageSquare, color: 'text-indigo-400', bg: 'bg-indigo-400/5', border: 'border-indigo-400/10' },
+  'Website:': { icon: Link2, color: 'text-emerald-400', bg: 'bg-emerald-400/5', border: 'border-emerald-400/10' },
+  'Port:': { icon: null, color: 'text-zinc-400', bg: null, border: null }
+}
+
 export function RichText({ content, className = '' }: RichTextProps) {
   if (!content) return null
 
-  // Linkification Regex: handles http, https, www, and simple domains like play.example.com
-  const URL_REGEX = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi
-
-  // Keywords for special formatting
-  const KEYWORDS = {
-    'Java IP:': { icon: Terminal, color: 'text-green-400', bg: 'bg-green-400/5', border: 'border-green-400/10' },
-    'Bedrock IP:': { icon: Globe, color: 'text-blue-400', bg: 'bg-blue-400/5', border: 'border-blue-400/10' },
-    'Discord:': { icon: MessageSquare, color: 'text-indigo-400', bg: 'bg-indigo-400/5', border: 'border-indigo-400/10' },
-    'Website:': { icon: Link2, color: 'text-emerald-400', bg: 'bg-emerald-400/5', border: 'border-emerald-400/10' },
-    'Port:': { icon: null, color: 'text-zinc-400', bg: null, border: null }
-  }
-
-  const linkify = (text: string) => {
-    const parts = text.split(URL_REGEX)
-    return parts.map((part, i) => {
-      if (part.match(URL_REGEX)) {
-        let href = part
-        if (!href.match(/^https?:\/\//i)) {
-          href = `https://${href.startsWith('www.') ? href : href}`
-        }
-        
-        // Clean trailing punctuation
-        const cleanHref = href.replace(/[.,!?;:]$/, '')
-        const cleanPart = part.replace(/[.,!?;:]$/, '')
-        const punctuation = part.slice(cleanPart.length)
-
-        return (
-          <React.Fragment key={i}>
-            <a
-              href={cleanHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-realm-green hover:underline break-all transition-all"
-            >
-              {cleanPart}
-            </a>
-            {punctuation}
-          </React.Fragment>
-        )
-      }
-      return part
-    })
-  }
-
-  const lines = content.split('\n')
-
   return (
-    <div className={`space-y-0 ${className}`}>
-      {lines.map((line, lineIdx) => {
-        // Check if line starts with a keyword
-        const matchingKeyword = Object.entries(KEYWORDS).find(([key]) => 
-          line.trim().toLowerCase().startsWith(key.toLowerCase())
-        )
+    <div className={`rich-text-content ${className}`}>
+      <ReactMarkdown 
+        remarkPlugins={[remarkGfm, remarkBreaks]}
+        components={{
+          p: ({ children }) => {
+            // Convert children to text to check for keywords
+            const textContent = React.Children.toArray(children).map(child => {
+              if (typeof child === 'string') return child
+              return ''
+            }).join('')
 
-        if (matchingKeyword) {
-          const [key, theme] = matchingKeyword
-          const Icon = theme.icon
-          const restOfLine = line.trim().slice(key.length).trim()
-          
-          return (
-            <SpecialLine 
-              key={lineIdx} 
-              label={key} 
-              content={restOfLine} 
-              theme={theme} 
-              linkify={linkify}
-              Icon={Icon}
-            />
-          )
-        }
+            const matchingKeyword = Object.entries(KEYWORDS).find(([key]) => 
+              textContent.trim().toLowerCase().startsWith(key.toLowerCase())
+            )
 
-        return (
-          <p key={lineIdx} className="leading-normal">
-            {line.trim() === '' ? <br /> : linkify(line)}
-          </p>
-        )
-      })}
+            if (matchingKeyword) {
+              const [key, theme] = matchingKeyword
+              const restOfContent = textContent.trim().slice(key.length).trim()
+              return (
+                <SpecialLine 
+                  label={key} 
+                  content={restOfContent} 
+                  theme={theme} 
+                  Icon={theme.icon}
+                />
+              )
+            }
+
+            return <p className="leading-relaxed mb-4 text-zinc-300 font-headline last:mb-0">{children}</p>
+          },
+          h1: ({ children }) => <h1 className="text-lg md:text-xl font-headline font-bold text-white mt-8 mb-4 uppercase tracking-tight">{children}</h1>,
+          h2: ({ children }) => <h2 className="text-base md:text-lg font-headline font-bold text-white mt-6 mb-3 uppercase tracking-tight">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-sm md:text-base font-headline font-bold text-white mt-4 mb-2 uppercase tracking-tight">{children}</h3>,
+          ul: ({ children }) => <ul className="list-disc pl-6 mb-4 space-y-1 text-zinc-400 font-headline">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 space-y-1 text-zinc-400 font-headline">{children}</ol>,
+          li: ({ children }) => <li className="pl-1">{children}</li>,
+          strong: ({ children }) => <strong className="text-white font-bold">{children}</strong>,
+          em: ({ children }) => <em className="italic text-zinc-300">{children}</em>,
+          code: ({ children }) => <code className="bg-zinc-800 text-realm-green px-1.5 py-0.5 rounded text-sm font-mono">{children}</code>,
+          blockquote: ({ children }) => (
+            <blockquote className="border-l-4 border-realm-green bg-realm-green/5 px-6 py-4 rounded-r-xl my-6 italic text-zinc-300 font-headline">
+              {children}
+            </blockquote>
+          ),
+          a: ({ href, children }) => (
+            <a 
+              href={href} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-realm-green hover:underline break-all transition-all underline-offset-4"
+            >
+              {children}
+            </a>
+          ),
+          hr: () => <hr className="my-8 border-zinc-800" />,
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     </div>
   )
 }
 
-function SpecialLine({ label, content, theme, linkify, Icon }: any) {
+function SpecialLine({ label, content, theme, Icon }: any) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = () => {
-    // Extract IP if this is an IP field
-    const textToCopy = content.split(' ')[0] // Take the first word (usually the IP/Link)
+    const textToCopy = content.split(' ')[0]
     navigator.clipboard.writeText(textToCopy)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -108,7 +101,7 @@ function SpecialLine({ label, content, theme, linkify, Icon }: any) {
     <motion.div 
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
-      className={`group flex items-center gap-3 p-3 rounded-xl border transition-all ${theme.bg || 'bg-zinc-900/40'} ${theme.border || 'border-zinc-800'} hover:border-realm-green/30 my-1`}
+      className={`group flex items-center gap-3 p-3 rounded-xl border transition-all ${theme.bg || 'bg-zinc-900/40'} ${theme.border || 'border-zinc-800'} hover:border-realm-green/30 my-2`}
     >
       {Icon && <Icon className={`w-4 h-4 ${theme.color} shrink-0`} />}
       <div className="flex-1 text-sm font-headline">
@@ -116,7 +109,7 @@ function SpecialLine({ label, content, theme, linkify, Icon }: any) {
           {label}
         </span>
         <span className="text-zinc-200">
-          {linkify(content)}
+          {content}
         </span>
       </div>
       

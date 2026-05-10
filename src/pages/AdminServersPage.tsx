@@ -291,7 +291,10 @@ export function AdminServersPage() {
                           {server.bedrock_ip && (
                             <div className="flex items-center gap-1.5">
                                <span className="text-[10px] text-realm-green/40 font-bold uppercase tracking-tighter">Bedrock</span>
-                               <span className="text-realm-green/60">{server.bedrock_ip}</span>
+                               <span className="text-realm-green/60">
+                                 {server.bedrock_ip}
+                                 {server.bedrock_port && <span className="opacity-40">:{server.bedrock_port}</span>}
+                               </span>
                             </div>
                           )}
                         </div>

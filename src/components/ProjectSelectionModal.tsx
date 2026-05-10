@@ -13,9 +13,9 @@ interface ProjectSelectionModalProps {
 export function ProjectSelectionModal({ isOpen, onClose }: ProjectSelectionModalProps) {
   const projects = [
     {
-      id: 'Mods/Addons',
-      title: 'Mods/Addons',
-      desc: 'Submit your community mods, addons, or plugins.',
+      id: 'Add-ons',
+      title: 'Add-ons',
+      desc: 'Submit your community Add-ons and creations.',
       bg: modsBg,
       icon: 'extension'
     },

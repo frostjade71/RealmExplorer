@@ -69,7 +69,7 @@ export function TermsPage() {
             </div>
             <div className="text-zinc-400 text-[11px] md:text-sm space-y-4 leading-relaxed max-w-xl w-full">
               <p>
-                <strong>Explorer+</strong> is a monthly subscription billed at $2.99 USD (or current stated price). Subscriptions renew automatically every 30 days unless cancelled.
+                <strong>Explorer+</strong> is a monthly subscription billed at $2.49 USD (or current stated price). Subscriptions renew automatically every 30 days unless cancelled.
               </p>
               <p>
                 Benefits include increased listing limits, priority exploration, and profile customization. We reserve the right to modify benefits or pricing with notice.

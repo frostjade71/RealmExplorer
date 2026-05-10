@@ -55,7 +55,7 @@ export function WhyProjectsPage() {
               <h2 className="text-2xl md:text-3xl font-pixel text-white">A Stage for Talent</h2>
             </div>
             <p className="text-zinc-400 font-headline text-sm md:text-lg leading-relaxed max-w-3xl">
-              We are building this page for developers and builders to showcase their talent and skills in the world of Minecraft. We believe that every high-quality mod, addon, and build deserves a spotlight.
+              We are building this page for developers and builders to showcase their talent and skills in the world of Minecraft. We believe that every high-quality Add-on and build deserves a spotlight.
             </p>
           </section>
 
@@ -69,11 +69,11 @@ export function WhyProjectsPage() {
               </div>
               <h3 className="text-xl font-pixel text-white">For Developers</h3>
               <p className="text-zinc-400 font-headline text-sm leading-relaxed">
-                Project owners can share their scripts, plugins, and addons. Players can visit and download directly from the source, ensuring they always have the latest versions.
+                Project owners can share their Add-ons and creations. Players can visit and download directly from the source, ensuring they always have the latest versions.
               </p>
               <div className="pt-4 flex items-center gap-2 text-blue-400 text-[10px] font-bold uppercase tracking-widest">
                 <Download className="w-4 h-4" />
-                Show your addons scripts
+                Show your Add-ons
               </div>
             </motion.div>
 
