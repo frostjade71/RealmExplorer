@@ -42,7 +42,7 @@ export function Footer() {
               <SiInstagram className="w-4 h-4 md:w-5 md:h-5" />
             </a>
             <a 
-              href="https://github.com/frostjade71" 
+              href="https://github.com/Realm-Explorer" 
               target="_blank" 
               rel="noreferrer" 
               className="text-white/40 hover:text-white transition-all hover:scale-110 p-1"
@@ -63,7 +63,7 @@ export function Footer() {
             <div className="flex flex-col gap-2">
               <Link to="/about" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">About Us</Link>
               <a 
-                href="https://github.com/frostjade71/RealmExplorer/commits/main/" 
+                href="https://github.com/Realm-Explorer/RE-RealmExplorer/commits/main/" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
