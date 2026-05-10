@@ -2,8 +2,17 @@ import { Copyright, FileText, Mail, Info, AlertTriangle, RefreshCw } from 'lucid
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { MetaTags } from '../components/MetaTags'
+import { toast } from 'sonner'
 
 export function CopyrightPage() {
+  const handleEmailClick = () => {
+    const email = 'support@realmexplorer.xyz'
+    navigator.clipboard.writeText(email)
+    toast.success('Email Copied', {
+      description: 'The email address has been copied to your clipboard.'
+    })
+  }
+
   return (
     <AnimatedPage>
       <MetaTags 
@@ -77,8 +86,7 @@ export function CopyrightPage() {
                 <p>Web Developer | Realm Explorer</p>
                 <p>154 Delgado Ave.</p>
                 <p>Barugo, Leyte Philippines, 6519</p>
-                <p>Email: support@realmexplorer.xyz</p>
-                <p>Personal Email: jaderbypenaranda@gmail.com</p>
+                <p>Email: <a href="mailto:support@realmexplorer.xyz" onClick={handleEmailClick} className="text-realm-green hover:underline">support@realmexplorer.xyz</a></p>
               </div>
             </div>
             <p className="mt-4 text-zinc-500 text-[10px] md:text-xs italic max-w-md">

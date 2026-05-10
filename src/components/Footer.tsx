@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Github } from 'lucide-react'
-import { SiDiscord, SiKofi } from 'react-icons/si'
+import { SiDiscord, SiKofi, SiInstagram } from 'react-icons/si'
 import logo from '../assets/rerealm.webp'
 
 export function Footer() {
@@ -31,6 +31,15 @@ export function Footer() {
               title="Join our Discord"
             >
               <SiDiscord className="w-4 h-4 md:w-5 md:h-5" />
+            </a>
+            <a 
+              href="https://www.instagram.com/realmexplorer.xyz" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="text-white/40 hover:text-[#E4405F] transition-all hover:scale-110 p-1"
+              title="Follow us on Instagram"
+            >
+              <SiInstagram className="w-4 h-4 md:w-5 md:h-5" />
             </a>
             <a 
               href="https://github.com/frostjade71" 

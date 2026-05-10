@@ -34,6 +34,7 @@ export interface Server {
   ip_or_code: string | null
   port: number | null
   bedrock_ip: string | null
+  bedrock_port: number | null
   website_url: string | null
   discord_url: string | null
   banner_url: string | null

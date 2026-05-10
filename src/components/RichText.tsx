@@ -57,7 +57,7 @@ export function RichText({ content, className = '' }: RichTextProps) {
   const lines = content.split('\n')
 
   return (
-    <div className={`space-y-1 ${className}`}>
+    <div className={`space-y-0 ${className}`}>
       {lines.map((line, lineIdx) => {
         // Check if line starts with a keyword
         const matchingKeyword = Object.entries(KEYWORDS).find(([key]) => 
@@ -82,8 +82,8 @@ export function RichText({ content, className = '' }: RichTextProps) {
         }
 
         return (
-          <p key={lineIdx} className="leading-relaxed">
-            {linkify(line)}
+          <p key={lineIdx} className="leading-normal">
+            {line.trim() === '' ? <br /> : linkify(line)}
           </p>
         )
       })}
@@ -108,7 +108,7 @@ function SpecialLine({ label, content, theme, linkify, Icon }: any) {
     <motion.div 
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
-      className={`group flex items-center gap-3 p-3 rounded-xl border transition-all ${theme.bg || 'bg-zinc-900/40'} ${theme.border || 'border-zinc-800'} hover:border-realm-green/30 my-2`}
+      className={`group flex items-center gap-3 p-3 rounded-xl border transition-all ${theme.bg || 'bg-zinc-900/40'} ${theme.border || 'border-zinc-800'} hover:border-realm-green/30 my-1`}
     >
       {Icon && <Icon className={`w-4 h-4 ${theme.color} shrink-0`} />}
       <div className="flex-1 text-sm font-headline">

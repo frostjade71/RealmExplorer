@@ -23,6 +23,8 @@ import {
   User,
   GripVertical,
   Info,
+  Eye,
+  Edit3
 } from "lucide-react";
 import {
   SiDiscord,
@@ -39,6 +41,7 @@ import { ImageUpload } from "../components/ImageUpload";
 import { slugify } from "../lib/urlUtils";
 import { toast } from "sonner";
 import { CustomSelect } from "../components/CustomSelect";
+import { RichText } from "../components/RichText";
 
 // Category Icons
 import factionsIcon from "../assets/category/7587-netherite-sword.png";
@@ -84,6 +87,7 @@ export function SubmitPage() {
     ip_or_code: "",
     port: "" as string | number,
     bedrock_ip: "",
+    bedrock_port: "" as string | number,
     website_url: "",
     icon_url: "",
     banner_url: "",
@@ -94,6 +98,8 @@ export function SubmitPage() {
   });
 
   const [showBedrockIp, setShowBedrockIp] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
 
   useEffect(() => {
     if (serverData?.server) {
@@ -106,6 +112,7 @@ export function SubmitPage() {
         ip_or_code: server.ip_or_code || "",
         port: server.port || "",
         bedrock_ip: server.bedrock_ip || "",
+        bedrock_port: server.bedrock_port || "",
         website_url: server.website_url || "",
         icon_url: server.icon_url || "",
         banner_url: server.banner_url || "",
@@ -266,6 +273,7 @@ export function SubmitPage() {
           ...formData,
           port: formData.port === "" ? null : Number(formData.port),
           bedrock_ip: formData.bedrock_ip || null,
+          bedrock_port: formData.bedrock_port === "" ? null : Number(formData.bedrock_port),
           slug,
           status,
           submitter_role: formData.submitter_role,
@@ -305,6 +313,7 @@ export function SubmitPage() {
           ...formData,
           port: formData.port === "" ? null : Number(formData.port),
           bedrock_ip: formData.bedrock_ip || null,
+          bedrock_port: formData.bedrock_port === "" ? null : Number(formData.bedrock_port),
           slug,
           owner_id: user.id,
           status: "pending",
@@ -476,14 +485,14 @@ export function SubmitPage() {
                   onClick={() => setFormData({ ...formData, type: "server" })}
                   className={`flex-1 py-3 px-4 rounded-lg border flex items-center justify-center gap-2 font-headline font-bold transition-all active:scale-95 whitespace-nowrap ${formData.type === "server" ? "bg-realm-green/10 border-realm-green text-realm-green" : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300"}`}
                 >
-                  <Server className="w-4 h-4" /> Server (Java)
+                  <Server className="w-4 h-4" /> Server
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, type: "realm" })}
                   className={`flex-1 py-3 px-4 rounded-lg border flex items-center justify-center gap-2 font-headline font-bold transition-all active:scale-95 whitespace-nowrap ${formData.type === "realm" ? "bg-realm-green/10 border-realm-green text-realm-green" : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300"}`}
                 >
-                  <Globe className="w-4 h-4" /> Bedrock (Realm)
+                  <Globe className="w-4 h-4" /> Realm
                 </button>
               </div>
             </div>
@@ -618,15 +627,39 @@ export function SubmitPage() {
                     <Trash2 className="w-3 h-3" /> Remove
                   </button>
                 </div>
-                <input
-                  type="text"
-                  placeholder="play.example.com"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
-                  value={formData.bedrock_ip}
-                  onChange={(e) =>
-                    setFormData({ ...formData, bedrock_ip: e.target.value })
-                  }
-                />
+                <div className="flex flex-col md:flex-row gap-3">
+                  <div className="flex-grow">
+                    <input
+                      type="text"
+                      placeholder="play.example.com"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
+                      value={formData.bedrock_ip}
+                      onChange={(e) =>
+                        setFormData({ ...formData, bedrock_ip: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="w-full md:w-32">
+                    <input
+                      type="number"
+                      placeholder="19132"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      value={formData.bedrock_port}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bedrock_port: e.target.value ? parseInt(e.target.value) : "",
+                        })
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSubmit(e as any);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             )}
 
@@ -763,28 +796,55 @@ export function SubmitPage() {
                 <p className="text-[10px] text-zinc-500 font-headline">
                   Provide a detailed description of your server.
                 </p>
-                <span
-                  onClick={() => {
-                    if (formData.description.length >= limits.description && !hasPremiumPerks) {
-                      toast.info('Explorer+ Feature', {
-                        description: 'Upgrade to Explorer+ to increase your description limit to 5,000 characters!'
-                      })
-                    }
-                  }}
-                  className={`text-[10px] font-bold font-headline transition-colors ${formData.description.length >= limits.description ? "text-red-400 cursor-pointer hover:text-red-300" : "text-zinc-500"}`}
-                >
-                  {formData.description.length}/{limits.description}
-                </span>
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="text-[10px] font-bold font-headline text-realm-green hover:text-[#85fc7e] transition-colors flex items-center gap-1.5 uppercase tracking-widest"
+                  >
+                    {showPreview ? (
+                      <>
+                        <Edit3 className="w-3 h-3" /> Edit
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-3 h-3" /> Preview
+                      </>
+                    )}
+                  </button>
+                  <span
+                    onClick={() => {
+                      if (
+                        formData.description.length >= limits.description &&
+                        !hasPremiumPerks
+                      ) {
+                        toast.info("Explorer+ Feature", {
+                          description:
+                            "Upgrade to Explorer+ to increase your description limit to 5,000 characters!",
+                        });
+                      }
+                    }}
+                    className={`text-[10px] font-bold font-headline transition-colors ${formData.description.length >= limits.description ? "text-red-400 cursor-pointer hover:text-red-300" : "text-zinc-500"}`}
+                  >
+                    {formData.description.length}/{limits.description}
+                  </span>
+                </div>
               </div>
-              <textarea
-                maxLength={limits.description}
-                placeholder="Tell players about your server..."
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white text-[13px] md:text-sm outline-none focus:border-realm-green transition-all font-headline resize-y focus:ring-1 focus:ring-realm-green/30 min-h-[200px]"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-              ></textarea>
+              {showPreview ? (
+                <div className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white text-[13px] md:text-sm min-h-[200px] overflow-y-auto">
+                  <RichText content={formData.description || "Nothing to preview."} />
+                </div>
+              ) : (
+                <textarea
+                  maxLength={limits.description}
+                  placeholder="Tell players about your server..."
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white text-[13px] md:text-sm outline-none focus:border-realm-green transition-all font-headline resize-y focus:ring-1 focus:ring-realm-green/30 min-h-[200px]"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                ></textarea>
+              )}
             </div>
 
             <div className="space-y-4 col-span-2 pt-6 border-t border-zinc-800">

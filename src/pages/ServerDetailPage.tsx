@@ -112,7 +112,10 @@ export function ServerDetailPage() {
 
   const handleCopyBedrockIp = () => {
     if (server?.bedrock_ip) {
-      navigator.clipboard.writeText(server.bedrock_ip)
+      const fullIp = server.bedrock_port && server.bedrock_port !== 19132 
+        ? `${server.bedrock_ip}:${server.bedrock_port}` 
+        : server.bedrock_ip
+      navigator.clipboard.writeText(fullIp)
       setBedrockCopied(true)
       setTimeout(() => setBedrockCopied(false), 2000)
     }
@@ -455,6 +458,7 @@ export function ServerDetailPage() {
                   >
                     {bedrockCopied ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     {server.bedrock_ip}
+                    {server.bedrock_port && server.bedrock_port !== 19132 && <span className="opacity-60">:{server.bedrock_port}</span>}
                   </motion.button>
                 </div>
               )}
