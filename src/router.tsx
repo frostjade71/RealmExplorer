@@ -44,7 +44,8 @@ import {
   PrivacyPage,
   CopyrightPage,
   DocsPage,
-  UpgradePage
+  UpgradePage,
+  StatusPage
 } from './pages/Pages'
 
 export const router = createBrowserRouter([
@@ -122,6 +123,10 @@ export const router = createBrowserRouter([
       {
         path: '/docs',
         element: <DocsPage />,
+      },
+      {
+        path: '/status',
+        element: <StatusPage />,
       },
       {
         path: '/upgrade',

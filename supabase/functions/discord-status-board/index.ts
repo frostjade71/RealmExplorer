@@ -31,7 +31,7 @@ function hexToUint8Array(hex: string) {
   return new Uint8Array(hex.match(/.{1,2}/g)!.map((val) => parseInt(val, 16)));
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
   // 1. Handle Discord Interactions
@@ -119,7 +119,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (error) {
     console.error("Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: (error as Error).message }), { status: 500 });
   }
 });
 
@@ -127,11 +127,25 @@ async function fetchStats(supabase: any) {
   const { count: userCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
   const { count: serverCount } = await supabase.from("servers").select("*", { count: "exact", head: true });
   const { count: voteCount } = await supabase.from("votes").select("*", { count: "exact", head: true });
-  return { userCount, serverCount, voteCount };
+  
+  let websiteOnline = false;
+  try {
+    const res = await fetch("https://www.realmexplorer.xyz/", { 
+      method: "HEAD", 
+      signal: AbortSignal.timeout(5000) 
+    });
+    websiteOnline = res.ok;
+  } catch (e) {
+    websiteOnline = false;
+  }
+
+  return { userCount, serverCount, voteCount, websiteOnline };
 }
 
 function generateEmbed(stats: any) {
   const onlineEmoji = "<a:online:1502469443094183966>";
+  const offlineEmoji = "<a:offline:1502469496118448208>";
+  
   return {
     title: "<:logo:1498001412788064346> Realm Explorer - Live Status",
     description: "Real-time metrics from the Realm Explorer website.",
@@ -142,6 +156,7 @@ function generateEmbed(stats: any) {
       { name: "<:votes:1502056182783676577> Total Votes", value: `\`${stats.voteCount || 0}\``, inline: true },
       { name: `${onlineEmoji} Database Status`, value: "Operational", inline: true },
       { name: `${onlineEmoji} Edge Status`, value: "Operational", inline: true },
+      { name: `${stats.websiteOnline ? onlineEmoji : offlineEmoji} Website Status`, value: stats.websiteOnline ? "Operational" : "Down / Issue", inline: true },
     ],
     timestamp: new Date().toISOString(),
     footer: { text: "Updates every 5 minutes • Realm Explorer Bot" },

@@ -70,14 +70,12 @@ export function Footer() {
               >
                 Changelog
               </a>
-              <a 
-                href="https://discord.com/channels/1258132272419311676/1502146097655840789" 
-                target="_blank" 
-                rel="noreferrer" 
+              <Link 
+                to="/status" 
                 className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
               >
                 Status
-              </a>
+              </Link>
             </div>
           </div>
 
