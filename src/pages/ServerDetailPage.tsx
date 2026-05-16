@@ -205,23 +205,25 @@ export function ServerDetailPage() {
   }
 
 
-  if (loading) return <LoadingSpinner />
-  if (!server) return <EmptyState title="Not Found" message="This server or realm does not exist or was removed." />
-
-  const metaDescription = server.description 
+  const metaDescription = server?.description 
     ? server.description.substring(0, 160).replace(/[#*`]/g, '') + '...' 
-    : `Join ${server.name} on Realm Explorer. Explore ${server.category} Minecraft servers and realms.`;
+    : server ? `Join ${server.name} on Realm Explorer. Explore ${server.category} Minecraft servers and realms.` : "View server details on Realm Explorer.";
 
   return (
     <>
     <MetaTags 
-      title={server.name}
+      title={server?.name}
       description={metaDescription}
-      image={server.banner_url || server.icon_url || undefined}
-      url={`/server/${server.slug || server.id}`}
+      image={server?.banner_url || server?.icon_url || undefined}
+      url={`/server/${server?.slug || slug || ''}`}
       type="website"
     />
 
+    {loading && <LoadingSpinner />}
+    {!loading && !server && <EmptyState title="Not Found" message="This server or realm does not exist or was removed." />}
+    
+    {!loading && server && (
+      <>
     {/* Premium Background */}
     {isPremium && (
       <div className="fixed inset-0 -z-50 pointer-events-none overflow-hidden">
@@ -762,6 +764,8 @@ export function ServerDetailPage() {
         onSubmit={handleReportSubmit}
         isSubmitting={reportMutation.isPending}
       />
+    </>
+    )}
     </>
   )
 }

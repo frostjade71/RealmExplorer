@@ -20,6 +20,7 @@ export function MetaTags({
   const siteTitle = "Realm Explorer";
   const fullTitle = title ? `${title} | ${siteTitle}` : `${siteTitle} | Find & Promote Minecraft Servers`;
   const currentUrl = url.startsWith('http') ? url : `https://realmexplorer.xyz${url}`;
+  const imageUrl = image.startsWith('http') ? image : `https://realmexplorer.xyz${image}`;
   const canonicalUrl = canonical || currentUrl;
 
   return (
@@ -35,14 +36,14 @@ export function MetaTags({
       <meta property="og:url" content={currentUrl} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={image} />
+      <meta property="og:image" content={imageUrl} />
 
       {/* Twitter */}
       <meta property="twitter:card" content="summary_large_image" />
       <meta property="twitter:url" content={currentUrl} />
       <meta property="twitter:title" content={fullTitle} />
       <meta property="twitter:description" content={description} />
-      <meta property="twitter:image" content={image} />
+      <meta property="twitter:image" content={imageUrl} />
     </Helmet>
   );
 }
