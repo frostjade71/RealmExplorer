@@ -2,8 +2,6 @@
 
 /**
  * Vercel Middleware to handle dynamic meta tags for server detail pages.
- * This intercepts requests from social media crawlers (Discord, Twitter, etc.)
- * and serves a minimal HTML page with the correct metadata fetched from Supabase.
  */
 
 export const config = {
@@ -11,7 +9,6 @@ export const config = {
 };
 
 export async function middleware(request: Request) {
-  // 1. Extract the server slug from the URL
   const url = new URL(request.url);
   const slug = url.pathname.split('/').filter(Boolean).pop();
 
@@ -19,12 +16,11 @@ export async function middleware(request: Request) {
     return;
   }
 
-  // DEBUG: Heartbeat check (Visit https://realmexplorer.xyz/server/test-debug to verify)
+  // DEBUG: Heartbeat check
   if (slug === 'test-debug') {
     return new Response('MIDDLEWARE IS WORKING', { status: 200 });
   }
 
-  // 2. Detect common social media and search engine crawlers
   const userAgent = request.headers.get('user-agent') || '';
   const bots = [
     'discordbot',
@@ -44,13 +40,11 @@ export async function middleware(request: Request) {
   
   const isBot = bots.some(bot => userAgent.toLowerCase().includes(bot));
 
-  // If it's a real user, let them through to the React app
   if (!isBot) {
     return;
   }
 
   try {
-    // 3. Fetch server data directly from Supabase via REST API
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
@@ -80,19 +74,16 @@ export async function middleware(request: Request) {
       return;
     }
 
-    // 4. Prepare metadata
     const title = `${server.name} | Realm Explorer`;
     const description = server.description 
       ? server.description.substring(0, 160).replace(/[#*`]/g, '') + '...'
       : `Join ${server.name} on Realm Explorer. Discover the best Minecraft Servers and Realms.`;
     
-    // Ensure the image URL is absolute
     let imageUrl = server.banner_url || server.icon_url || 'https://realmexplorer.xyz/meta-preview/RE-Banned_EAA0FDC.webp';
     if (imageUrl.startsWith('/')) {
       imageUrl = `https://realmexplorer.xyz${imageUrl}`;
     }
 
-    // 5. Return a minimal HTML response for the crawler
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
