@@ -12,7 +12,7 @@ interface MetaTagsProps {
 export function MetaTags({
   title,
   description = "Discover the best Minecraft Servers and Realms. Vote for your favorites, list your community, and find your next adventure on the most modern discovery platform.",
-  image = "https://realmexplorer.xyz/og-image.webp",
+  image = "https://realmexplorer.xyz/meta-preview/RE-Banned_EAA0FDC.webp",
   url = "https://realmexplorer.xyz",
   type = "website",
   canonical

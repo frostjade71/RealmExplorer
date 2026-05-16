@@ -49,8 +49,8 @@ function RankTrend({ current, previous }: { current: number, previous?: number |
 
 export function LeaderboardsPage() {
   const isMobile = useIsMobile()
-  const { data: topVoted = [], isLoading: loadingVotes } = useServers({ sortBy: 'votes', limit: 13 })
-  const { data: topRated = [], isLoading: loadingRated } = useServers({ sortBy: 'rating', limit: 12 })
+  const { data: topVoted = [], isLoading: loadingVotes } = useServers({ sortBy: 'votes', limit: 20 })
+  const { data: topRated = [], isLoading: loadingRated } = useServers({ sortBy: 'rating', limit: 20 })
 
   const podium = topVoted.slice(0, 3)
   const votesList = topVoted // Show all in the list for better UX
