@@ -11,9 +11,21 @@ export const config = {
 };
 
 export async function middleware(request: Request) {
+  // 1. Extract the server slug from the URL
+  const url = new URL(request.url);
+  const slug = url.pathname.split('/').filter(Boolean).pop();
+
+  if (!slug || slug === 'server') {
+    return;
+  }
+
+  // DEBUG: Heartbeat check (Visit https://realmexplorer.xyz/server/test-debug to verify)
+  if (slug === 'test-debug') {
+    return new Response('MIDDLEWARE IS WORKING', { status: 200 });
+  }
+
+  // 2. Detect common social media and search engine crawlers
   const userAgent = request.headers.get('user-agent') || '';
-  
-  // 1. Detect common social media and search engine crawlers
   const bots = [
     'discordbot',
     'twitterbot',
@@ -37,22 +49,12 @@ export async function middleware(request: Request) {
     return;
   }
 
-  // 2. Extract the server slug from the URL
-  const url = new URL(request.url);
-  const slug = url.pathname.split('/').filter(Boolean).pop();
-
-  if (!slug || slug === 'server') {
-    return;
-  }
-
   try {
     // 3. Fetch server data directly from Supabase via REST API
-    // We use fetch to keep the middleware lightweight and avoid dependency issues
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      console.warn('Middleware: Missing Supabase environment variables');
       return;
     }
 
@@ -91,28 +93,22 @@ export async function middleware(request: Request) {
     }
 
     // 5. Return a minimal HTML response for the crawler
-    // We include the most important tags for Discord, Twitter, and Facebook
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>${title}</title>
   <meta name="description" content="${description}">
-
-  <!-- Open Graph / Facebook / Discord -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="${request.url}">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
-
-  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="${request.url}">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
-
   <link rel="canonical" href="${request.url}">
 </head>
 <body>
@@ -126,12 +122,11 @@ export async function middleware(request: Request) {
       headers: {
         'Content-Type': 'text/html; charset=UTF-8',
         'Cache-Control': 'public, s-maxage=3600',
-        'X-Middleware-Served': 'true', // Debug header
+        'X-Middleware-Served': 'true',
       },
     });
 
   } catch (error) {
-    console.error('Middleware Error:', error);
     return;
   }
 }
