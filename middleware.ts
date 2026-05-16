@@ -26,6 +26,8 @@ export async function middleware(request: Request) {
     'bingbot',
     'baiduspider',
     'yandexbot',
+    'opengraph',
+    'bot',
   ];
   
   const isBot = bots.some(bot => userAgent.toLowerCase().includes(bot));
@@ -124,6 +126,7 @@ export async function middleware(request: Request) {
       headers: {
         'Content-Type': 'text/html; charset=UTF-8',
         'Cache-Control': 'public, s-maxage=3600',
+        'X-Middleware-Served': 'true', // Debug header
       },
     });
 
