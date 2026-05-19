@@ -4,6 +4,7 @@ import { Footer } from './Footer'
 import { AnimatePresence } from 'framer-motion'
 
 import { CookieBanner } from './CookieBanner'
+import { CommunityOneWidget } from './CommunityOneWidget'
 
 function scrollToTop() {
   const doScroll = () => {
@@ -33,6 +34,7 @@ export function Layout() {
       <Footer />
 
       <CookieBanner />
+      <CommunityOneWidget />
     </div>
   )
 }

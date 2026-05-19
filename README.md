@@ -3,7 +3,7 @@
 # <img src="src/assets/rerealm.webp" alt="Realm Explorer Logo" width="120" style="border-radius: 20px;">
 # Realm Explorer
 
-[![Status](https://img.shields.io/badge/Status-Release_Candidate-3b82f6?style=for-the-badge)](https://github.com/frostjade71/RE-RealmExplorer)
+[![Status](https://img.shields.io/badge/Status-In_Production-3b82f6?style=for-the-badge)](https://github.com/frostjade71/RE-RealmExplorer)
 
 **Realm Explorer** is the easiest way to find your next Minecraft adventure. Whether you are looking for a new Realm to join or a massive Server to explore, we help you find the best communities in the Minecraft World.
 
@@ -14,18 +14,20 @@
 ### Finding Servers
 - **Easy Browsing**: Quickly look through a list of Minecraft Servers and Realms.
 - **Simple Filters**: Find exactly what you want—like SMP, Skyblock, or Factions—without getting lost.
-- **Fast Search**: Type in the name of a server and find it instantly.
+- **Fast Search & Shuffle**: Type in the name of a server to find it instantly, or use the shuffle button to discover new servers!
+- **Projects Explorer (Beta)**: Discover upcoming and in-development projects from the community.
 
 ### For the Community
-- **Quick Voting**: Support your favorite servers! You can vote every 24 hours to help them get more attention.|
-- **OTM**: Vote for your favorite servers, realms, developers, and builders in our monthly competition to help them get more attention.
+- **Quick Voting**: Support your favorite servers! You can vote every 24 hours to help them get more attention.
+- **ROTM & SOTM**: Vote for your favorite Realms and Servers of the Month, featuring live leaderboard updates!
 - **Rate Servers**: Rate servers you have played on to help others find the best ones.
 - **Discord Login**: Use your Discord account to sign in quickly and easily.
 
 ### For Server Owners
 - **List in Minutes**: Adding your server or realm is super simple with our easy form.
-- **Easy Management**: Use your own dashboard to change your server's description, pictures, and social links whenever you want.
-- **Profile**: Manage your profile and personal links.
+- **Easy Management**: Use your own dashboard to change your server's details and social links whenever you want.
+- **Analytics**: Track your server's votes, rating, and other stats from your dashboard.
+- **Profile**: Manage your profile banner, bio and personal links.
 
 ---
 

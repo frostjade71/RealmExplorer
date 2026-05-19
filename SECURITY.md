@@ -8,8 +8,8 @@ We currently support the following versions of Realm Explorer with security upda
 
 | Version | Supported          |
 | ------- | ------------------ |
-| v0.7.x  | ✅ Yes            |
-| < v0.7  | ❌ No             |
+| v1.x.x  | ✅ Yes            |
+| < v1.0  | ❌ No             |
 
 ## Reporting a Vulnerability
 

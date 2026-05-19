@@ -57,11 +57,12 @@ First off, thank you for considering contributing to Realm Explorer! It's people
 
 ## 📝 Commit Messages
 We follow a simple convention for commit messages:
-- `hotfix:` for hotfixes
+- `update:` for new features and general updates
+- `ui:` for UI and styling changes
 - `fix:` for bug fixes
+- `fixtest:` for testing and fixing issues
+- `security:` for security-related patches
 - `docs:` for documentation changes
-- `style:` for UI/styling changes
-- `refactor:` for code improvements
 
 ## ⚖️ License
 By contributing, you agree that your contributions will be licensed under the project's current license.
