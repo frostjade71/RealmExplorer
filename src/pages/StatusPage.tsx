@@ -235,13 +235,7 @@ export function StatusPage() {
           )}
         </div>
 
-        {/* Footer info */}
-        <div className="flex justify-center pt-8">
-          <div className="bg-white/5 border border-white/10 rounded-full px-6 py-2 flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-            <span className="text-white/40 text-[10px] font-headline uppercase tracking-[0.2em]">Live Monitoring Active</span>
-          </div>
-        </div>
+
 
       </div>
     </div>

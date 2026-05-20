@@ -138,7 +138,15 @@ export function CommunityOneWidget() {
     }
   }, [])
 
-  const shouldHideWidget = location.pathname.startsWith('/servers') || location.pathname.startsWith('/admin')
+  const hiddenPaths = [
+    '/servers',
+    '/admin',
+    '/profile',
+    '/dashboard/analytics',
+    '/submit',
+    '/status'
+  ]
+  const shouldHideWidget = hiddenPaths.some(path => location.pathname.startsWith(path))
 
   return (
     <style>{`

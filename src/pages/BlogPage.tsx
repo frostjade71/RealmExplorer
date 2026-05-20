@@ -181,7 +181,7 @@ export function BlogPage() {
                     <div className="absolute inset-0 border-t-2 border-l-2 border-white/10 pointer-events-none" />
                     <div className="absolute inset-0 border-b-2 border-r-2 border-black/40 pointer-events-none" />
 
-                    <div className="relative z-10 flex flex-col sm:flex-row items-center sm:justify-between gap-6 md:gap-10">
+                    <div className="relative z-10 flex flex-col-reverse sm:flex-row items-center sm:justify-between gap-6 md:gap-10">
                       {/* Left: Content */}
                       <div className="flex-1 text-center sm:text-left w-full">
                         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-3 md:mb-4 opacity-40">
@@ -205,16 +205,16 @@ export function BlogPage() {
                           {post.content?.replace(/[#*`]/g, '').slice(0, 200)}...
                         </p>
 
-                        <div className="flex items-center justify-center sm:justify-start gap-2">
-                          <span className="text-[8px] font-pixel text-realm-green uppercase tracking-widest group-hover:mr-2 transition-all">
-                            Enter Selection
+                        <div className="flex items-center justify-center sm:justify-start gap-1 text-realm-green">
+                          <span className="text-[8px] font-pixel uppercase tracking-widest">
+                            Read All
                           </span>
-                          <div className="w-2 h-2 border-t-2 border-r-2 border-realm-green rotate-45 opacity-0 group-hover:opacity-100 transition-all" />
+                          <ArrowRight size={10} className="group-hover:translate-x-1 transition-transform" />
                         </div>
                       </div>
 
                       {/* Right: Image Container */}
-                      <div className="relative shrink-0 w-20 h-20 md:w-40 md:h-40 border-4 border-[#101010] bg-black/40 shadow-inner overflow-hidden">
+                      <div className="relative shrink-0 w-full max-w-[280px] sm:max-w-none aspect-video sm:w-48 sm:h-28 mx-auto sm:mx-0 border-4 border-[#101010] bg-black/40 shadow-inner overflow-hidden">
                         <div className="absolute inset-0 border-t-2 border-l-2 border-white/5 pointer-events-none" />
                         {post.image_url ? (
                           <img 

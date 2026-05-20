@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { useUserServers } from '../hooks/queries'
 import type { TeamMember } from '../types'
 
-export function TeamMemberCard({ member }: { member: TeamMember }) {
+export function TeamMemberCard({ member, linkToProfile = false }: { member: TeamMember; linkToProfile?: boolean }) {
   const [isFlipped, setIsFlipped] = useState(false)
   const { data: servers = [] } = useUserServers(member.user_id)
   
@@ -17,10 +17,47 @@ export function TeamMemberCard({ member }: { member: TeamMember }) {
 
   const isOwner = member.role_title.toLowerCase().includes('owner')
   const isExecutive = member.role_title.toLowerCase().includes('executive')
+  const isAdmin = member.role_title.toLowerCase().includes('admin')
+  const isReporter = member.role_title.toLowerCase().includes('reporter')
   
   const frameColor = isOwner ? 'border-[#a855f7]' : 
                     isExecutive ? 'border-[#f97316]' : 
+                    isAdmin ? 'border-[#3b82f6]' : 
+                    isReporter ? 'border-[#ec4899]' : 
                     'border-white/10'
+
+  if (linkToProfile) {
+    return (
+      <Link 
+        to={`/profile/${member.profiles.discord_username}`}
+        className="block w-[160px] md:w-full h-[220px]"
+      >
+        <div className="relative w-full h-full bg-[#313233] border-4 border-[#101010] p-5 text-center shadow-[5px_5px_0_rgba(0,0,0,0.5)]">
+          {/* Inner Highlight Border */}
+          <div className="absolute inset-0 border-t-2 border-l-2 border-white/10 pointer-events-none" />
+          <div className="absolute inset-0 border-b-2 border-r-2 border-black/40 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col h-full justify-center">
+            <div className={`relative w-24 h-24 mx-auto mb-4 border-4 bg-black/40 shadow-inner ${frameColor}`}>
+              <img 
+                src={member.profiles.discord_avatar || ''} 
+                alt={member.profiles.discord_username || ''} 
+                className="w-full h-full object-cover p-1"
+              />
+            </div>
+
+            <h3 className="text-sm font-pixel text-white mb-2 truncate drop-shadow-md">
+              {member.profiles.discord_username}
+            </h3>
+            
+            <p className="inline-block px-2.5 py-0.5 bg-black/40 text-[9px] font-pixel text-white/40 uppercase tracking-[0.15em] border border-white/5 mx-auto">
+              {member.role_title}
+            </p>
+          </div>
+        </div>
+      </Link>
+    )
+  }
 
   return (
     <div 

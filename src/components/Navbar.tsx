@@ -67,6 +67,7 @@ export function Navbar() {
       path: '/about', 
       icon: <Info className="w-4 h-4" />,
       children: [
+        { label: 'About Us', path: '/about', icon: <Info className="w-4 h-4" /> },
         { label: 'Our Team', path: '/team', icon: <Users className="w-4 h-4" /> },
         { label: 'Blog', path: '/blog', icon: <BookOpen className="w-4 h-4" /> },
       ]

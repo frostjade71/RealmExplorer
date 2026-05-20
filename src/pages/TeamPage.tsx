@@ -16,6 +16,16 @@ export function TeamPage() {
   const { data: devProfile } = useUserProfile('4642ada9-a0be-4ad6-bd7a-b5990ad952b2')
   const { data: allUsers = [] } = useAdminUsers()
 
+  const executivesAndOwners = teamMembers.filter(m => {
+    const title = m.role_title.toLowerCase()
+    return title.includes('owner') || title.includes('executive')
+  })
+
+  const adminsAndReporters = teamMembers.filter(m => {
+    const title = m.role_title.toLowerCase()
+    return !title.includes('owner') && !title.includes('executive')
+  })
+
   if (isLoading) return <LoadingSpinner />
 
   return (
@@ -68,7 +78,7 @@ export function TeamPage() {
           </FramerIn>
 
           <div className="flex flex-wrap justify-center gap-6 mb-8">
-            {teamMembers.map((member, i) => (
+            {executivesAndOwners.map((member, i) => (
               <FramerIn key={member.id} delay={i * 0.1}>
                 <div className="w-[160px] md:w-[180px]">
                   <TeamMemberCard member={member} />
@@ -81,13 +91,44 @@ export function TeamPage() {
             <img src={ownerIcon} alt="Owner Icon" className="w-10 h-10 object-contain" />
           </FramerIn>
 
-          {teamMembers.length === 0 && (
-            <FramerIn className="text-center py-20 bg-zinc-900/30 border border-dashed border-white/5 rounded-3xl">
-              <p className="text-zinc-600 font-headline italic">The team list is currently being curated.</p>
+          {executivesAndOwners.length === 0 && (
+            <FramerIn className="text-center py-10 bg-zinc-900/30 border border-dashed border-white/5 rounded-2xl mb-8">
+              <p className="text-zinc-600 font-headline italic">No executives or owners listed yet.</p>
             </FramerIn>
           )}
         </div>
-        
+      </section>
+
+      {/* The Admins & Reporters */}
+      <section className="py-20 px-8 bg-zinc-950/80 relative border-t border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <FramerIn className="text-center mb-16 flex flex-col items-center">
+            <h2 className="font-pixel text-white text-2xl mb-6 uppercase tracking-widest">
+              The <span className="text-realm-green">Admins</span> & Reporters
+            </h2>
+            <div className="h-1.5 w-24 bg-realm-green mx-auto mb-8 rounded-full shadow-[0_0_10px_rgba(133,252,126,0.5)]"></div>
+            <p className="text-zinc-400 font-headline max-w-2xl mx-auto leading-relaxed italic">
+              Our core administrators and moderators who keep the community safe, alongside our reporters delivering the latest Minecraft news and updates.
+            </p>
+          </FramerIn>
+
+          <div className="flex flex-wrap justify-center gap-6 mb-8">
+            {adminsAndReporters.map((member, i) => (
+              <FramerIn key={member.id} delay={i * 0.1}>
+                <div className="w-[160px] md:w-[180px]">
+                  <TeamMemberCard member={member} linkToProfile={true} />
+                </div>
+              </FramerIn>
+            ))}
+          </div>
+
+          {adminsAndReporters.length === 0 && (
+            <FramerIn className="text-center py-10 bg-zinc-900/30 border border-dashed border-white/5 rounded-2xl">
+              <p className="text-zinc-600 font-headline italic">No admins or reporters listed yet.</p>
+            </FramerIn>
+          )}
+        </div>
+
         {/* Background decorative elements */}
         <div className="absolute top-1/4 right-0 w-96 h-96 bg-realm-green/5 blur-[120px] -z-10 pointer-events-none" />
         <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-emerald-500/5 blur-[120px] -z-10 pointer-events-none" />

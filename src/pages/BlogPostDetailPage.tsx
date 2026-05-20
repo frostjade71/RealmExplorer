@@ -87,10 +87,17 @@ export function BlogPostDetailPage() {
                 <span className="hidden sm:block w-1 h-1 rounded-full bg-white/10" />
                 
                 <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-1.5">
-                    <User size={12} />
-                    {post.profiles?.discord_username || 'Staff'}
-                  </span>
+                  {post.profiles?.discord_username ? (
+                    <Link to={`/profile/${post.profiles.discord_username}`} className="flex items-center gap-1.5 hover:text-realm-green transition-colors">
+                      <User size={12} />
+                      {post.profiles.discord_username}
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-1.5">
+                      <User size={12} />
+                      Staff
+                    </span>
+                  )}
                   <span className="w-1 h-1 rounded-full bg-white/10" />
                   <BlogLikeButton postId={post.id} />
                 </div>
@@ -99,7 +106,7 @@ export function BlogPostDetailPage() {
                 {post.title}
               </h1>
           </div>
-
+ 
           {post.image_url && (
             <div className="max-w-2xl mx-auto aspect-video rounded-2xl overflow-hidden bg-white/[0.02] border border-white/10 shadow-3xl mb-12 relative flex items-center justify-center">
               <img src={post.image_url} alt="" className="max-w-full max-h-full object-contain" />
@@ -107,7 +114,7 @@ export function BlogPostDetailPage() {
             </div>
           )}
         </FramerIn>
-
+ 
         {/* Main Content */}
         <FramerIn delay={0.2}>
           <div className="max-w-4xl mx-auto overflow-hidden">
@@ -159,22 +166,36 @@ export function BlogPostDetailPage() {
             </ReactMarkdown>
           </div>
         </FramerIn>
-
+ 
         {/* Footer Actions */}
         <FramerIn delay={0.3} className="mt-16 pt-8 border-t border-white/5 flex flex-wrap items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-realm-green/10 border border-realm-green/20 flex items-center justify-center p-1">
-                {post.profiles?.discord_avatar ? (
-                  <img src={post.profiles.discord_avatar} className="w-full h-full rounded-full object-cover" />
-                ) : (
+              {post.profiles?.discord_username ? (
+                <Link to={`/profile/${post.profiles.discord_username}`} className="block w-10 h-10 rounded-full bg-realm-green/10 border border-realm-green/20 hover:border-realm-green transition-all p-1 shrink-0 overflow-hidden">
+                  {post.profiles.discord_avatar ? (
+                    <img src={post.profiles.discord_avatar} className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User size={20} className="text-realm-green" />
+                    </div>
+                  )}
+                </Link>
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-realm-green/10 border border-realm-green/20 flex items-center justify-center p-1 shrink-0">
                   <User size={20} className="text-realm-green" />
-                )}
-              </div>
+                </div>
+              )}
               <div>
                 <p className="text-[8px] font-headline font-bold text-white/20 uppercase tracking-widest">Posted By</p>
                 <div className="flex items-center gap-4">
-                  <p className="text-xs font-pixel text-white uppercase">{post.profiles?.discord_username || 'Realm Staff'}</p>
+                  {post.profiles?.discord_username ? (
+                    <Link to={`/profile/${post.profiles.discord_username}`} className="text-xs font-pixel text-white uppercase hover:text-realm-green transition-colors">
+                      {post.profiles.discord_username}
+                    </Link>
+                  ) : (
+                    <p className="text-xs font-pixel text-white uppercase">Realm Staff</p>
+                  )}
                   <BlogLikeButton postId={post.id} />
                 </div>
               </div>

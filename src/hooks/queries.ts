@@ -516,29 +516,29 @@ export function useBlogPostLikes(postId: string | undefined, userId: string | un
     queryKey: ['blogPostLikes', postId, userId],
     enabled: !!postId,
     queryFn: async () => {
-      // 1. Get total likes count
-      const { count, error: countError } = await supabase
+      const { data, error } = await supabase
         .from('blog_post_likes')
-        .select('*', { count: 'exact', head: true })
+        .select(`
+          user_id,
+          profiles (
+            discord_username
+          )
+        `)
         .eq('post_id', postId!)
 
-      if (countError) throw countError
+      if (error) throw error
 
-      // 2. Check if current user has liked
-      let hasLiked = false
-      if (userId) {
-        const { data, error: likeError } = await supabase
-          .from('blog_post_likes')
-          .select('id')
-          .eq('post_id', postId!)
-          .eq('user_id', userId)
-          .maybeSingle()
-        
-        if (likeError) throw likeError
-        hasLiked = !!data
+      const usernames = data
+        ?.map((l: any) => l.profiles?.discord_username)
+        .filter(Boolean) || []
+
+      const hasLiked = userId ? data?.some((l: any) => l.user_id === userId) : false
+
+      return { 
+        count: data?.length || 0, 
+        hasLiked,
+        likedBy: usernames
       }
-
-      return { count: count || 0, hasLiked }
     }
   })
 }

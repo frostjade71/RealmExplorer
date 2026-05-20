@@ -13,7 +13,7 @@ import {
   useUpdateTeamMemberRoleMutation
 } from '../hooks/mutations'
 import { LoadingSpinner } from '../components/FeedbackStates'
-import { Search, Plus, Trash2, ArrowUp, ArrowDown, X, Shield, Crown } from 'lucide-react'
+import { Search, Plus, Trash2, ArrowUp, ArrowDown, X, Shield, Crown, Megaphone } from 'lucide-react'
 import type { Profile } from '../types'
 
 export function AdminEditAboutPage() {
@@ -23,12 +23,26 @@ export function AdminEditAboutPage() {
   
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUserForRole, setSelectedUserForRole] = useState<Profile | null>(null)
-  const [roleSelection, setRoleSelection] = useState<'Executive' | 'Owner'>('Executive')
+  const [roleSelection, setRoleSelection] = useState<'Executive' | 'Owner' | 'Admin' | 'Reporter'>('Executive')
 
   const addMutation = useAddTeamMemberMutation()
   const removeMutation = useRemoveTeamMemberMutation()
   const orderMutation = useUpdateTeamMembersOrderMutation()
   const roleMutation = useUpdateTeamMemberRoleMutation()
+
+  const executivesAndOwners = useMemo(() => {
+    return teamMembers.filter(m => {
+      const title = m.role_title.toLowerCase()
+      return title.includes('owner') || title.includes('executive')
+    })
+  }, [teamMembers])
+
+  const adminsAndReporters = useMemo(() => {
+    return teamMembers.filter(m => {
+      const title = m.role_title.toLowerCase()
+      return !title.includes('owner') && !title.includes('executive')
+    })
+  }, [teamMembers])
 
 
   const filteredUsers = useMemo(() => {
@@ -75,17 +89,22 @@ export function AdminEditAboutPage() {
     }
   }
 
-  const handleMove = (index: number, direction: 'up' | 'down') => {
-    const newMembers = [...teamMembers]
-    const targetIndex = direction === 'up' ? index - 1 : index + 1
+  const handleMove = (memberId: string, direction: 'up' | 'down', groupMembers: typeof teamMembers) => {
+    const indexInGroup = groupMembers.findIndex(m => m.id === memberId)
+    const targetIndexInGroup = direction === 'up' ? indexInGroup - 1 : indexInGroup + 1
     
-    if (targetIndex < 0 || targetIndex >= newMembers.length) return
+    if (targetIndexInGroup < 0 || targetIndexInGroup >= groupMembers.length) return
 
-    const temp = newMembers[index]
-    newMembers[index] = newMembers[targetIndex]
-    newMembers[targetIndex] = temp
+    const newMembers = [...teamMembers]
+    const currentMember = groupMembers[indexInGroup]
+    const targetMember = groupMembers[targetIndexInGroup]
+    
+    const fullIndexCurrent = newMembers.findIndex(m => m.id === currentMember.id)
+    const fullIndexTarget = newMembers.findIndex(m => m.id === targetMember.id)
+    
+    newMembers[fullIndexCurrent] = targetMember
+    newMembers[fullIndexTarget] = currentMember
 
-    // Update orders
     const updates = newMembers.map((m, i) => ({
       id: m.id,
       user_id: m.user_id,
@@ -129,67 +148,138 @@ export function AdminEditAboutPage() {
         {/* Team Members List */}
         <FramerIn delay={0.2} className="lg:col-span-2">
           <div className="bg-zinc-900 border border-white/5 rounded-lg p-8 h-full">
-            <h2 className="text-lg font-pixel text-white mb-6 flex items-center gap-3">
-              <span className="material-symbols-outlined text-realm-green">group</span>
-              Executives & Owners
-            </h2>
 
-            <div className="space-y-4">
+            <div className="space-y-8">
               {teamMembers.length === 0 ? (
                 <div className="py-12 text-center text-white/20 font-headline italic bg-black/20 rounded-lg border border-dashed border-white/5">
                   No team members added yet.
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {teamMembers.map((member, index) => (
-                    <motion.div 
-                      key={member.id}
-                      layout
-                      className="flex items-center gap-4 bg-black/40 border border-white/5 p-4 rounded-lg group hover:border-white/20 transition-all"
-                    >
-                      <div className="flex flex-col gap-1">
-                        <button 
-                          onClick={() => handleMove(index, 'up')}
-                          disabled={index === 0}
-                          className="p-1 hover:text-realm-green text-white/20 disabled:opacity-0 transition-all"
-                        >
-                          <ArrowUp className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleMove(index, 'down')}
-                          disabled={index === teamMembers.length - 1}
-                          className="p-1 hover:text-realm-green text-white/20 disabled:opacity-0 transition-all"
-                        >
-                          <ArrowDown className="w-4 h-4" />
-                        </button>
+                <>
+                  {/* Executives & Owners */}
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-pixel text-realm-green uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <Crown className="w-3.5 h-3.5 text-realm-green" />
+                      Executives & Owners
+                    </h3>
+                    {executivesAndOwners.length === 0 ? (
+                      <div className="py-6 text-center text-white/20 text-xs italic bg-black/20 rounded-lg border border-white/5 font-headline">
+                        No executives or owners.
                       </div>
+                    ) : (
+                      executivesAndOwners.map((member, index) => (
+                        <motion.div 
+                          key={member.id}
+                          layout
+                          className="flex items-center gap-4 bg-black/40 border border-white/5 p-4 rounded-lg group hover:border-white/20 transition-all"
+                        >
+                          <div className="flex flex-col gap-1">
+                            <button 
+                              onClick={() => handleMove(member.id, 'up', executivesAndOwners)}
+                              disabled={index === 0}
+                              className="p-1 hover:text-realm-green text-white/20 disabled:opacity-0 transition-all"
+                            >
+                              <ArrowUp className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleMove(member.id, 'down', executivesAndOwners)}
+                              disabled={index === executivesAndOwners.length - 1}
+                              className="p-1 hover:text-realm-green text-white/20 disabled:opacity-0 transition-all"
+                            >
+                              <ArrowDown className="w-4 h-4" />
+                            </button>
+                          </div>
 
-                      <img 
-                        src={member.profiles?.discord_avatar || ''} 
-                        className="w-12 h-12 rounded-lg border border-white/10"
-                        alt=""
-                      />
+                          <img 
+                            src={member.profiles?.discord_avatar || ''} 
+                            className="w-12 h-12 rounded-lg border border-white/10"
+                            alt=""
+                          />
 
-                      <div className="flex-1 min-w-0">
-                        <div className="font-bold text-white truncate">{member.profiles?.discord_username}</div>
-                        <input 
-                          type="text"
-                          value={member.role_title}
-                          onChange={(e) => handleUpdateRole(member.id, e.target.value)}
-                          className="bg-transparent text-[10px] text-realm-green font-headline font-bold uppercase tracking-widest outline-none border-b border-white/0 focus:border-realm-green/50 transition-all w-full"
-                          placeholder="Set Title (e.g. Owner)"
-                        />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-white truncate">{member.profiles?.discord_username}</div>
+                            <input 
+                              type="text"
+                              value={member.role_title}
+                              onChange={(e) => handleUpdateRole(member.id, e.target.value)}
+                              className="bg-transparent text-[10px] text-realm-green font-headline font-bold uppercase tracking-widest outline-none border-b border-white/0 focus:border-realm-green/50 transition-all w-full"
+                              placeholder="Set Title (e.g. Owner)"
+                            />
+                          </div>
+
+                          <button 
+                            onClick={() => handleRemoveMember(member.id)}
+                            className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </motion.div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Admins & Reporters */}
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-pixel text-blue-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                      <Shield className="w-3.5 h-3.5 text-blue-400" />
+                      Admins & Reporters
+                    </h3>
+                    {adminsAndReporters.length === 0 ? (
+                      <div className="py-6 text-center text-white/20 text-xs italic bg-black/20 rounded-lg border border-white/5 font-headline">
+                        No admins or reporters.
                       </div>
+                    ) : (
+                      adminsAndReporters.map((member, index) => (
+                        <motion.div 
+                          key={member.id}
+                          layout
+                          className="flex items-center gap-4 bg-black/40 border border-white/5 p-4 rounded-lg group hover:border-white/20 transition-all"
+                        >
+                          <div className="flex flex-col gap-1">
+                            <button 
+                              onClick={() => handleMove(member.id, 'up', adminsAndReporters)}
+                              disabled={index === 0}
+                              className="p-1 hover:text-realm-green text-white/20 disabled:opacity-0 transition-all"
+                            >
+                              <ArrowUp className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleMove(member.id, 'down', adminsAndReporters)}
+                              disabled={index === adminsAndReporters.length - 1}
+                              className="p-1 hover:text-realm-green text-white/20 disabled:opacity-0 transition-all"
+                            >
+                              <ArrowDown className="w-4 h-4" />
+                            </button>
+                          </div>
 
-                      <button 
-                        onClick={() => handleRemoveMember(member.id)}
-                        className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </motion.div>
-                  ))}
-                </div>
+                          <img 
+                            src={member.profiles?.discord_avatar || ''} 
+                            className="w-12 h-12 rounded-lg border border-white/10"
+                            alt=""
+                          />
+
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-white truncate">{member.profiles?.discord_username}</div>
+                            <input 
+                              type="text"
+                              value={member.role_title}
+                              onChange={(e) => handleUpdateRole(member.id, e.target.value)}
+                              className="bg-transparent text-[10px] text-blue-400 font-headline font-bold uppercase tracking-widest outline-none border-b border-white/0 focus:border-blue-400/50 transition-all w-full"
+                              placeholder="Set Title (e.g. Admin)"
+                            />
+                          </div>
+
+                          <button 
+                            onClick={() => handleRemoveMember(member.id)}
+                            className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </motion.div>
+                      ))
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -281,7 +371,7 @@ export function AdminEditAboutPage() {
                     </button>
                   </div>
   
-                  <div className="space-y-3 mb-8">
+                  <div className="space-y-3 mb-8 max-h-[300px] overflow-y-auto pr-1">
                     <button
                       onClick={() => setRoleSelection('Executive')}
                       className={`w-full flex items-center gap-4 p-4 rounded-lg border transition-all ${
@@ -316,6 +406,42 @@ export function AdminEditAboutPage() {
                         <div className="text-[10px] opacity-60">Project stakeholder</div>
                       </div>
                       {roleSelection === 'Owner' && <div className="w-2 h-2 rounded-full bg-[#FFD700] shadow-sm" />}
+                    </button>
+
+                    <button
+                      onClick={() => setRoleSelection('Admin')}
+                      className={`w-full flex items-center gap-4 p-4 rounded-lg border transition-all ${
+                        roleSelection === 'Admin' 
+                          ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' 
+                          : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20 hover:text-white'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${roleSelection === 'Admin' ? 'bg-blue-500/20' : 'bg-white/10'}`}>
+                        <Shield className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="text-xs font-bold uppercase tracking-widest">Admin</div>
+                        <div className="text-[10px] opacity-60">Community administrator</div>
+                      </div>
+                      {roleSelection === 'Admin' && <div className="w-2 h-2 rounded-full bg-blue-500 shadow-sm" />}
+                    </button>
+
+                    <button
+                      onClick={() => setRoleSelection('Reporter')}
+                      className={`w-full flex items-center gap-4 p-4 rounded-lg border transition-all ${
+                        roleSelection === 'Reporter' 
+                          ? 'bg-pink-500/10 border-pink-500/30 text-pink-400' 
+                          : 'bg-white/5 border-white/5 text-white/40 hover:border-white/20 hover:text-white'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg ${roleSelection === 'Reporter' ? 'bg-pink-500/20' : 'bg-white/10'}`}>
+                        <Megaphone className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="text-xs font-bold uppercase tracking-widest">Reporter</div>
+                        <div className="text-[10px] opacity-60">Content & server reviewer</div>
+                      </div>
+                      {roleSelection === 'Reporter' && <div className="w-2 h-2 rounded-full bg-pink-500 shadow-sm" />}
                     </button>
                   </div>
   
