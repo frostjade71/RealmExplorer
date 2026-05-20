@@ -89,8 +89,10 @@ export function OTMStandingsPage() {
               className="flex flex-col items-center"
             >
               <div className={`inline-flex items-center gap-3 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1.5 mb-8 text-realm-green shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
-                <div className="flex items-center gap-2 border-r border-white/10 pr-3 mr-1">
-                  <span className="font-pixel text-[9px] tracking-widest uppercase text-white/60">Closes in:</span>
+                <div className={`flex items-center gap-2 ${isCompetitionActive ? 'border-r border-white/10 pr-3 mr-1' : ''}`}>
+                  <span className="font-pixel text-[9px] tracking-widest uppercase text-white/60">
+                    {isCompetitionActive ? 'Closes in:' : 'Previous OTM Standings'}
+                  </span>
                 </div>
                 {isCompetitionActive && settings?.end_times?.[currentCategory.id] && (
                   <OTMCompetitionTimer 

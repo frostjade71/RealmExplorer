@@ -31,7 +31,7 @@ function hexToUint8Array(hex: string) {
   return new Uint8Array(hex.match(/.{1,2}/g)!.map((val) => parseInt(val, 16)));
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
   // 1. Handle Discord Interactions (Pings)
@@ -47,6 +47,18 @@ serve(async (req) => {
 
   // 2. Handle Cron Job / Manual Update
   try {
+    const { data: configData } = await supabase.from("site_settings").select("value").eq("key", "otm_global_config").maybeSingle();
+    const isActive = configData?.value?.competition_status?.server ?? true;
+
+    let recentWinner = null;
+    if (!isActive) {
+      try {
+        recentWinner = await fetchRecentWinner(supabase, "server");
+      } catch (e) {
+        console.error("Error fetching recent winner:", e);
+      }
+    }
+
     const standings = await fetchStandings(supabase);
     const { data: settingsData } = await supabase.from("site_settings").select("value").eq("key", "discord_sotm_message_id").single();
     let messageId = settingsData?.value;
@@ -59,8 +71,8 @@ serve(async (req) => {
 
     const discordUrl = `https://discord.com/api/v10/channels/${DISCORD_ROTM_CHANNEL_ID}/messages`;
     const payload = { 
-      embeds: [generateEmbed(standings)],
-      components: [generateComponents()]
+      embeds: [generateEmbed(standings, isActive, recentWinner)],
+      components: [generateComponents(isActive)]
     };
 
     if (messageId) {
@@ -87,7 +99,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (error) {
     console.error("Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    const err = error as any;
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 });
 
@@ -121,7 +134,38 @@ async function fetchStandings(supabase: any) {
     .slice(0, 10);
 }
 
-function generateEmbed(standings: any[]) {
+function generateEmbed(standings: any[], isActive = true, recentWinner: any = null) {
+  if (!isActive) {
+    const defaultColor = 5162062; // RE Green (#4EC44E)
+    if (!recentWinner) {
+      return {
+        title: "<:icon:1296934822362742937> SOTM is Closed",
+        color: defaultColor,
+        footer: { text: "New OTM Competition will start soon." }
+      };
+    }
+
+    const name = recentWinner.winner_name || recentWinner.servers?.name || "Unknown";
+    const month = recentWinner.month || "";
+    const imageUrl = recentWinner.winner_image_url || recentWinner.servers?.icon_url;
+    const descriptionText = recentWinner.description || "";
+
+    let embedDescription = `## <a:gold:1502502111408296067> Server of the Month Winner\n`;
+    embedDescription += `└ **${name}** (${month})\n\n`;
+    if (descriptionText) {
+      embedDescription += `${descriptionText}\n\n`;
+    }
+
+    return {
+      title: "<:icon:1296934822362742937> SOTM is Closed",
+      description: embedDescription.trim(),
+      color: defaultColor,
+      thumbnail: imageUrl ? { url: imageUrl } : undefined,
+      image: recentWinner.servers?.banner_url ? { url: recentWinner.servers.banner_url } : undefined,
+      footer: { text: "New OTM Competition will start soon." }
+    };
+  }
+
   const trophyEmojis = [
     "<a:gold:1502502111408296067>",   // 1st Place Animated
     "<a:silver:1502502159470559242>", // 2nd Place Animated
@@ -154,17 +198,41 @@ function generateEmbed(standings: any[]) {
   };
 }
 
-function generateComponents() {
+function generateComponents(isActive = true) {
   return {
     type: 1,
     components: [
       {
         type: 2,
-        label: "Vote Now",
+        label: isActive ? "Vote Now" : "View",
         style: 5, // Link Style
         url: "https://www.realmexplorer.xyz/sotm",
-        emoji: { id: "1502056182783676577" },
+        emoji: isActive ? { id: "1502056182783676577" } : undefined,
       },
     ],
   };
+}
+
+async function fetchRecentWinner(supabase: any, category: string) {
+  const { data, error } = await supabase
+    .from("otm_winners")
+    .select(`
+      month,
+      winner_name,
+      winner_image_url,
+      description,
+      server_id,
+      servers:server_id (
+        name,
+        banner_url,
+        icon_url
+      )
+    `)
+    .eq("category", category)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
 }

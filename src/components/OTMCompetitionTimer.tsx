@@ -116,7 +116,7 @@ export function OTMCompetitionTimer({
       >
         <div className="inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] backdrop-blur-sm">
            <img src={mcIcon} alt="Mine" className="w-5 h-5 object-contain" />
-           <span className="text-[8px] md:text-[9px] font-pixel text-[#85fc7e] uppercase tracking-widest">{category} Poll is currently locked</span>
+           <span className="text-[8px] md:text-[9px] font-pixel text-[#85fc7e] uppercase tracking-widest">{category} Poll is currently closed</span>
         </div>
 
         <h3 className="text-xl md:text-2xl font-pixel text-white mb-8 drop-shadow-2xl">
