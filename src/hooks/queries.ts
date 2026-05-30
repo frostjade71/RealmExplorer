@@ -17,7 +17,8 @@ import type {
   BlogPost,
   OTMCategory,
   OTMConfig,
-  Badge
+  Badge,
+  ServerStaff
 } from '../types'
 
 export function useServers(params?: {
@@ -710,6 +711,22 @@ export function usePaymentLogs() {
         .order('created_at', { ascending: false })
       if (error) throw error
       return data
+    }
+  })
+}
+
+export function useServerStaff(serverId: string | undefined) {
+  return useQuery({
+    queryKey: ['serverStaff', serverId],
+    enabled: !!serverId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('server_staff' as any)
+        .select('*, profiles(*)')
+        .eq('server_id', serverId!)
+        .order('created_at', { ascending: true })
+      if (error) throw error
+      return data as unknown as (ServerStaff & { profiles: Profile })[]
     }
   })
 }

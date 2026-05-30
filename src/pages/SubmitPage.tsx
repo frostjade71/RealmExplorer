@@ -24,7 +24,8 @@ import {
   GripVertical,
   Info,
   Eye,
-  Edit3
+  Edit3,
+  Loader2
 } from "lucide-react";
 import {
   SiDiscord,
@@ -70,7 +71,8 @@ export function SubmitPage() {
     gallery: hasPremiumPerks ? 5 : 1,
     description: hasPremiumPerks ? 5000 : 2000,
     socialLinks: hasPremiumPerks ? 6 : 2,
-    listings: hasPremiumPerks ? 5 : 1
+    listings: hasPremiumPerks ? 5 : 1,
+    staff: hasPremiumPerks ? 6 : 3
   };
   const [originalImageUrls, setOriginalImageUrls] = useState({
     icon: "",
@@ -98,7 +100,59 @@ export function SubmitPage() {
   });
 
   const [showBedrockIp, setShowBedrockIp] = useState(false);
+  const [showJavaIp, setShowJavaIp] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
+
+  const [staffList, setStaffList] = useState<{ user_id: string; role_title: string; discord_username: string; discord_avatar: string | null }[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<{ id: string; discord_username: string | null; discord_avatar: string | null }[]>([]);
+  const [selectedStaffUser, setSelectedStaffUser] = useState<{ id: string; discord_username: string | null; discord_avatar: string | null } | null>(null);
+  const [staffRoleInput, setStaffRoleInput] = useState('Owner');
+  const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      const fetchStaff = async () => {
+        const { data, error } = await supabase
+          .from('server_staff' as any)
+          .select('*, profiles(*)')
+          .eq('server_id', id);
+        
+        if (data && !error) {
+          const formatted = data.map((item: any) => ({
+            user_id: item.user_id,
+            role_title: item.role_title,
+            discord_username: item.profiles?.discord_username || 'Unknown User',
+            discord_avatar: item.profiles?.discord_avatar || null
+          }));
+          setStaffList(formatted);
+        }
+      };
+      fetchStaff();
+    }
+  }, [id, serverData]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    const delayDebounce = setTimeout(async () => {
+      setIsSearchingUsers(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, discord_username, discord_avatar')
+        .ilike('discord_username', `%${searchQuery}%`)
+        .limit(5);
+      
+      if (!error && data) {
+        setSearchResults(data);
+      }
+      setIsSearchingUsers(false);
+    }, 400);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery]);
 
 
   useEffect(() => {
@@ -129,6 +183,7 @@ export function SubmitPage() {
       };
       setFormData(initialData);
       setShowBedrockIp(!!server.bedrock_ip);
+      setShowJavaIp(!!server.ip_or_code && server.ip_or_code !== "None");
       setOriginalImageUrls({
         icon: server.icon_url || "",
         banner: server.banner_url || "",
@@ -196,6 +251,14 @@ export function SubmitPage() {
 
     if (!formData.icon_url) {
       setError("Please upload a server icon.");
+      return;
+    }
+
+    if (formData.type === "server" && !showJavaIp && !showBedrockIp) {
+      toast.error("Missing IP Address", {
+        description: "Please provide at least one IP address (Java or Bedrock)."
+      });
+      setError("Please provide at least one IP address (Java or Bedrock).");
       return;
     }
 
@@ -271,9 +334,10 @@ export function SubmitPage() {
 
         const submissionData = {
           ...formData,
-          port: formData.port === "" ? null : Number(formData.port),
-          bedrock_ip: formData.bedrock_ip || null,
-          bedrock_port: formData.bedrock_port === "" ? null : Number(formData.bedrock_port),
+          ip_or_code: formData.type === "realm" || showJavaIp ? formData.ip_or_code : "None",
+          port: (formData.type === "realm" || showJavaIp) ? (formData.port === "" ? null : Number(formData.port)) : null,
+          bedrock_ip: showBedrockIp ? formData.bedrock_ip : null,
+          bedrock_port: showBedrockIp ? (formData.bedrock_port === "" ? null : Number(formData.bedrock_port)) : null,
           slug,
           status,
           submitter_role: formData.submitter_role,
@@ -283,14 +347,28 @@ export function SubmitPage() {
           ),
           verify_discord: formData.verify_discord,
         };
-
         updateMutation.mutate(
           {
             id,
             ...submissionData,
           },
           {
-            onSuccess: () => {
+            onSuccess: async () => {
+              // Sync staff list
+              try {
+                await supabase.from('server_staff' as any).delete().eq('server_id', id);
+                if (staffList.length > 0) {
+                  const staffData = staffList.map(s => ({
+                    server_id: id,
+                    user_id: s.user_id,
+                    role_title: s.role_title
+                  }));
+                  await supabase.from('server_staff' as any).insert(staffData);
+                }
+              } catch (err) {
+                console.error("Failed to sync staff:", err);
+              }
+
               cleanupOldImages(formData.icon_url, formData.banner_url);
               toast.success("Listing Updated", {
                 description:
@@ -311,9 +389,10 @@ export function SubmitPage() {
       } else {
         const submissionData = {
           ...formData,
-          port: formData.port === "" ? null : Number(formData.port),
-          bedrock_ip: formData.bedrock_ip || null,
-          bedrock_port: formData.bedrock_port === "" ? null : Number(formData.bedrock_port),
+          ip_or_code: formData.type === "realm" || showJavaIp ? formData.ip_or_code : "None",
+          port: (formData.type === "realm" || showJavaIp) ? (formData.port === "" ? null : Number(formData.port)) : null,
+          bedrock_ip: showBedrockIp ? formData.bedrock_ip : null,
+          bedrock_port: showBedrockIp ? (formData.bedrock_port === "" ? null : Number(formData.bedrock_port)) : null,
           slug,
           owner_id: user.id,
           status: "pending",
@@ -325,7 +404,21 @@ export function SubmitPage() {
         };
 
         submitMutation.mutate(submissionData, {
-          onSuccess: () => {
+          onSuccess: async (data: any) => {
+            // Sync staff list
+            try {
+              if (data?.id && staffList.length > 0) {
+                const staffData = staffList.map(s => ({
+                  server_id: data.id,
+                  user_id: s.user_id,
+                  role_title: s.role_title
+                }));
+                await supabase.from('server_staff' as any).insert(staffData);
+              }
+            } catch (err) {
+              console.error("Failed to insert staff:", err);
+            }
+
             toast.success("Registration Submitted", {
               description: "Your server is now pending review by our staff.",
             });
@@ -407,8 +500,15 @@ export function SubmitPage() {
     },
   ];
 
+  const roleOptions = [
+    { key: "Owner", label: "Owner", icon: <User className="w-3.5 h-3.5 text-zinc-500" /> },
+    { key: "Admin", label: "Admin", icon: <User className="w-3.5 h-3.5 text-zinc-500" /> },
+    { key: "Moderator", label: "Moderator", icon: <User className="w-3.5 h-3.5 text-zinc-500" /> },
+    { key: "Helper", label: "Helper", icon: <User className="w-3.5 h-3.5 text-zinc-500" /> },
+  ];
+
   return (
-    <AnimatedPage className="max-w-5xl mx-auto px-8 py-12">
+    <AnimatedPage className="max-w-5xl w-full mx-auto px-8 py-12">
       <div className="mb-10 text-center">
         <FramerIn>
           <h1 className="text-3xl font-pixel text-white mb-4">
@@ -476,7 +576,7 @@ export function SubmitPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2 col-span-2 md:col-span-1">
-              <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+              <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
                 <Layers className="w-3 h-3" /> Type
               </label>
               <div className="flex flex-col md:flex-row gap-3 md:gap-4 relative z-10">
@@ -498,7 +598,7 @@ export function SubmitPage() {
             </div>
 
             <div className="space-y-2 col-span-2 md:col-span-1">
-              <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+              <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
                 <Tags className="w-3 h-3" /> Category
               </label>
               <CustomSelect
@@ -510,7 +610,7 @@ export function SubmitPage() {
             </div>
 
             <div className="space-y-2 col-span-2">
-              <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+              <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
                 <Type className="w-3 h-3" /> Name
               </label>
               <input
@@ -530,7 +630,7 @@ export function SubmitPage() {
               className={`space-y-2 col-span-2 ${formData.type === "server" ? "md:col-span-2" : "md:col-span-1"}`}
             >
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+                <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
                   <Link className="w-3 h-3" />{" "}
                   {formData.type === "server" ? "Java IP" : "Realm Code"}
                 </label>
@@ -557,63 +657,89 @@ export function SubmitPage() {
                     </div>
                   </div>
                 )}
-                {formData.type === "server" && !showBedrockIp && (
-                  <button
-                    type="button"
-                    onClick={() => setShowBedrockIp(true)}
-                    className="text-[10px] font-bold uppercase tracking-wider text-realm-green hover:text-[#85fc7e] transition-colors flex items-center gap-1"
-                  >
-                    <Plus className="w-3 h-3" /> Add Bedrock IP
-                  </button>
-                )}
-              </div>
-
-              <div className="flex flex-col md:flex-row gap-3">
-                <div className="flex-grow">
-                  <input
-                    required
-                    type="text"
-                    placeholder={
-                      formData.type === "server"
-                        ? "play.example.com"
-                        : "https://realms.gg/your-code"
-                    }
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
-                    value={formData.ip_or_code}
-                    onChange={(e) =>
-                      setFormData({ ...formData, ip_or_code: e.target.value })
-                    }
-                  />
-                </div>
                 {formData.type === "server" && (
-                  <div className="w-full md:w-32">
-                    <input
-                      type="number"
-                      placeholder="19132"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      value={formData.port}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          port: e.target.value ? parseInt(e.target.value) : "",
-                        })
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleSubmit(e as any);
-                        }
-                      }}
-                    />
+                  <div className="flex items-center gap-4">
+                    {!showBedrockIp && (
+                      <button
+                        type="button"
+                        onClick={() => setShowBedrockIp(true)}
+                        className="text-[10px] font-bold uppercase tracking-wider text-realm-green hover:text-[#85fc7e] transition-colors flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" /> Add Bedrock IP
+                      </button>
+                    )}
+                    {showJavaIp ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowJavaIp(false);
+                          setFormData({ ...formData, ip_or_code: "", port: "" });
+                        }}
+                        className="text-[10px] font-bold uppercase tracking-wider text-red-400 hover:text-red-300 transition-colors flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" /> Remove
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowJavaIp(true)}
+                        className="text-[10px] font-bold uppercase tracking-wider text-realm-green hover:text-[#85fc7e] transition-colors flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" /> Add Java IP
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
+
+              {(formData.type === "realm" || (formData.type === "server" && showJavaIp)) && (
+                <div className="flex flex-col md:flex-row gap-3">
+                  <div className="flex-grow">
+                    <input
+                      required
+                      type="text"
+                      placeholder={
+                        formData.type === "server"
+                          ? "play.example.com"
+                          : "https://realms.gg/your-code"
+                      }
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
+                      value={formData.ip_or_code}
+                      onChange={(e) =>
+                        setFormData({ ...formData, ip_or_code: e.target.value })
+                      }
+                    />
+                  </div>
+                  {formData.type === "server" && (
+                    <div className="w-full md:w-32">
+                      <input
+                        type="number"
+                        placeholder="25565"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        value={formData.port}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            port: e.target.value ? parseInt(e.target.value) : "",
+                          })
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleSubmit(e as any);
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {formData.type === "server" && showBedrockIp && (
               <div className="space-y-2 col-span-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+                  <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
                     <Link className="w-3 h-3" /> Bedrock IP
                   </label>
                   <button
@@ -664,7 +790,7 @@ export function SubmitPage() {
             )}
 
             <div className="space-y-2 col-span-2 md:col-span-1">
-              <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+              <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
                 <SiDiscord className="w-3 h-3" /> Discord Invite Link
               </label>
               <div className="relative">
@@ -685,7 +811,7 @@ export function SubmitPage() {
             {/* Social Links Manager */}
             <div className="space-y-4 col-span-2 pt-4 border-t border-zinc-800/50">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+                <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
                   <Share2 className="w-3 h-3" /> Social Links
                 </label>
                 <button
@@ -789,7 +915,7 @@ export function SubmitPage() {
             </div>
 
             <div className="space-y-2 col-span-2">
-              <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+              <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
                 <FileText className="w-3 h-3" /> Description
               </label>
               <div className="flex items-center justify-between mb-1">
@@ -847,9 +973,152 @@ export function SubmitPage() {
               )}
             </div>
 
+            {/* Staff's Section */}
+            <div className="space-y-4 col-span-2 pt-6 border-t border-zinc-800">
+              <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
+                <span className="material-symbols-outlined text-[14px]">group</span> Staff's
+              </label>
+              
+              <div className="flex flex-col md:flex-row gap-4 bg-zinc-950 border border-zinc-800 p-5 rounded-lg">
+                <div className="flex-1 relative">
+                  <label className="flex items-center gap-1.5 text-[10px] text-zinc-500 font-headline uppercase mb-1.5 w-fit relative group">
+                    Search User (Discord Username)
+                    <Info className="w-3 h-3 text-zinc-600 hover:text-zinc-400 cursor-help transition-colors" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] px-2.5 py-1.5 bg-zinc-800 border border-zinc-700 text-white text-[10px] leading-tight rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl pointer-events-none normal-case tracking-normal text-center">
+                      Your staff should be logged in into the site once
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-zinc-700"></div>
+                    </div>
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      placeholder="Search by discord username..."
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-realm-green transition-all font-headline text-xs pr-10"
+                      value={selectedStaffUser ? (selectedStaffUser.discord_username || '') : searchQuery}
+                      onChange={(e) => {
+                        if (selectedStaffUser) {
+                          setSelectedStaffUser(null);
+                          setSearchQuery(e.target.value);
+                        } else {
+                          setSearchQuery(e.target.value);
+                        }
+                      }}
+                    />
+                    {isSearchingUsers && (
+                      <div className="absolute right-3">
+                        <Loader2 className="w-4 h-4 text-zinc-500 animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  {searchResults.length > 0 && !selectedStaffUser && (
+                    <div className="absolute top-full left-0 right-0 bg-zinc-900 border border-zinc-800 rounded-lg mt-1 overflow-hidden z-50 max-h-48 overflow-y-auto shadow-2xl">
+                      {searchResults.map((userObj) => (
+                        <button
+                          key={userObj.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedStaffUser(userObj);
+                            setSearchResults([]);
+                            setSearchQuery('');
+                          }}
+                          className="w-full text-left px-4 py-2.5 hover:bg-zinc-800 text-xs text-white font-headline flex items-center gap-2"
+                        >
+                          <img
+                            src={userObj.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
+                            className="w-5 h-5 rounded-full border border-zinc-800"
+                            alt=""
+                          />
+                          <span>{userObj.discord_username || 'Unknown'}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-full md:w-52">
+                  <label className="block text-[10px] text-zinc-500 font-headline uppercase mb-1.5">Role Title</label>
+                  <CustomSelect
+                    value={staffRoleInput}
+                    onChange={(val) => setStaffRoleInput(val)}
+                    options={roleOptions}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!selectedStaffUser) {
+                      toast.error('Search and select a user first');
+                      return;
+                    }
+                    if (!staffRoleInput.trim()) {
+                      toast.error('Select a role title');
+                      return;
+                    }
+                    if (staffList.some(s => s.user_id === selectedStaffUser.id)) {
+                      toast.error('User is already added to staff');
+                      return;
+                    }
+                    if (staffList.length >= limits.staff) {
+                      toast.error(`Staff limit reached (${limits.staff} members)`);
+                      return;
+                    }
+                    setStaffList([
+                      ...staffList,
+                      {
+                        user_id: selectedStaffUser.id,
+                        role_title: staffRoleInput.trim(),
+                        discord_username: selectedStaffUser.discord_username || 'Unknown User',
+                        discord_avatar: selectedStaffUser.discord_avatar
+                      }
+                    ]);
+                    setSelectedStaffUser(null);
+                    setStaffRoleInput('Founder');
+                  }}
+                  className="self-end px-5 py-2.5 bg-[#4EC44E] text-[#002202] rounded-lg font-headline font-bold text-xs uppercase tracking-wider hover:bg-[#85fc7e] transition-all"
+                >
+                  Add Staff
+                </button>
+              </div>
+
+              {/* Staff List */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {staffList.map((staff) => (
+                  <div key={staff.user_id} className="bg-zinc-950 border border-zinc-800 p-3 rounded-lg flex items-center justify-between gap-3 group">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={staff.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}
+                        className="w-8 h-8 rounded-full border border-zinc-800 object-cover"
+                        alt=""
+                      />
+                      <div className="min-w-0">
+                        <p className="text-white text-xs font-bold truncate">{staff.discord_username}</p>
+                        <p className="text-zinc-500 text-[10px] uppercase font-headline">{staff.role_title}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setStaffList(staffList.filter(s => s.user_id !== staff.user_id))}
+                      className="p-1.5 text-zinc-500 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {staffList.length === 0 && (
+                <div className="py-4 text-center border-2 border-dashed border-zinc-800 rounded-lg">
+                  <p className="text-zinc-600 text-[10px] font-headline uppercase tracking-widest">
+                    No staff members added yet
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-4 col-span-2 pt-6 border-t border-zinc-800">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+                <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
                   <span className="material-symbols-outlined text-[14px]">
                     photo_library
                   </span>{" "}

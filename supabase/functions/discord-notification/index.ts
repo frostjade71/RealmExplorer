@@ -122,15 +122,22 @@ Deno.serve(async (req: Request) => {
         }]
       };
     } else if (type === 'payment') {
-      const { username, amount, currency, orderId } = payload;
+      const { username, amount, currency, orderId, purchaseType } = payload;
       targetEndpoint = LOGS_WEBHOOK_URL;
       
+      const isSponsorship = purchaseType === 'sponsorship' || (username && username.includes('Sponsored Server:'));
+      const embedTitle = isSponsorship ? '💎 New Server Sponsorship!' : '💰 New Explorer+ Upgrade!';
+      const embedDesc = isSponsorship 
+        ? `**${username}** has just sponsored their server!` 
+        : `**${username}** has just purchased **Explorer+**!`;
+      const embedColor = isSponsorship ? 0x00ffff : 0xf1c40f; // Cyan for sponsorship, Gold for Explorer+ cuz why not
+
       discordPayload = {
         username: 'Realm Explorer | Payments',
         embeds: [{
-          title: '💰 New Explorer+ Upgrade!',
-          description: `**${username}** has just purchased **Explorer+**!`,
-          color: 0xf1c40f, // Gold
+          title: embedTitle,
+          description: embedDesc,
+          color: embedColor,
           fields: [
             { 
               name: 'Amount', 

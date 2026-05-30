@@ -52,7 +52,7 @@ export function Footer() {
             </a>
           </div>
           <p className="font-body text-[10px] md:text-xs text-white/40">
-            v1.5.0 | © 2026 Realm Explorer
+            v1.6.0 | © 2026 Realm Explorer
           </p>
         </div>
         
@@ -63,7 +63,7 @@ export function Footer() {
             <div className="flex flex-col gap-2">
               <Link to="/about" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">About Us</Link>
               <a 
-                href="https://github.com/Realm-Explorer/RE-RealmExplorer/commits/main/" 
+                href="https://discord.gg/e9dcs77wpF" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"

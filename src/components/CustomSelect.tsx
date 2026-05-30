@@ -51,7 +51,7 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Select a
             </span>
           )}
         </div>
-        <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform duration-300 mr-1 md:mr-2 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, Zap, ShieldCheck, Image as ImageIcon, PlusCircle, Share2, FileText, Sparkles, ArrowUp, X, Ticket, ChevronDown } from 'lucide-react'
+import { Check, Zap, ShieldCheck, Image as ImageIcon, PlusCircle, Share2, FileText, Sparkles, ArrowUp, X, Ticket, ChevronDown, Users, Tag } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { useAuth } from '../contexts/AuthContext'
@@ -15,10 +15,12 @@ const goldGradient = '/upgrades/gold-minecraft-gradient.webp'
 const goldIngot = '/upgrades/9515-mc-gold-ingot.png'
 import directoryHero from '../assets/hero/directoryhero.jpg'
 const successGif = '/upgrades/4364-verification-icon.gif'
+import snowBlocksBg from '../assets/sponsors/Key art Snow Blocks cr,Ilya Vdovyuk.jpg'
+import heartIcon from '../assets/blog/minecraftheart.png'
 
 export function UpgradePage() {
   const isMobile = useIsMobile()
-  const { user, profile, signInWithDiscord } = useAuth()
+  const { user, profile, hasPremiumPerks, signInWithDiscord } = useAuth()
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
@@ -27,6 +29,7 @@ export function UpgradePage() {
   const [voucherCode, setVoucherCode] = useState('')
   const [isRedeeming, setIsRedeeming] = useState(false)
   const [isVoucherOpen, setIsVoucherOpen] = useState(false)
+  const [activeFaqIndex, setActiveFaqIndex] = useState<number | null>(null)
 
   const handleRedeemVoucher = async () => {
     if (!voucherCode.trim()) {
@@ -127,6 +130,16 @@ export function UpgradePage() {
       title: 'Rich Descriptions', 
       desc: 'Up to 5,000 characters for server descriptions.', 
       icon: <FileText className="w-5 h-5 text-purple-400" /> 
+    },
+    {
+      title: 'Staff Members',
+      desc: "Showcase up to 6 trusted staff members directly on your server's page.",
+      icon: <Users className="w-5 h-5 text-cyan-400" />
+    },
+    {
+      title: 'Discount Sponsorship',
+      desc: 'Enjoy 30% discount on server sponsorships, saving you $3.00 on every promotion.',
+      icon: <Tag className="w-5 h-5 text-rose-400" />
     },
     { 
       title: 'Priority Support', 
@@ -436,63 +449,221 @@ export function UpgradePage() {
       </div>
 
 
-      {/* Comparison Section */}
-      <div className="max-w-md md:max-w-5xl mx-auto px-4 md:px-8 pb-32">
+      {/* Tier Comparison Section */}
+      <div className="max-w-4xl mx-auto px-4 md:px-8 pb-32">
         <FramerIn delay={0.6}>
-          <div className="text-center mb-10 md:mb-12">
-            <h2 className="font-pixel text-lg md:text-xl text-white uppercase mb-3 md:mb-4">Tier Comparison</h2>
-            <p className="text-zinc-500 font-headline text-xs md:text-sm">See how Explorer+ takes your profile to the next level.</p>
+          <div>
+            <div className="text-center mb-8">
+              <h2 className="font-pixel text-lg md:text-xl text-white uppercase mb-3">Tier Comparison</h2>
+              <p className="text-zinc-500 font-headline text-xs md:text-sm">See how Explorer+ takes your profile to the next level.</p>
+            </div>
+
+            <div className="bg-zinc-900/30 border border-white/5 rounded-xl overflow-hidden backdrop-blur-sm shadow-2xl w-full">
+              <div className="overflow-x-auto font-headline">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-zinc-900/50">
+                      <th className="py-4 px-4 md:py-6 md:px-8 font-pixel text-[9px] md:text-[10px] text-zinc-400 uppercase tracking-widest text-center md:text-left">Features</th>
+                      <th className="py-4 px-4 md:py-6 md:px-8 font-pixel text-[9px] md:text-[10px] text-zinc-400 uppercase tracking-widest text-center">Explorer</th>
+                      <th className="py-4 px-4 md:py-6 md:px-8 font-pixel text-[9px] md:text-[10px] text-amber-400 uppercase tracking-widest text-center bg-amber-400/5">Explorer+</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { name: 'Shuffle Priority', free: false, plus: true },
+                      { name: 'Server Listing Limit', free: '1 Server', plus: '5 Servers' },
+                      { name: 'Image Gallery Size', free: '1 Image', plus: '5 Images' },
+                      { name: 'Sponsorships', free: '$9.99', plus: '$6.99 (30% Discount)' },
+                      { name: 'Description Length', free: '2,000 Chars', plus: '5,000 Chars' },
+                      { name: 'Shuffle Cooldown', free: '6 Seconds', plus: '2 Seconds' },
+                      { name: 'Social Links', free: '2 Links', plus: '6 Links' },
+                      { name: 'Profile Banner', free: false, plus: true },
+                      { name: 'Golden Profile Border', free: false, plus: true },
+                      { name: 'Discord Roles', free: false, plus: true },
+                      { name: 'Priority Support', free: false, plus: true },
+                      { name: 'Animated Elements', free: false, plus: true },
+                    ].map((row, i) => (
+                      <tr key={i} className="border-b border-white/5 group hover:bg-white/[0.02] transition-colors">
+                        <td className="py-3 px-4 md:py-5 md:px-8 text-white text-[10px] md:text-sm font-medium text-center md:text-left">{row.name}</td>
+                        <td className="py-3 px-4 md:py-5 md:px-8 text-center">
+                          {typeof row.free === 'string' ? (
+                            <span className="text-zinc-500 text-[9px] md:text-xs">{row.free}</span>
+                          ) : row.free ? (
+                            <Check className="w-3 h-3 md:w-4 md:h-4 text-realm-green mx-auto" />
+                          ) : (
+                            <X className="w-3 h-3 md:w-4 md:h-4 text-zinc-700 mx-auto" />
+                          )}
+                        </td>
+                        <td className="py-3 px-4 md:py-5 md:px-8 text-center bg-amber-400/[0.02]">
+                          {typeof row.plus === 'string' ? (
+                            <span className="text-amber-400 font-bold text-[9px] md:text-xs">{row.plus}</span>
+                          ) : row.plus ? (
+                            <Check className="w-4 h-4 md:w-5 md:h-5 text-amber-400 mx-auto" />
+                          ) : (
+                            <X className="w-3 h-3 md:w-4 md:h-4 text-zinc-700 mx-auto" />
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </FramerIn>
+      </div>
+
+      {/* Sponsoring Section */}
+      <div className="max-w-3xl mx-auto px-4 md:px-8 pb-32 border-t border-zinc-800 pt-16">
+        <FramerIn delay={0.7}>
+          <div>
+            <div className="text-center mb-8">
+              <h2 className="font-pixel text-lg md:text-xl text-white uppercase mb-3">Sponsorship Slot</h2>
+              <p className="text-zinc-500 font-headline text-xs md:text-sm">Promote your individual server listing at the very top.</p>
+            </div>
+
+            <div className="bg-[#313233] border-4 border-[#101010] p-6 md:p-8 shadow-[8px_8px_0_rgba(0,0,0,0.5)] relative overflow-hidden group rounded-xl">
+              <div className="absolute inset-0 border-t-4 border-l-4 border-white/10 pointer-events-none" />
+              <div className="absolute inset-0 border-b-4 border-r-4 border-black/40 pointer-events-none" />
+              
+              <img src={snowBlocksBg} className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none" alt="" />
+              
+              <div className="absolute inset-0 bg-gradient-to-br from-zinc-950/40 via-transparent to-zinc-950/40 pointer-events-none" />
+              
+              <div className="relative z-10 flex flex-col gap-6 text-left">
+                <div>
+                  <div className="inline-block bg-[#5ce1e6] text-zinc-950 px-3 py-1 border-2 border-black/20 shadow-[2px_2px_0_rgba(0,0,0,0.3)] font-headline font-black text-[10px] uppercase tracking-tighter mb-4">
+                    Boost Exposure
+                  </div>
+                  <h3 className="font-pixel text-md text-white uppercase mb-2 drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
+                    30-Day Sponsorship Slot
+                  </h3>
+                    <div className="flex items-baseline gap-2 mb-6">
+                      <span className="text-3xl font-pixel text-[#5ce1e6] drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">
+                        {hasPremiumPerks ? '$6.99' : '$9.99'}
+                      </span>
+                      {!hasPremiumPerks && (
+                        <span className="text-zinc-500 font-headline text-xs line-through">$14.99</span>
+                      )}
+                      {hasPremiumPerks && (
+                        <span className="text-[#5ce1e6] font-headline text-xs px-2 py-0.5 bg-[#5ce1e6]/10 rounded border border-[#5ce1e6]/20">30% OFF</span>
+                      )}
+                      <span className="text-zinc-500 font-headline text-xs">/ 30 days</span>
+                    </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                    <div className="flex items-center gap-3 text-zinc-300 font-headline text-xs">
+                      <Check className="w-4 h-4 text-realm-green" />
+                      Featured in top Sponsors section
+                    </div>
+                    <div className="flex items-center gap-3 text-zinc-300 font-headline text-xs">
+                      <Check className="w-4 h-4 text-realm-green" />
+                      Dynamic display to all visitors
+                    </div>
+                    <div className="flex items-center gap-3 text-zinc-300 font-headline text-xs">
+                      <Check className="w-4 h-4 text-realm-green" />
+                      Extend or renew at any time
+                    </div>
+                    <div className="flex items-center gap-3 text-zinc-300 font-headline text-xs">
+                      <img src={heartIcon} alt="" className="w-4 h-4 object-contain" />
+                      Supporting the platform wholeheartedly
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-zinc-950/40 border-2 border-[#101010] p-6 relative rounded-lg flex flex-col items-center justify-center text-center">
+                  <div className="absolute inset-0 border-t border-l border-white/5 pointer-events-none" />
+                  
+                  <h4 className="font-pixel text-xs md:text-sm text-white uppercase mb-2">
+                    Want to Pin a Specific Listing?
+                  </h4>
+                  <p className="text-zinc-400 font-headline text-xs mb-6">
+                    Sponsor your Realm/Server Now!
+                  </p>
+
+                  <button 
+                    onClick={() => window.location.href = '/dashboard#sponsor'}
+                    className="inline-flex items-center gap-2 bg-[#5ce1e6] text-zinc-950 px-6 py-3 border-2 border-black/20 shadow-[2px_2px_0_rgba(0,0,0,0.3)] font-headline font-bold text-xs uppercase hover:bg-[#4bc7cc] transition-all rounded w-full justify-center"
+                  >
+                    Sponsor Listing
+                    <ArrowUp className="w-3.5 h-3.5 rotate-45" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </FramerIn>
+      </div>
+
+      {/* FAQ You */}
+      <div className="max-w-4xl mx-auto px-4 md:px-8 pb-32 border-t border-zinc-800 pt-16">
+        <FramerIn delay={0.8}>
+          <div className="text-center mb-10">
+            <h2 className="font-pixel text-lg md:text-xl text-white uppercase mb-3">FAQ</h2>
+            <p className="text-zinc-500 font-headline text-xs md:text-sm">Common questions regarding our tiers and checkout process.</p>
           </div>
 
-          <div className="bg-zinc-900/30 border border-white/5 rounded-xl overflow-hidden backdrop-blur-sm shadow-2xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-white/10 bg-zinc-900/50">
-                    <th className="py-4 px-4 md:py-6 md:px-8 font-pixel text-[9px] md:text-[10px] text-zinc-400 uppercase tracking-widest text-center md:text-left">Features</th>
-                    <th className="py-4 px-4 md:py-6 md:px-8 font-pixel text-[9px] md:text-[10px] text-zinc-400 uppercase tracking-widest text-center">Explorer</th>
-                    <th className="py-4 px-4 md:py-6 md:px-8 font-pixel text-[9px] md:text-[10px] text-amber-400 uppercase tracking-widest text-center bg-amber-400/5">Explorer+</th>
-                  </tr>
-                </thead>
-                <tbody className="font-headline">
-                  {[
-                    { name: 'Shuffle Priority', free: false, plus: true },
-                    { name: 'Server Listing Limit', free: '1 Server', plus: '5 Servers' },
-                    { name: 'Image Gallery Size', free: '1 Image', plus: '5 Images' },
-                    { name: 'Description Length', free: '2,000 Chars', plus: '5,000 Chars' },
-                    { name: 'Shuffle Cooldown', free: '6 Seconds', plus: '2 Seconds' },
-                    { name: 'Social Links', free: '2 Links', plus: '6 Links' },
-                    { name: 'Profile Banner', free: false, plus: true },
-                    { name: 'Golden Profile Border', free: false, plus: true },
-                    { name: 'Discord Roles', free: false, plus: true },
-                    { name: 'Priority Support', free: false, plus: true },
-                    { name: 'Animated Elements', free: false, plus: true },
-                  ].map((row, i) => (
-                    <tr key={i} className="border-b border-white/5 group hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 px-4 md:py-5 md:px-8 text-white text-[10px] md:text-sm font-medium text-center md:text-left">{row.name}</td>
-                      <td className="py-3 px-4 md:py-5 md:px-8 text-center">
-                        {typeof row.free === 'string' ? (
-                          <span className="text-zinc-500 text-[9px] md:text-xs">{row.free}</span>
-                        ) : row.free ? (
-                          <Check className="w-3 h-3 md:w-4 md:h-4 text-realm-green mx-auto" />
-                        ) : (
-                          <X className="w-3 h-3 md:w-4 md:h-4 text-zinc-700 mx-auto" />
-                        )}
-                      </td>
-                      <td className="py-3 px-4 md:py-5 md:px-8 text-center bg-amber-400/[0.02]">
-                        {typeof row.plus === 'string' ? (
-                          <span className="text-amber-400 font-bold text-[9px] md:text-xs">{row.plus}</span>
-                        ) : row.plus ? (
-                          <Check className="w-4 h-4 md:w-5 md:h-5 text-amber-400 mx-auto" />
-                        ) : (
-                          <X className="w-3 h-3 md:w-4 md:h-4 text-zinc-700 mx-auto" />
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="space-y-4">
+            {[
+              {
+                q: "What is the difference between Explorer+ and a Sponsorship Slot?",
+                a: "Explorer+ is a sitewide monthly subscription that upgrades your user account (unlocking things like a custom profile banner, a higher listing limit of 5, longer descriptions, and higher shuffle priority). A Sponsorship Slot is a one-time 30-day payment specifically for a single server or realm listing that features it prominently in the dynamic Sponsors section at the top of the directory."
+              },
+              {
+                q: "Can I cancel my subscription?",
+                a: "Yes! You can cancel your Explorer+ monthly subscription at any time directly from this page or your Dashboard. Once cancelled, your premium features will remain active until the end of your current billing period. Sponsoring Slots are one-time 30-day purchases and do not auto-renew, so there is no active subscription to cancel."
+              },
+              {
+                q: "How long does a Sponsorship Slot last?",
+                a: "Each server sponsorship lasts for exactly 30 days. You can choose to extend the sponsorship or purchase another slot at any time from your Dashboard, which will add another 30 days to your server's active sponsored time."
+              },
+              {
+                q: "Can I sponsor multiple listings?",
+                a: "Yes! You can sponsor as many of your approved server or realm listings as you'd like. Sponsoring is purchased individually per listing on the Dashboard."
+              },
+              {
+                q: "Is my payment information secure?",
+                a: "Absolutely. All transactions are securely processed directly through PayPal. We do not store any of your credit card details or sensitive payment credentials on our servers."
+              }
+            ].map((faq, i) => {
+              const isOpen = activeFaqIndex === i;
+              return (
+                <div 
+                  key={i} 
+                  className="bg-zinc-900/30 border border-white/5 rounded-xl overflow-hidden transition-all duration-300 shadow-md"
+                >
+                  <button
+                    onClick={() => setActiveFaqIndex(isOpen ? null : i)}
+                    className="w-full text-left px-6 py-5 flex items-center justify-between gap-4 font-headline hover:bg-white/[0.02] transition-colors"
+                  >
+                    <span className="text-white font-bold text-sm md:text-base leading-snug">{faq.q}</span>
+                    <motion.div 
+                      animate={{ rotate: isOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-[#5ce1e6] shrink-0"
+                    >
+                      <ChevronDown className="w-5 h-5" />
+                    </motion.div>
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-6 pb-6 pt-2 text-zinc-400 font-headline text-xs md:text-sm leading-relaxed border-t border-white/[0.03]">
+                          {faq.a}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
           </div>
         </FramerIn>
       </div>

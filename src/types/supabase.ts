@@ -951,6 +951,8 @@ export type Database = {
           weighted_rating: number | null
           yesterday_rating_rank: number | null
           yesterday_vote_rank: number | null
+          is_sponsored: boolean | null
+          sponsored_until: string | null
         }
         Insert: {
           average_rating?: number | null
@@ -980,6 +982,8 @@ export type Database = {
           weighted_rating?: number | null
           yesterday_rating_rank?: number | null
           yesterday_vote_rank?: number | null
+          is_sponsored?: boolean | null
+          sponsored_until?: string | null
         }
         Update: {
           average_rating?: number | null
@@ -1009,6 +1013,8 @@ export type Database = {
           weighted_rating?: number | null
           yesterday_rating_rank?: number | null
           yesterday_vote_rank?: number | null
+          is_sponsored?: boolean | null
+          sponsored_until?: string | null
         }
         Relationships: [
           {

@@ -134,13 +134,13 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square' }: 
   }
 
   return (
-    <div className="space-y-2">
-      <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline">
+    <div className="space-y-2 w-full">
+      <label className="text-xs font-bold text-white uppercase tracking-widest font-headline">
         {label}
       </label>
       
       <div 
-        className={`relative group rounded-lg border-2 border-dashed border-zinc-800 bg-zinc-950/50 hover:border-realm-green transition-all overflow-hidden ${
+        className={`relative group w-full rounded-lg border-2 border-dashed border-zinc-800 bg-zinc-950/50 hover:border-realm-green transition-all overflow-hidden ${
           aspectRatio === 'square' ? 'aspect-square max-w-[200px]' : 'aspect-video'
         }`}
       >

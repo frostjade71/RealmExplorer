@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useProfileByUsername, useUserServers, useEntityBadges } from '../hooks/queries'
 import { useAuth } from '../contexts/AuthContext'
 import { ServerCard } from '../components/ServerCard'
+import { SponsorServerCard } from '../components/SponsorServerCard'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
@@ -9,6 +10,7 @@ import { motion } from 'framer-motion'
 import { Calendar, Server, ArrowLeft, LayoutDashboard, Globe, Pencil, Share2, Mail } from 'lucide-react'
 import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch } from 'react-icons/si'
 import { RoleBadge } from '../components/RoleBadge'
+import { SponsorBadge } from '../components/SponsorBadge'
 import { EditProfileModal } from '../components/EditProfileModal'
 import { EditBioModal } from '../components/EditBioModal'
 import { EditBannerModal } from '../components/EditBannerModal'
@@ -32,6 +34,7 @@ export function ProfilePage() {
 
   const isOwnProfile = user?.id === profile?.id
   const isProfileExplorerPlus = profile?.role === 'explorer+'
+  const hasSponsoredServers = servers.some(s => s.is_sponsored)
 
   const getSocialIcon = (platform: string) => {
     switch (platform) {
@@ -189,6 +192,7 @@ const getPlatformBorderColor = (platform: string) => {
                 {profile.discord_username}
               </h1>
               <RoleBadge role={profile.role} className="ml-0" />
+              {hasSponsoredServers && <SponsorBadge className="ml-0" />}
 
             </div>
             
@@ -369,14 +373,18 @@ const getPlatformBorderColor = (platform: string) => {
                 className="grid grid-cols-1 md:grid-cols-2 gap-6"
               >
                 {servers.map(server => (
-                   <motion.div 
+                  <motion.div 
                     key={server.id}
                     variants={{
                       hidden: { opacity: 0, y: 20 },
                       visible: { opacity: 1, y: 0 }
                     }}
                   >
-                    <ServerCard server={server} showRole={true} />
+                    {server.is_sponsored ? (
+                      <SponsorServerCard server={server} />
+                    ) : (
+                      <ServerCard server={server} showRole={true} />
+                    )}
                   </motion.div>
                 ))}
               </motion.div>

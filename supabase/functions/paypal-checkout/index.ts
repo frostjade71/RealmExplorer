@@ -19,7 +19,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { orderId, userId } = await req.json()
+    const { orderId, userId, serverId } = await req.json()
 
     if (!orderId || !userId) {
       throw new Error('Order ID and User ID are required')
@@ -62,43 +62,83 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Calculate Expiration: 1 month from now, or 1 month from current expiration if still active
-    const { data: currentProfile } = await supabaseClient
-      .from('profiles')
-      .select('subscription_expires_at, discord_username, discord_id')
-      .eq('id', userId)
-      .single()
-
     let newExpiration = new Date()
-    if (currentProfile?.subscription_expires_at) {
-      const currentExp = new Date(currentProfile.subscription_expires_at)
-      if (currentExp > new Date()) {
-        newExpiration = new Date(currentExp)
+    let serverName = ''
+
+    if (serverId) {
+      // SERVER SPONSORING FLOW
+      const { data: server, error: serverFetchError } = await supabaseClient
+        .from('servers')
+        .select('id, name, owner_id, sponsored_until')
+        .eq('id', serverId)
+        .single()
+
+      if (serverFetchError || !server) {
+        throw new Error('Server not found')
       }
+      if (server.owner_id !== userId) {
+        throw new Error('Unauthorized: You do not own this server')
+      }
+
+      serverName = server.name
+      if (server.sponsored_until) {
+        const currentExp = new Date(server.sponsored_until)
+        if (currentExp > new Date()) {
+          newExpiration = new Date(currentExp)
+        }
+      }
+      newExpiration.setDate(newExpiration.getDate() + 30)
+
+      const { error: serverUpdateError } = await supabaseClient
+        .from('servers')
+        .update({
+          is_sponsored: true,
+          sponsored_until: newExpiration.toISOString()
+        })
+        .eq('id', serverId)
+
+      if (serverUpdateError) throw serverUpdateError
+    } else {
+      // STANDARD PROFILE EXPLORER+ FLOW
+      const { data: currentProfile } = await supabaseClient
+        .from('profiles')
+        .select('subscription_expires_at, discord_username, discord_id')
+        .eq('id', userId)
+        .single()
+
+      if (currentProfile?.subscription_expires_at) {
+        const currentExp = new Date(currentProfile.subscription_expires_at)
+        if (currentExp > new Date()) {
+          newExpiration = new Date(currentExp)
+        }
+      }
+      newExpiration.setMonth(newExpiration.getMonth() + 1)
+
+      const { error: profileError } = await supabaseClient
+        .from('profiles')
+        .update({ 
+          role: 'explorer+',
+          subscription_expires_at: newExpiration.toISOString()
+        })
+        .eq('id', userId)
+
+      if (profileError) throw profileError
+
+      // RESTORE ARCHIVED SERVERS
+      const { error: restoreError } = await supabaseClient
+        .from('servers')
+        .update({ status: 'approved' })
+        .eq('owner_id', userId)
+        .eq('status', 'archived')
+      
+      if (restoreError) console.error('Failed to restore archived servers:', restoreError)
     }
-    newExpiration.setMonth(newExpiration.getMonth() + 1)
 
-    // Update Profile Role & Expiration
-    const { data: profile, error: profileError } = await supabaseClient
+    const { data: profile } = await supabaseClient
       .from('profiles')
-      .update({ 
-        role: 'explorer+',
-        subscription_expires_at: newExpiration.toISOString()
-      })
-      .eq('id', userId)
       .select('discord_username, discord_id')
+      .eq('id', userId)
       .single()
-
-    if (profileError) throw profileError
-
-    // RESTORE ARCHIVED SERVERS
-    const { error: restoreError } = await supabaseClient
-      .from('servers')
-      .update({ status: 'approved' })
-      .eq('owner_id', userId)
-      .eq('status', 'archived')
-    
-    if (restoreError) console.error('Failed to restore archived servers:', restoreError)
 
     // Insert Payment Record
     const amountValue = captureData.purchase_units[0].payments.captures[0].amount.value
@@ -117,13 +157,15 @@ Deno.serve(async (req: Request) => {
 
     if (paymentError) throw paymentError
 
-    // Record Audit Log (New: Consistent with vouchers)
+    // Record Audit Log
     await supabaseClient.from('audit_logs').insert({
       user_id: userId,
       discord_username: profile?.discord_username,
-      action: 'payment_success',
-      target_id: orderId,
+      action: serverId ? 'server_sponsor_success' : 'payment_success',
+      target_id: serverId ? serverId : orderId,
       details: {
+        server_id: serverId || undefined,
+        server_name: serverName || undefined,
         amount: amountValue,
         currency: currencyCode,
         method: 'paypal',
@@ -133,34 +175,61 @@ Deno.serve(async (req: Request) => {
 
     // 4. Send Notifications
     try {
-      // 4a. In-App Web Notification
-      await supabaseClient.from('notifications').insert({
-        user_id: userId,
-        type: 'welcome',
-        title: 'Welcome to the Explorer+ Family!',
-        message: "You've unlocked exclusive banners, increased limits, and more. Your journey just got legendary!",
-        related_id: 'upgrade'
-      })
-
-      // 4b. Discord DM (Internal Function Call)
-      if (profile?.discord_id) {
-        console.log(`Invoking send-discord-dm for ${profile.discord_id}...`)
-        await supabaseClient.functions.invoke('send-discord-dm', {
-          headers: {
-            'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-          },
-          body: {
-            discord_id: profile.discord_id,
-            subject: 'Welcome to Explorer+!',
-            message: '', // The message body is handled by the 'welcome' type template
-            type: 'welcome',
-            admin_name: 'Realm Explorer Team',
-            icon_url: 'https://bwruljrnltvoojvzgiqm.supabase.co/storage/v1/object/public/main_bucket/Logo-Color-Change-removebg-preview.png'
-          }
+      if (serverId) {
+        // 4a. In-App Web Notification for Server Sponsor
+        await supabaseClient.from('notifications').insert({
+          user_id: userId,
+          type: 'welcome',
+          title: 'Server Sponsored Successfully!',
+          message: `Your server "${serverName}" is now sponsored and will be featured on the directory page. Thank you for your support!`,
+          related_id: serverId
         })
+
+        // 4b. Discord DM
+        if (profile?.discord_id) {
+          await supabaseClient.functions.invoke('send-discord-dm', {
+            headers: {
+              'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            },
+            body: {
+              discord_id: profile.discord_id,
+              subject: 'Server Sponsoring Active!',
+              message: `Your server **${serverName}** is now successfully sponsored on Realm Explorer for 30 days! Thank you for supporting the platform.`,
+              type: 'standard',
+              admin_name: 'Realm Explorer Team',
+              icon_url: 'https://bwruljrnltvoojvzgiqm.supabase.co/storage/v1/object/public/main_bucket/Logo-Color-Change-removebg-preview.png'
+            }
+          })
+        }
+      } else {
+        // 4a. In-App Web Notification for Explorer+
+        await supabaseClient.from('notifications').insert({
+          user_id: userId,
+          type: 'welcome',
+          title: 'Welcome to the Explorer+ Family!',
+          message: "You've unlocked exclusive banners, increased limits, and more. Your journey just got legendary!",
+          related_id: 'upgrade'
+        })
+
+        // 4b. Discord DM
+        if (profile?.discord_id) {
+          await supabaseClient.functions.invoke('send-discord-dm', {
+            headers: {
+              'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            },
+            body: {
+              discord_id: profile.discord_id,
+              subject: 'Welcome to Explorer+!',
+              message: '',
+              type: 'welcome',
+              admin_name: 'Realm Explorer Team',
+              icon_url: 'https://bwruljrnltvoojvzgiqm.supabase.co/storage/v1/object/public/main_bucket/Logo-Color-Change-removebg-preview.png'
+            }
+          })
+        }
       }
 
-      // 4c. Discord Audit Log Notification (Internal Function Call)
+      // 4c. Discord Audit Log Notification
       console.log('Invoking discord-notification...')
       await supabaseClient.functions.invoke('discord-notification', {
         headers: {
@@ -169,10 +238,13 @@ Deno.serve(async (req: Request) => {
         body: {
           type: 'payment',
           payload: {
-            username: profile?.discord_username || 'Unknown User',
+            username: serverId 
+              ? `${profile?.discord_username || 'Unknown User'} (Sponsored Server: ${serverName})`
+              : (profile?.discord_username || 'Unknown User'),
             amount: amountValue,
             currency: currencyCode,
-            orderId: orderId
+            orderId: orderId,
+            purchaseType: serverId ? 'sponsorship' : 'explorer+'
           }
         }
       })

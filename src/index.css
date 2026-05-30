@@ -36,6 +36,13 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .animate-spin-slow {
+    animation: spin 6s linear infinite;
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 html, body, #root {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useServer, useUserVoteStatus, useServerRatings, useEntityBadges } from '../hooks/queries'
+import { useServer, useUserVoteStatus, useServerRatings, useEntityBadges, useServerStaff } from '../hooks/queries'
 import { useVoteMutation, useSubmitRatingMutation, useSubmitReportMutation, useDeleteRatingMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { CategoryBadge } from '../components/CategoryBadge'
@@ -50,6 +50,7 @@ export function ServerDetailPage() {
   const { data: voteStatus, isLoading: checkingVote, refetch: refetchVoteStatus } = useUserVoteStatus(user?.id, server?.id)
   const { data: ratings } = useServerRatings(server?.id)
   const { data: badges = [] } = useEntityBadges(server?.id, 'server')
+  const { data: staff = [] } = useServerStaff(server?.id)
 
   const voteMutation = useVoteMutation()
   const ratingMutation = useSubmitRatingMutation()
@@ -115,7 +116,7 @@ export function ServerDetailPage() {
 
   const handleCopyBedrockIp = () => {
     if (server?.bedrock_ip) {
-      const fullIp = server.bedrock_port 
+      const fullIp = server.bedrock_port && server.bedrock_port !== 19132
         ? `${server.bedrock_ip}:${server.bedrock_port}` 
         : server.bedrock_ip
       navigator.clipboard.writeText(fullIp)
@@ -422,8 +423,8 @@ export function ServerDetailPage() {
           )}
           
             <div className="flex flex-wrap items-end gap-2 md:gap-3 mt-4 md:mt-6">
-              {/* Java IP / Realm Button */}
-              {server.type === 'server' ? (
+              {/* Java IP */}
+              {server.type === 'server' && server.ip_or_code && server.ip_or_code !== 'None' && (
                 <div className="flex flex-col gap-1 w-full sm:w-auto">
                    <div className="text-[8px] md:text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Java IP</div>
                     <motion.button 
@@ -432,11 +433,14 @@ export function ServerDetailPage() {
                     className="flex items-center justify-center sm:justify-start gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-md font-headline text-xs md:text-sm transition-all border border-zinc-800 w-full"
                   >
                     {copied ? <CheckCircle className="w-3.5 h-3.5 text-realm-green" /> : <Copy className="w-3.5 h-3.5" />}
-                    {server.ip_or_code || 'Hidden IP'}
+                    {server.ip_or_code}
                     {server.port && server.port !== 25565 && <span className="text-zinc-500">:{server.port}</span>}
                   </motion.button>
                 </div>
-              ) : (
+              )}
+
+              {/* Realm Button */}
+              {server.type === 'realm' && (
                 <div className="flex flex-col gap-1 w-full sm:w-auto">
                    <div className="text-[8px] md:text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Join Realm</div>
                     <motion.a 
@@ -463,7 +467,7 @@ export function ServerDetailPage() {
                   >
                     {bedrockCopied ? <CheckCircle className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     {server.bedrock_ip}
-                    {server.bedrock_port && <span className="opacity-60">:{server.bedrock_port}</span>}
+                    {server.bedrock_port && server.bedrock_port !== 19132 && <span className="opacity-60">:{server.bedrock_port}</span>}
                   </motion.button>
                 </div>
               )}
@@ -663,6 +667,48 @@ export function ServerDetailPage() {
                     view profile
                   </span>
                 </Link>
+              )}
+
+              {staff && staff.length > 0 && (
+                <div className="-mt-1.5 space-y-0">
+                    {[...staff].sort((a, b) => {
+                      const rankOrder = ['Owner', 'Admin', 'Moderator', 'Helper'];
+                      const rankA = rankOrder.indexOf(a.role_title);
+                      const rankB = rankOrder.indexOf(b.role_title);
+                      const weightA = rankA !== -1 ? rankA : 999;
+                      const weightB = rankB !== -1 ? rankB : 999;
+                      return weightA - weightB;
+                    }).map((member) => {
+                      const isStaffPremium = member.profiles?.role === 'explorer+'
+                      return (
+                        <Link 
+                          key={member.id}
+                          to={`/profile/${member.profiles?.discord_username || ''}`}
+                          className="flex items-center gap-3 group transition-all duration-300 p-1.5 rounded-md -mx-1.5"
+                        >
+                          <img 
+                            src={member.profiles?.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} 
+                            className={`w-7 h-7 rounded-full border bg-zinc-800 object-cover ${isStaffPremium ? 'border-[#f2a929]' : 'border-zinc-700'}`} 
+                            alt={member.profiles?.discord_username || 'Staff member'} 
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white text-xs leading-tight truncate flex items-center gap-1">
+                              {member.profiles?.discord_username || 'Unknown User'}
+                              {isStaffPremium && (
+                                <img src={goldIngot} alt="Premium" className="w-3.5 h-3.5 object-contain" />
+                              )}
+                            </p>
+                            <p className="text-[8px] uppercase tracking-widest font-headline mt-0.5 text-zinc-500">
+                              {member.role_title}
+                            </p>
+                          </div>
+                          <span className="text-[8px] uppercase tracking-widest font-headline text-zinc-600 font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                            view profile
+                          </span>
+                        </Link>
+                      )
+                    })}
+                  </div>
               )}
             </div>
           </div>

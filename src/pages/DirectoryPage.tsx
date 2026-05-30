@@ -1,14 +1,18 @@
 import { useSearchParams } from 'react-router-dom'
 import { useServers } from '../hooks/queries'
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import type { ServerCategory, ServerType } from '../types'
+import type { Server, ServerCategory, ServerType } from '../types'
 import { ServerCard } from '../components/ServerCard'
+import { SponsorServerCard } from '../components/SponsorServerCard'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '../lib/supabase'
+
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, MoreHorizontal, Globe, Shuffle, Timer } from 'lucide-react'
+import { Search, X, MoreHorizontal, Globe, Shuffle } from 'lucide-react'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { useAuth } from '../contexts/AuthContext'
 import directoryHero from '../assets/hero/directoryhero.jpg'
@@ -36,38 +40,25 @@ export function DirectoryPage() {
   const activeCategory = searchParams.get('category') as ServerCategory | null
   const initialSearch = searchParams.get('q') || ''
 
+  // Fetch Sponsor Servers
+  const { data: sponsorServers = [] } = useQuery({
+    queryKey: ['sponsors'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('public_servers')
+        .select('*, profiles(*)')
+        .eq('status', 'approved')
+        .eq('is_sponsored', true)
+        .gt('sponsored_until', new Date().toISOString())
+      if (error) throw error
+      return data as unknown as Server[]
+    }
+  })
+
+
   const PAGE_SIZE = 24
   const [page, setPage] = useState(1)
   const [localSearch, setLocalSearch] = useState(initialSearch)
-  const [scrolled, setScrolled] = useState(false)
-  const searchBarRef = useRef<HTMLDivElement>(null)
-
-  // Track scroll for shuffle button transition using IntersectionObserver
-  useEffect(() => {
-    if (isMobile) return; // Mobile always shows floating button, no need to track
-
-    // Delay observer to prevent jitter during page entry animation and scrollToTop
-    const timer = setTimeout(() => {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          setScrolled(!entry.isIntersecting)
-        },
-        { 
-          threshold: 0,
-          rootMargin: '-80px 0px 0px 0px'
-        }
-      )
-
-      if (searchBarRef.current) {
-        observer.observe(searchBarRef.current)
-      }
-      
-      // Cleanup observer inside the timeout return
-      return () => observer.disconnect()
-    }, 800)
-
-    return () => clearTimeout(timer)
-  }, [isMobile])
 
   // Reset page when filters change
   useEffect(() => {
@@ -217,8 +208,8 @@ export function DirectoryPage() {
           >
             {[
               { id: null, label: 'All', icon: <Globe className="w-3.5 h-3.5 md:w-4 h-4" /> },
-              { id: 'server' as const, label: 'Servers', icon: <img src={serverGif} alt="" className="w-3.5 h-3.5 md:w-4 h-4 object-contain rounded-sm" /> },
-              { id: 'realm' as const, label: 'Realms', icon: <img src={realmGif} alt="" className="w-3.5 h-3.5 md:w-4 h-4 object-contain rounded-sm" /> }
+              { id: 'realm' as const, label: 'Realms', icon: <img src={realmGif} alt="" className="w-3.5 h-3.5 md:w-4 h-4 object-contain rounded-sm" /> },
+              { id: 'server' as const, label: 'Servers', icon: <img src={serverGif} alt="" className="w-3.5 h-3.5 md:w-4 h-4 object-contain rounded-sm" /> }
             ].map((type) => (
               <button
                 key={String(type.id)}
@@ -245,6 +236,30 @@ export function DirectoryPage() {
 
       <div className={`w-full max-w-7xl mx-auto px-8 py-8 md:py-12 flex-grow ${isMobile ? 'pb-32' : ''}`}>
 
+        {/* Sponsors Section */}
+        {sponsorServers.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-12 md:mb-16"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <h2 className="text-base md:text-lg font-pixel text-white/90 tracking-wide">
+                Sponsors
+              </h2>
+              <div className="h-[1px] flex-grow bg-gradient-to-r from-white/20 to-transparent" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+              {sponsorServers.map(server => (
+                <div key={server.id}>
+                  <SponsorServerCard server={server} />
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
       <motion.div 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
@@ -252,7 +267,7 @@ export function DirectoryPage() {
         className="w-full space-y-6 md:space-y-8 mb-10 md:mb-12"
       >
         {/* Search and Sort Row */}
-        <div ref={searchBarRef} className="w-full flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="w-full flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full max-w-md group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-realm-green transition-colors" />
             <input 
@@ -271,32 +286,6 @@ export function DirectoryPage() {
               </button>
             )}
           </div>
-
-          {!isMobile && !scrolled && !isLatest && (
-            <div className="w-full md:w-auto">
-              <button
-                onClick={handleShuffle}
-                disabled={shuffleCooldown > 0}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-headline font-bold text-xs transition-all w-full md:w-auto justify-center ${
-                  shuffleCooldown > 0 
-                    ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' 
-                    : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'
-                }`}
-              >
-                {shuffleCooldown > 0 ? (
-                  <>
-                    <Timer className="w-4 h-4 animate-pulse" />
-                    Wait {shuffleCooldown}s
-                  </>
-                ) : (
-                  <>
-                    <Shuffle className="w-4 h-4" />
-                    Shuffle Exploration
-                  </>
-                )}
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Categories Chips */}
@@ -414,38 +403,28 @@ export function DirectoryPage() {
       )}
     </div>
 
-      {createPortal(
-        <AnimatePresence>
-          {(isMobile || (scrolled && !isMobile)) && !isLatest && (
-            <motion.div 
-              key="floating-shuffle"
-              initial={{ opacity: 0, scale: 0.5, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.5, y: 20 }}
-              className="fixed bottom-8 right-6 z-[40] pointer-events-auto"
-            >
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleShuffle();
-                }}
-                disabled={shuffleCooldown > 0}
-                className={`w-14 h-14 rounded-lg flex flex-col items-center justify-center transition-all shadow-2xl active:scale-95 ${
-                  shuffleCooldown > 0
-                    ? 'bg-zinc-800 text-zinc-500 border border-zinc-700'
-                    : 'bg-realm-green text-zinc-950 active:bg-[#85fc7e]'
-                }`}
-              >
-                {shuffleCooldown > 0 ? (
-                  <span className="text-[8px] font-pixel">{shuffleCooldown}s</span>
-                ) : (
-                  <Shuffle className="w-6 h-6" />
-                )}
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>,
+      {!isLatest && createPortal(
+        <div className="fixed bottom-8 right-6 z-[40] pointer-events-auto">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleShuffle();
+            }}
+            disabled={shuffleCooldown > 0}
+            className={`w-14 h-14 rounded-lg flex flex-col items-center justify-center transition-all shadow-2xl active:scale-95 ${
+              shuffleCooldown > 0
+                ? 'bg-zinc-800 text-zinc-500 border border-zinc-700'
+                : 'bg-realm-green text-zinc-950 active:bg-[#85fc7e]'
+            }`}
+          >
+            {shuffleCooldown > 0 ? (
+              <span className="text-[8px] font-pixel">{shuffleCooldown}s</span>
+            ) : (
+              <Shuffle className="w-6 h-6" />
+            )}
+          </button>
+        </div>,
         document.body
       )}
     </AnimatedPage>

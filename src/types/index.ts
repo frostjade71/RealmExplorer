@@ -51,6 +51,9 @@ export interface Server {
   social_links: SocialLink[] | null
   submitter_role: string | null
   verify_discord: boolean | null
+  is_sponsored?: boolean
+  sponsored_until?: string | null
+  sponsor_border_color?: string | null
   last_edited_at: string
   created_at: string
   updated_at: string
@@ -229,4 +232,13 @@ export interface AssignedBadge {
   granted_at: string
   month: string | null
   badge?: Badge
+}
+
+export interface ServerStaff {
+  id: string
+  server_id: string
+  user_id: string
+  role_title: string
+  created_at: string
+  profiles?: Profile
 }
