@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import heroVideo from '../assets/hero/heroRE.mp4'
 import ctaBg from '../assets/homepage/Minecraft Buddies.jpg'
 import mcGif from '../assets/category/gif/6128-minecraft.gif'
+import communityOneLogo from '../assets/affiliates/communityonelogo.png'
 
 // Category Icons
 import factionsIcon from '../assets/category/7587-netherite-sword.png'
@@ -235,6 +236,21 @@ export function HomePage() {
         </div>
       </section>
 
+      <section className="pt-0 pb-12 md:pb-16 px-8 bg-[#0A0A0A]">
+        <div className="max-w-7xl mx-auto flex flex-col items-center">
+          <FramerIn className="text-center mb-8">
+            <h2 className="font-pixel text-white text-xl md:text-2xl mb-2">Our Affiliates</h2>
+            <div className="h-1 w-12 md:w-16 bg-primary-container mx-auto"></div>
+          </FramerIn>
+          <FramerIn delay={0.2} className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+            <a href="https://communityone.io/" target="_blank" rel="noreferrer" className="group flex flex-col items-center gap-3 saturate-50 opacity-70 hover:saturate-100 hover:opacity-100 transition-all duration-300 cursor-pointer">
+              <img src={communityOneLogo} alt="Community One" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
+              <span className="font-headline text-xs md:text-sm text-zinc-400 group-hover:text-white transition-colors font-medium">Community One</span>
+            </a>
+          </FramerIn>
+        </div>
+      </section>
+
       {featured.length > 0 && (
         <section className="py-12 md:py-24 px-8 bg-zinc-950">
           <div className="max-w-7xl mx-auto">
@@ -253,7 +269,7 @@ export function HomePage() {
         </section>
       )}
 
-      <section className="px-8 pb-12 md:pb-24">
+      <section className="px-8 py-12 md:py-24 bg-[#0A0A0A]">
         <FramerIn className="max-w-5xl mx-auto bg-zinc-900 rounded-xl p-8 md:p-14 text-center relative overflow-hidden shadow-2xl border border-white/5">
           {/* Cinematic Background Image */}
           <img 
