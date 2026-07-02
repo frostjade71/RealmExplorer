@@ -194,7 +194,7 @@ export function ServerCard({
             </div>
           
           <p className="text-on-surface-variant text-[12px] md:text-[13px] flex-grow line-clamp-4 leading-relaxed mb-4 md:mb-6 group-hover:text-zinc-200 transition-colors">
-            {server.description || "No description provided."}
+            {server.description ? server.description.replace(/[#*`_~]/g, '') : "No description provided."}
           </p>
           
           {(actions || showRole) && (

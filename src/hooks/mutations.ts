@@ -578,10 +578,10 @@ export function useSendMessageMutation() {
 export function useUpsertOTMWinnerMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, servers, profiles, adminId, adminName, ...winner }: any) => {
+    mutationFn: async ({ servers, profiles, adminId, adminName, ...winner }: any) => {
       const { error } = await supabase
         .from('otm_winners')
-        .upsert(winner, { onConflict: 'month,category' })
+        .upsert(winner)
       if (error) throw error
 
       // Log Action

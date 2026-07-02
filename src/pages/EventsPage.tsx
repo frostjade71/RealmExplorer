@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ThumbsUp, ChevronRight, Sparkles, Calendar, Eye, Loader2, Timer, Search, X, Pickaxe, Code2, Medal, Award } from 'lucide-react'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, Fragment } from 'react'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
@@ -58,8 +58,11 @@ export function EventsPage({ category }: EventsPageProps) {
   const [isVoteModalOpen, setIsVoteModalOpen] = useState(false)
   const [voteTarget, setVoteTarget] = useState<any>(null)
 
-  const activeWinner = useMemo(() => {
-    return winners?.find(w => w.category === category)
+  const activeWinners = useMemo(() => {
+    if (!winners) return []
+    const latestForCategory = winners.find(w => w.category === category)
+    if (!latestForCategory) return []
+    return winners.filter(w => w.category === category && w.month === latestForCategory.month)
   }, [winners, category])
 
   const filteredCompetitors = useMemo(() => {
@@ -88,15 +91,23 @@ export function EventsPage({ category }: EventsPageProps) {
     return settings.next_start_times[category]
   }, [settings, category])
 
-  const heroBackground = useMemo(() => {
+  const heroBackgrounds = useMemo(() => {
     const isServerOrRealm = category === 'realm' || category === 'server';
-    const bannerUrl = activeWinner?.winner_banner_url || activeWinner?.servers?.banner_url;
     
-    if (isServerOrRealm && bannerUrl) {
-      return { type: 'image', url: bannerUrl, key: bannerUrl };
+    if (!isServerOrRealm || activeWinners.length === 0) {
+      return [{ type: 'video', url: heroVideo, key: 'default-video' }];
     }
-    return { type: 'video', url: heroVideo, key: 'default-video' };
-  }, [category, activeWinner, heroVideo]);
+
+    const backgrounds = activeWinners.map((winner, idx) => {
+      const bannerUrl = winner.winner_banner_url || winner.servers?.banner_url;
+      if (bannerUrl) {
+        return { type: 'image', url: bannerUrl, key: bannerUrl + '-' + idx };
+      }
+      return { type: 'video', url: heroVideo, key: 'default-video-' + idx };
+    });
+
+    return backgrounds;
+  }, [category, activeWinners]);
 
   const defaultMonth = useMemo(() => {
     const d = new Date()
@@ -154,40 +165,45 @@ export function EventsPage({ category }: EventsPageProps) {
       {/* Hero Section - OTM Cinematic Carousel */}
       <header className="relative pt-32 pb-20 px-8 overflow-hidden min-h-[60vh] flex flex-col items-center justify-center">
         {/* Cinematic Background */}
-        <div className="absolute inset-0 z-0">
-          <AnimatePresence>
-            {heroBackground.type === 'video' ? (
-              <motion.video 
-                key="default-video"
-                initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
-                animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
-                exit={{ opacity: 0 }}
-                transition={isMobile ? { duration: 0.8, ease: "easeOut" } : { duration: 1.2, ease: "easeOut" }}
-                src={heroBackground.url} 
-                autoPlay 
-                loop 
-                muted 
-                playsInline
-                className="absolute inset-0 w-full h-full object-cover block will-change-[opacity,transform]"
-              />
-            ) : (
-              <motion.div
-                key={heroBackground.key}
-                initial={isMobile ? { opacity: 0 } : { scale: 1.05, opacity: 0 }}
-                animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
-                className="absolute inset-0 will-change-[opacity,transform]"
-              >
-                <img 
-                  src={heroBackground.url}
-                  alt="Winner Cover"
-                  loading="eager"
-                  className="w-full h-full object-cover"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+        <div className="absolute inset-0 z-0 flex flex-col lg:flex-row">
+          {heroBackgrounds.map((bg, idx) => (
+            <div key={bg.key} className="relative h-full w-full flex-1 overflow-hidden">
+              <AnimatePresence>
+                {bg.type === 'video' ? (
+                  <motion.video 
+                    initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
+                    animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
+                    exit={{ opacity: 0 }}
+                    transition={isMobile ? { duration: 0.8, ease: "easeOut" } : { duration: 1.2, ease: "easeOut" }}
+                    src={bg.url} 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover block will-change-[opacity,transform]"
+                  />
+                ) : (
+                  <motion.div
+                    initial={isMobile ? { opacity: 0 } : { scale: 1.05, opacity: 0 }}
+                    animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                    className="absolute inset-0 will-change-[opacity,transform]"
+                  >
+                    <img 
+                      src={bg.url}
+                      alt="Winner Cover"
+                      loading="eager"
+                      className="w-full h-full object-cover"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {/* Dividers for split screen */}
+              {idx > 0 && <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-black/40 z-10 hidden lg:block shadow-[0_0_10px_rgba(0,0,0,0.5)]" />}
+              {idx > 0 && <div className="absolute left-0 right-0 top-0 h-[2px] bg-black/40 z-10 block lg:hidden shadow-[0_0_10px_rgba(0,0,0,0.5)]" />}
+            </div>
+          ))}
         </div>
         {/* Dark Cinematic Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-green-950/70 z-10"></div>
@@ -214,7 +230,7 @@ export function EventsPage({ category }: EventsPageProps) {
                 <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-4 py-1.5 mb-8 text-realm-green shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-none' : 'backdrop-blur-md'}`}>
                   <Calendar className="w-3.5 h-3.5" />
                   <span className="font-pixel text-[10px] tracking-widest uppercase">
-                    {activeWinner?.month || defaultMonth}
+                    {activeWinners[0]?.month || defaultMonth}
                   </span>
                 </div>
               </motion.div>
@@ -233,48 +249,64 @@ export function EventsPage({ category }: EventsPageProps) {
                 </h1>
               </motion.div>
 
-              {activeWinner ? (
+              {activeWinners.length > 0 ? (
                 <motion.div 
                   initial={{ opacity: 0, y: isMobile ? 5 : 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="flex flex-col items-center"
+                  className="flex flex-col items-center w-full"
                 >
-                  {/* Clickable Winner Group */}
-                  <Link 
-                    to={(() => {
-                      const isPerson = activeWinner.category === 'developer' || activeWinner.category === 'builder'
+                  <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 w-full">
+                    {activeWinners.map((winner, idx) => {
+                      const isPerson = winner.category === 'developer' || winner.category === 'builder'
+                      let targetUrl = '#'
                       if (isPerson) {
-                        const slug = activeWinner.winner_slug || activeWinner.profiles?.discord_username
-                        return slug ? `/profile/${slug}` : '#'
+                        const slug = winner.winner_slug || winner.profiles?.discord_username
+                        targetUrl = slug ? `/profile/${slug}` : '#'
+                      } else {
+                        const slug = winner.winner_slug || winner.servers?.slug || (winner.servers?.name ? slugify(winner.servers.name) : null)
+                        targetUrl = slug ? `/server/${slug}` : '#'
                       }
-                      const slug = activeWinner.winner_slug || activeWinner.servers?.slug || (activeWinner.servers?.name ? slugify(activeWinner.servers.name) : null)
-                      return slug ? `/server/${slug}` : '#'
-                    })()}
-                    className="block group no-underline"
-                  >
-                    <motion.div 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex flex-col md:flex-row items-center gap-6 mb-8 cursor-pointer"
-                    >
-                      <img 
-                        src={activeWinner.winner_image_url || activeWinner.servers?.icon_url || "/logoRE.png"} 
-                        alt="Winner" 
-                        className="w-16 h-16 rounded-xl object-cover border-2 border-yellow-400 shadow-2xl shadow-yellow-400/20 group-hover:border-white transition-colors"
-                      />
-                      <div className="text-center md:text-left">
-                        <h2 className="text-xl md:text-2xl font-pixel text-white drop-shadow-lg transition-colors">
-                          {activeWinner.winner_name || activeWinner.servers?.name}
-                        </h2>
-                      </div>
-                    </motion.div>
-                  </Link>
-                  {activeWinner.description && (
-                    <div className="text-white/60 font-headline text-sm md:text-base max-w-xl leading-relaxed italic drop-shadow-md mx-auto">
-                      <RichText content={activeWinner.description} />
-                    </div>
-                  )}
+
+                      return (
+                        <Fragment key={winner.id || idx}>
+                          {idx > 0 && (
+                            <div className="flex items-center justify-center">
+                              <span className="text-3xl md:text-5xl font-pixel text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">&</span>
+                            </div>
+                          )}
+                          <div className="flex flex-col items-center max-w-md">
+                            <Link 
+                              to={targetUrl}
+                              className="block group no-underline"
+                            >
+                              <motion.div 
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="flex flex-col md:flex-row items-center gap-6 mb-8 cursor-pointer"
+                              >
+                                <img 
+                                  src={winner.winner_image_url || winner.servers?.icon_url || "/logoRE.png"} 
+                                  alt="Winner" 
+                                  className="w-16 h-16 rounded-xl object-cover border-2 border-yellow-400 shadow-2xl shadow-yellow-400/20 group-hover:border-white transition-colors"
+                                />
+                                <div className="text-center md:text-left">
+                                  <h2 className="text-xl md:text-2xl font-pixel text-white drop-shadow-lg transition-colors">
+                                    {winner.winner_name || winner.servers?.name}
+                                  </h2>
+                                </div>
+                              </motion.div>
+                            </Link>
+                            {winner.description && (
+                              <div className="text-white/60 font-headline text-sm md:text-base leading-relaxed italic drop-shadow-md mx-auto text-center">
+                                <RichText content={winner.description} />
+                              </div>
+                            )}
+                          </div>
+                        </Fragment>
+                      )
+                    })}
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div 
