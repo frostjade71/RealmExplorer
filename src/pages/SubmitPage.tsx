@@ -354,8 +354,9 @@ export function SubmitPage() {
 
         const status: import("../types").ServerStatus = newStatus;
 
+        const { enable_votifier, votifier_ip, votifier_port, votifier_token, ...baseFormData } = formData;
         const submissionData = {
-          ...formData,
+          ...baseFormData,
           ip_or_code: formData.type === "realm" || showJavaIp ? formData.ip_or_code : "None",
           port: (formData.type === "realm" || showJavaIp) ? (formData.port === "" ? null : Number(formData.port)) : null,
           bedrock_ip: showBedrockIp ? formData.bedrock_ip : null,
@@ -421,8 +422,9 @@ export function SubmitPage() {
           },
         );
       } else {
+        const { enable_votifier, votifier_ip, votifier_port, votifier_token, ...baseFormData } = formData;
         const submissionData = {
-          ...formData,
+          ...baseFormData,
           ip_or_code: formData.type === "realm" || showJavaIp ? formData.ip_or_code : "None",
           port: (formData.type === "realm" || showJavaIp) ? (formData.port === "" ? null : Number(formData.port)) : null,
           bedrock_ip: showBedrockIp ? formData.bedrock_ip : null,
