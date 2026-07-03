@@ -44,6 +44,22 @@ serve(async (req) => {
 
     console.log(`Sending vote for ${mcUsername} to ${config.ip}:${config.port}`)
 
+    // Optional: Fetch UUID from Mojang (used for V2 if available)
+    let playerUuid = '';
+    try {
+      const mojangRes = await fetch(`https://api.mojang.com/users/profiles/minecraft/${mcUsername}`);
+      if (mojangRes.ok) {
+        const mojangData = await mojangRes.json();
+        if (mojangData && mojangData.id) {
+          const rawId = mojangData.id;
+          // Format with dashes
+          playerUuid = `${rawId.substring(0, 8)}-${rawId.substring(8, 12)}-${rawId.substring(12, 16)}-${rawId.substring(16, 20)}-${rawId.substring(20)}`;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch UUID from Mojang:", e);
+    }
+
     // Connect to NuVotifier via TCP
     const conn = await Deno.connect({
       hostname: config.ip,
@@ -96,12 +112,15 @@ serve(async (req) => {
         const challenge = parts[2].trim()
 
         // Construct model
-        const modelObj = {
+        const modelObj: Record<string, any> = {
           challenge: challenge,
           username: mcUsername,
           address: '127.0.0.1',
           timestamp: Date.now(),
           serviceName: 'realmexplorer.xyz'
+        }
+        if (playerUuid) {
+          modelObj.uuid = playerUuid;
         }
 
         const payloadString = JSON.stringify({ model: modelObj })
