@@ -164,7 +164,7 @@ export function ServerDetailPage() {
     
     for (let i = 7; i >= 0; i--) {
       const date = subDays(new Date(), i);
-      const dateString = date.toISOString().split('T')[0];
+      const dateString = format(date, 'yyyy-MM-dd');
       
       labels.push(format(date, 'MMM dd'));
       

@@ -112,7 +112,7 @@ export function SubmitPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{ id: string; discord_username: string | null; discord_avatar: string | null }[]>([]);
   const [selectedStaffUser, setSelectedStaffUser] = useState<{ id: string; discord_username: string | null; discord_avatar: string | null } | null>(null);
-  const [staffRoleInput, setStaffRoleInput] = useState('Owner');
+  const [staffRoleInput, setStaffRoleInput] = useState('');
   const [isSearchingUsers, setIsSearchingUsers] = useState(false);
 
   useEffect(() => {
@@ -1105,7 +1105,12 @@ export function SubmitPage() {
                       return;
                     }
                     if (!staffRoleInput.trim()) {
-                      toast.error('Select a role title');
+                      toast.error('Select a Role');
+                      return;
+                    }
+                    const currentOwnerId = isEditing ? serverData?.server?.owner_id : user?.id;
+                    if (selectedStaffUser.id === currentOwnerId) {
+                      toast.error('You are already an owner');
                       return;
                     }
                     if (staffList.some(s => s.user_id === selectedStaffUser.id)) {
@@ -1126,7 +1131,7 @@ export function SubmitPage() {
                       }
                     ]);
                     setSelectedStaffUser(null);
-                    setStaffRoleInput('Founder');
+                    setStaffRoleInput('');
                   }}
                   className="self-end px-5 py-2.5 bg-[#4EC44E] text-[#002202] rounded-lg font-headline font-bold text-xs uppercase tracking-wider hover:bg-[#85fc7e] transition-all"
                 >
