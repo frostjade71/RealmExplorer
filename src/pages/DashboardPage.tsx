@@ -4,17 +4,18 @@ import { createPortal } from 'react-dom'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useUserServers } from '../hooks/queries'
-import { useDeleteServerMutation } from '../hooks/mutations'
+import { useUserServers, useServerAppeals } from '../hooks/queries'
+import { useDeleteServerMutation, useSubmitAppealMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { ServerCard } from '../components/ServerCard'
 import { SponsorServerCard } from '../components/SponsorServerCard'
-import { PlusCircle, Pencil, Trash2, BarChart2, Check, Palette } from 'lucide-react'
+import { PlusCircle, Pencil, Trash2, BarChart2, Check, Palette, AlertCircle } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RoleSelectionModal } from '../components/RoleSelectionModal'
 import { ProjectSelectionModal } from '../components/ProjectSelectionModal'
+import { AppealModal } from '../components/AppealModal'
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js'
 import diamondIcon from '../assets/category/16469-diamond.png'
 import snowBlocksBg from '../assets/sponsors/Key art Snow Blocks cr,Ilya Vdovyuk.jpg'
@@ -163,6 +164,30 @@ export function DashboardPage() {
   const [isSuccess, setIsSuccess] = useState(false)
   const approvedServers = servers.filter(s => s.status === 'approved')
 
+  // Appeal states
+  const [appealServerId, setAppealServerId] = useState<string | null>(null)
+  const [appealServerName, setAppealServerName] = useState('')
+  const { data: appeals = [] } = useServerAppeals()
+  const submitAppealMutation = useSubmitAppealMutation()
+
+  const handleAppealSubmit = (reason: string) => {
+    if (!appealServerId || !user?.id) return
+    submitAppealMutation.mutate(
+      { serverId: appealServerId, userId: user.id, reason },
+      {
+        onSuccess: () => {
+          toast.success('Appeal Submitted', {
+            description: 'Your appeal has been submitted for review.'
+          })
+          setAppealServerId(null)
+        },
+        onError: (err: any) => {
+          toast.error('Submission Failed', { description: err.message })
+        }
+      }
+    )
+  }
+
   // Lock body scroll when any modal is open
   useEffect(() => {
     if (deleteId || isRoleModalOpen || isProjectModalOpen) {
@@ -306,6 +331,14 @@ export function DashboardPage() {
         onClose={() => setIsProjectModalOpen(false)}
       />
 
+      <AppealModal
+        isOpen={!!appealServerId}
+        onClose={() => setAppealServerId(null)}
+        onSubmit={handleAppealSubmit}
+        isSubmitting={submitAppealMutation.isPending}
+        serverName={appealServerName}
+      />
+
       <AnimatedPage className="max-w-7xl mx-auto px-8 py-12">
         <FramerIn delay={0.1} className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
@@ -380,6 +413,7 @@ export function DashboardPage() {
         >
           {servers.map(server => {
             const isSponsored = server.is_sponsored && server.sponsored_until && new Date(server.sponsored_until) > new Date();
+            const hasPendingAppeal = appeals.some((a: any) => a.server_id === server.id && a.status === 'pending');
             const cardProps = {
               server,
               showStatus: true,
@@ -388,17 +422,38 @@ export function DashboardPage() {
               hideRatings: true,
               actions: (
                 <div className="flex items-center gap-2">
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      navigate(`/dashboard/analytics/${server.id}`)
-                    }}
-                    className="text-[10px] md:text-xs font-bold text-emerald-400 hover:text-emerald-300 px-3 md:px-4 py-2 bg-emerald-500/10 rounded-md transition-colors border border-emerald-500/20 flex items-center justify-center gap-2 hover:bg-emerald-500/20"
-                  >
-                    <BarChart2 className="w-3 h-3" />
-                    Analytics
-                  </button>
+                  {server.status === 'rejected' ? (
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        if (hasPendingAppeal) return
+                        setAppealServerId(server.id)
+                        setAppealServerName(server.name)
+                      }}
+                      disabled={hasPendingAppeal}
+                      className={`text-[10px] md:text-xs font-bold px-3 md:px-4 py-2 rounded-md transition-colors border flex items-center justify-center gap-2 ${
+                        hasPendingAppeal 
+                          ? 'text-zinc-500 bg-zinc-800/50 border-zinc-700/50 cursor-not-allowed'
+                          : 'text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/20'
+                      }`}
+                    >
+                      <AlertCircle className="w-3 h-3" />
+                      {hasPendingAppeal ? 'Appealed' : 'Appeal'}
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        navigate(`/dashboard/analytics/${server.id}`)
+                      }}
+                      className="text-[10px] md:text-xs font-bold text-emerald-400 hover:text-emerald-300 px-3 md:px-4 py-2 bg-emerald-500/10 rounded-md transition-colors border border-emerald-500/20 flex items-center justify-center gap-2 hover:bg-emerald-500/20"
+                    >
+                      <BarChart2 className="w-3 h-3" />
+                      Analytics
+                    </button>
+                  )}
                   <button 
                     onClick={(e) => {
                       e.preventDefault()

@@ -196,8 +196,8 @@ export function useUpdateServerStatusMutation() {
         id
       )
 
-      // 3a. Log to Discord if status changed but NOT approved (approvals handled above)
-      if (status !== 'approved' && server?.name) {
+      // 3a. Log to Discord if status changed but NOT approved or rejected
+      if (status !== 'approved' && status !== 'rejected' && server?.name && status !== server.status) {
         await sendLogNotification({
           action: '📝 Server Status Updated',
           adminName: adminName,
@@ -570,11 +570,11 @@ export function useSendMessageMutation() {
       )
 
       await sendLogNotification({
-        action: type === 'rejection' ? '❌ Server Listing Rejected' : '📧 Staff Outreach Sent',
+        action: type === 'rejection' ? '<:9752barrierblockmc:1271214264635494460> Server Listing Rejected' : '📧 Staff Outreach Sent',
         adminName: adminName,
         details: type === 'rejection'
-          ? `**${server?.name}** status changed to **rejected** (previously: \`${server?.status}\`).\n\n**Subject:** ${subject}\n**Discord DM:** ${dmSent ? '✅ Delivered' : '⚠️ Failed (in-app notification sent as fallback)'}`
-          : `Staff message sent to **${server?.name}** owner.\n\n**Subject:** ${subject}\n**Discord DM:** ${dmSent ? '✅ Delivered' : '⚠️ Failed (in-app notification sent as fallback)'}`,
+          ? `**${server?.name}** status changed to **rejected** (previously: \`${server?.status}\`).\n\n**Subject:** ${subject}\n**Discord DM:** ${dmSent ? '<:check:1296934814414536779> Delivered' : '⚠️ Failed (in-app notification sent as fallback)'}`
+          : `Staff message sent to **${server?.name}** owner.\n\n**Subject:** ${subject}\n**Discord DM:** ${dmSent ? '<:check:1296934814414536779> Delivered' : '⚠️ Failed (in-app notification sent as fallback)'}`,
         color: type === 'rejection' ? 0xe67e22 : 0x3498db
       })
 
@@ -1310,6 +1310,64 @@ export function useToggleBlogPostLikeMutation() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['blogPostLikes', variables.postId] })
+    }
+  })
+}
+
+export function useSubmitAppealMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ serverId, userId, reason }: { serverId: string; userId: string; reason: string }) => {
+      const { data, error } = await supabase
+        .from('server_appeals' as any)
+        .insert([{ server_id: serverId, user_id: userId, reason, status: 'pending' }] as any)
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['serverAppeals'] })
+    }
+  })
+}
+
+export function useResolveAppealMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ appealId, serverId, serverName, status, adminId, adminName }: { appealId: string; serverId: string; serverName?: string; status: 'accepted' | 'rejected'; adminId?: string | null; adminName?: string | null }) => {
+      // Update appeal status
+      const { error: appealError } = await supabase
+        .from('server_appeals' as any)
+        .update({ status } as any)
+        .eq('id', appealId)
+      if (appealError) throw appealError
+
+      // Update server status if accepted
+      if (status === 'accepted') {
+        const { error: serverError } = await supabase
+          .from('servers')
+          .update({ status: 'approved' })
+          .eq('id', serverId)
+        if (serverError) throw serverError
+      }
+
+      await logAction('APPEAL_RESOLVED', { status, appealId }, adminId, adminName, serverId)
+
+      // Send Discord Log Notification
+      const displayServerName = serverName || 'Unknown Server'
+      const displayAdmin = adminName || 'System'
+      await sendLogNotification({
+        action: status === 'accepted' ? '<:check:1296934814414536779> Appeal Accepted' : '<:9752barrierblockmc:1271214264635494460> Appeal Rejected',
+        adminName: displayAdmin,
+        details: `The appeal for **${displayServerName}** has been ${status === 'accepted' ? 'accepted and the server is now approved' : 'rejected'}.`,
+        color: status === 'accepted' ? 0x10B981 : 0xEF4444
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['serverAppeals'] })
+      queryClient.invalidateQueries({ queryKey: ['adminServers'] })
+      queryClient.invalidateQueries({ queryKey: ['userServers'] })
     }
   })
 }

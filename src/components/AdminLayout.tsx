@@ -1,7 +1,7 @@
 import { useLocation, Link, Outlet } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
-import { useAdminServers, useCategoryRequests, useReports } from '../hooks/queries'
+import { useAdminServers, useCategoryRequests, useReports, useServerAppeals } from '../hooks/queries'
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import logo from '../assets/rerealm.webp'
@@ -17,10 +17,11 @@ export function AdminLayout() {
     setIsSidebarOpen(false)
   }, [location.pathname])
   const { data: catRequests = [] } = useCategoryRequests()
+  const { data: appeals = [] } = useServerAppeals('pending')
 
   const needsReviewCount = servers.filter(s => 
     ['pending', 'Review Icon', 'Review Cover', 'Review Icon & Cover', 'Review Gallery', 'Review Icon & Gallery', 'Review Cover & Gallery', 'Review All Assets'].includes(s.status)
-  ).length
+  ).length + appeals.length
 
   const pendingCatRequestsCount = catRequests.filter(r => r.status === 'pending').length
   const { data: reports = [] } = useReports()

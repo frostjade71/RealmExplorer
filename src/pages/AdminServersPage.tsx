@@ -1,5 +1,5 @@
-import { useAdminServers } from '../hooks/queries'
-import { useUpdateServerStatusMutation, useSendMessageMutation, useDeleteServerMutation } from '../hooks/mutations'
+import { useAdminServers, useServerAppeals } from '../hooks/queries'
+import { useUpdateServerStatusMutation, useSendMessageMutation, useDeleteServerMutation, useResolveAppealMutation } from '../hooks/mutations'
 import type { ServerStatus, Server } from '../types'
 import { LoadingSpinner } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
@@ -21,6 +21,8 @@ export function AdminServersPage() {
   const updateMutation = useUpdateServerStatusMutation()
   const sendMessageMutation = useSendMessageMutation()
   const deleteMutation = useDeleteServerMutation()
+  const { data: appeals = [] } = useServerAppeals('pending')
+  const resolveAppealMutation = useResolveAppealMutation()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('review')
@@ -211,7 +213,8 @@ export function AdminServersPage() {
           {[
             { id: 'review', label: 'Review' },
             { id: 'approved', label: 'Approved' },
-            { id: 'rejected', label: 'Rejected' }
+            { id: 'rejected', label: 'Rejected' },
+            { id: 'appeals', label: 'Appeals' }
           ].map(f => (
             <button
               key={f.id}
@@ -232,6 +235,88 @@ export function AdminServersPage() {
 
       <FramerIn delay={0.2} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden min-h-[500px]">
         <div className="overflow-x-auto min-h-[500px]">
+          {statusFilter === 'appeals' ? (
+            <table className="w-full text-left font-headline text-sm border-collapse">
+              <thead>
+                <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
+                  <th className="px-6 py-5">Server</th>
+                  <th className="px-6 py-5 w-1/2">Appeal Reason</th>
+                  <th className="px-6 py-5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.03]">
+                {appeals.map((appeal: any) => (
+                  <tr key={appeal.id} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 overflow-hidden flex-shrink-0">
+                          {appeal.server?.icon_url ? (
+                            <img src={appeal.server.icon_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="material-symbols-outlined text-white/20 text-xl">dns</span>
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-bold text-white cursor-pointer hover:text-realm-green" onClick={() => navigate(`/server/${appeal.server?.slug}`)}>{appeal.server?.name}</div>
+                          <div className="text-[10px] text-white/40 font-mono mt-0.5">By {appeal.profile?.discord_username || 'Unknown'}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <p className="text-sm text-zinc-300 bg-black/20 p-3 rounded-lg border border-white/5">{appeal.reason}</p>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => {
+                            resolveAppealMutation.mutate({
+                              appealId: appeal.id,
+                              serverId: appeal.server_id,
+                              serverName: appeal.server?.name,
+                              status: 'accepted',
+                              adminId: profile?.id,
+                              adminName: profile?.discord_username
+                            }, {
+                              onSuccess: () => toast.success('Appeal Accepted', { description: `${appeal.server?.name} is now approved.` }),
+                              onError: (err: any) => toast.error('Error', { description: err.message })
+                            })
+                          }}
+                          disabled={resolveAppealMutation.isPending}
+                          className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-realm-green/10 text-realm-green hover:bg-realm-green/20 border border-realm-green/20"
+                        >
+                          Accept
+                        </button>
+                        <button 
+                          onClick={() => {
+                            resolveAppealMutation.mutate({
+                              appealId: appeal.id,
+                              serverId: appeal.server_id,
+                              serverName: appeal.server?.name,
+                              status: 'rejected',
+                              adminId: profile?.id,
+                              adminName: profile?.discord_username
+                            }, {
+                              onSuccess: () => toast.success('Appeal Rejected'),
+                              onError: (err: any) => toast.error('Error', { description: err.message })
+                            })
+                          }}
+                          disabled={resolveAppealMutation.isPending}
+                          className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {appeals.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-8 text-center text-white/40">No pending appeals found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          ) : (
           <table className="w-full text-left font-headline text-sm border-collapse">
             <thead>
               <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
@@ -394,6 +479,7 @@ export function AdminServersPage() {
               )}
             </motion.tbody>
           </table>
+          )}
         </div>
       </FramerIn>
 

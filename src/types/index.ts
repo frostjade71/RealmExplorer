@@ -83,6 +83,18 @@ export interface ServerRating {
 }
 
 
+export type AppealStatus = 'pending' | 'accepted' | 'rejected'
+
+export interface ServerAppeal {
+  id: string
+  server_id: string
+  user_id: string
+  reason: string
+  status: AppealStatus
+  created_at: string
+  server?: Server
+  profile?: Profile
+}
 
 
 export type OTMCategory = 'realm' | 'server' | 'developer' | 'builder'

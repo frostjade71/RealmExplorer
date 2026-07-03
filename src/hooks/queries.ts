@@ -18,7 +18,8 @@ import type {
   OTMCategory,
   OTMConfig,
   Badge,
-  ServerStaff
+  ServerStaff,
+  ServerAppeal
 } from '../types'
 
 export function useServers(params?: {
@@ -848,4 +849,25 @@ export function useLiveServerStatus(server: Server | undefined | null) {
     refetchInterval: 60000, // Refetch every minute
   })
 }
+
+export function useServerAppeals(status?: string) {
+  return useQuery({
+    queryKey: ['serverAppeals', status],
+    queryFn: async () => {
+      let query = supabase
+        .from('server_appeals' as any)
+        .select('*, server:servers(*), profile:profiles(*)')
+        .order('created_at', { ascending: false })
+
+      if (status) {
+        query = query.eq('status', status)
+      }
+
+      const { data, error } = await query
+      if (error) throw error
+      return data as unknown as ServerAppeal[]
+    }
+  })
+}
+
 
