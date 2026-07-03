@@ -184,6 +184,10 @@ export function SubmitPage() {
         })),
         submitter_role: server.submitter_role || "Owner",
         verify_discord: !!server.verify_discord,
+        enable_votifier: false,
+        votifier_ip: "",
+        votifier_port: "",
+        votifier_token: "",
       };
       setFormData(initialData);
       setShowBedrockIp(!!server.bedrock_ip);
