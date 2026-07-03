@@ -69,7 +69,7 @@ serve(async (req) => {
         username: mcUsername,
         address: '127.0.0.1',
         timestamp: Date.now(),
-        serviceName: 'RealmExplorer'
+        serviceName: 'realmexplorer.xyz'
       }
 
       const payloadString = JSON.stringify({ model: modelObj })
