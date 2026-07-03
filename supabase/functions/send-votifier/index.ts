@@ -94,12 +94,11 @@ serve(async (req) => {
         signature: signatureBase64
       })
 
-      // Send packet: 2-byte magic (0x733A) + 2-byte length + JSON string
       const packetBuf = new TextEncoder().encode(packetJson)
       const finalBuf = new Uint8Array(4 + packetBuf.length)
       const view = new DataView(finalBuf.buffer)
-      view.setUint16(0, 0x733A, false) // Magic value
-      view.setUint16(2, packetBuf.length, false) // Big endian
+      view.setUint16(0, 0x733A, false) 
+      view.setUint16(2, packetBuf.length, false)
       finalBuf.set(packetBuf, 4)
 
       await conn.write(finalBuf)
