@@ -104,7 +104,7 @@ serve(async (req) => {
         
         await conn.write(encrypted);
         console.log(`Vote successfully sent via V1 to ${config.ip}:${config.port} for user ${mcUsername}`)
-      } else if (parts.length >= 3 && parts[0] === 'VOTIFIER' && parts[1] === '2.0') {
+      } else if (parts.length >= 3 && parts[0] === 'VOTIFIER' && parts[1].startsWith('2')) {
         // Votifier V2 protocol
         if (!config.token) {
           throw new Error("Server requires Votifier V2 (Token), but no token was configured.")
