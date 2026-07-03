@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
 import { encode as base64Encode } from "https://deno.land/std@0.177.0/encoding/base64.ts"
+import * as nodeCrypto from "node:crypto"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,54 +57,88 @@ serve(async (req) => {
       if (!bytesRead) throw new Error("Connection closed before greeting")
 
       const greeting = new TextDecoder().decode(buf.subarray(0, bytesRead))
-      const parts = greeting.split(' ')
-      if (parts.length < 3 || parts[0] !== 'VOTIFIER' || parts[1] !== '2.0') {
-        throw new Error("Invalid or unsupported Votifier greeting (Only NuVotifier v2 is supported)")
-      }
-
-      const challenge = parts[2].trim()
-
-      // Construct model
-      const modelObj = {
-        challenge: challenge,
-        username: mcUsername,
-        address: '127.0.0.1',
-        timestamp: Date.now(),
-        serviceName: 'realmexplorer.xyz'
-      }
-
-      const payloadString = JSON.stringify({ model: modelObj })
-
-      // Generate HMAC-SHA256 signature
-      const keyBuf = new TextEncoder().encode(config.token)
-      const cryptoKey = await crypto.subtle.importKey(
-        "raw",
-        keyBuf,
-        { name: "HMAC", hash: "SHA-256" },
-        false,
-        ["sign"]
-      )
+      const parts = greeting.trim().split(' ')
       
-      const payloadBuf = new TextEncoder().encode(payloadString)
-      const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, payloadBuf)
-      const signatureBase64 = base64Encode(new Uint8Array(signatureBuffer))
+      if (parts.length >= 2 && parts[0] === 'VOTIFIER' && parts[1].startsWith('1.')) {
+        // Votifier V1 protocol
+        if (!config.public_key) {
+          throw new Error("Server requires Votifier V1 (RSA), but no public key was configured.")
+        }
+        
+        let pubKey = config.public_key.trim();
+        // Ensure it has PEM headers if missing
+        if (!pubKey.includes("BEGIN PUBLIC KEY")) {
+          pubKey = pubKey.replace(/\s+/g, ""); // remove all spaces
+          const chunks = [];
+          for (let i = 0; i < pubKey.length; i += 64) {
+            chunks.push(pubKey.substring(i, i + 64));
+          }
+          pubKey = `-----BEGIN PUBLIC KEY-----\n${chunks.join('\n')}\n-----END PUBLIC KEY-----`;
+        }
 
-      // Final JSON
-      const packetJson = JSON.stringify({
-        payload: payloadString,
-        signature: signatureBase64
-      })
+        const serviceName = 'realmexplorer.xyz';
+        const timestamp = Date.now().toString();
+        const payloadString = `VOTE\n${serviceName}\n${mcUsername}\n127.0.0.1\n${timestamp}\n`;
+        
+        const payloadBuf = new TextEncoder().encode(payloadString);
+        const encrypted = nodeCrypto.publicEncrypt({
+          key: pubKey,
+          padding: nodeCrypto.constants.RSA_PKCS1_PADDING,
+        }, payloadBuf);
+        
+        await conn.write(encrypted);
+        console.log(`Vote successfully sent via V1 to ${config.ip}:${config.port} for user ${mcUsername}`)
+      } else if (parts.length >= 3 && parts[0] === 'VOTIFIER' && parts[1] === '2.0') {
+        // Votifier V2 protocol
+        if (!config.token) {
+          throw new Error("Server requires Votifier V2 (Token), but no token was configured.")
+        }
+        const challenge = parts[2].trim()
 
-      const packetBuf = new TextEncoder().encode(packetJson)
-      const finalBuf = new Uint8Array(4 + packetBuf.length)
-      const view = new DataView(finalBuf.buffer)
-      view.setUint16(0, 0x733A, false) 
-      view.setUint16(2, packetBuf.length, false)
-      finalBuf.set(packetBuf, 4)
+        // Construct model
+        const modelObj = {
+          challenge: challenge,
+          username: mcUsername,
+          address: '127.0.0.1',
+          timestamp: Date.now(),
+          serviceName: 'realmexplorer.xyz'
+        }
 
-      await conn.write(finalBuf)
-      
-      console.log(`Vote successfully sent to ${config.ip}:${config.port} for user ${mcUsername}`)
+        const payloadString = JSON.stringify({ model: modelObj })
+
+        // Generate HMAC-SHA256 signature
+        const keyBuf = new TextEncoder().encode(config.token)
+        const cryptoKey = await crypto.subtle.importKey(
+          "raw",
+          keyBuf,
+          { name: "HMAC", hash: "SHA-256" },
+          false,
+          ["sign"]
+        )
+        
+        const payloadBuf = new TextEncoder().encode(payloadString)
+        const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, payloadBuf)
+        const signatureBase64 = base64Encode(new Uint8Array(signatureBuffer))
+
+        // Final JSON
+        const packetJson = JSON.stringify({
+          payload: payloadString,
+          signature: signatureBase64
+        })
+
+        const packetBuf = new TextEncoder().encode(packetJson)
+        const finalBuf = new Uint8Array(4 + packetBuf.length)
+        const view = new DataView(finalBuf.buffer)
+        view.setUint16(0, 0x733A, false) 
+        view.setUint16(2, packetBuf.length, false)
+        finalBuf.set(packetBuf, 4)
+
+        await conn.write(finalBuf)
+        
+        console.log(`Vote successfully sent via V2 to ${config.ip}:${config.port} for user ${mcUsername}`)
+      } else {
+        throw new Error("Invalid or unsupported Votifier greeting: " + greeting)
+      }
     } finally {
       conn.close()
     }

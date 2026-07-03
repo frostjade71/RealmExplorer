@@ -101,6 +101,7 @@ export function SubmitPage() {
     votifier_ip: "",
     votifier_port: "" as string | number,
     votifier_token: "",
+    votifier_public_key: "",
   });
 
   const [showBedrockIp, setShowBedrockIp] = useState(false);
@@ -188,6 +189,7 @@ export function SubmitPage() {
         votifier_ip: "",
         votifier_port: "",
         votifier_token: "",
+        votifier_public_key: "",
       };
       setFormData(initialData);
       setShowBedrockIp(!!server.bedrock_ip);
@@ -206,7 +208,8 @@ export function SubmitPage() {
               enable_votifier: true,
               votifier_ip: data.ip,
               votifier_port: data.port,
-              votifier_token: data.token
+              votifier_token: data.token || "",
+              votifier_public_key: data.public_key || ""
             }));
           }
         });
@@ -354,7 +357,7 @@ export function SubmitPage() {
 
         const status: import("../types").ServerStatus = newStatus;
 
-        const { enable_votifier, votifier_ip, votifier_port, votifier_token, ...baseFormData } = formData;
+        const { enable_votifier, votifier_ip, votifier_port, votifier_token, votifier_public_key, ...baseFormData } = formData;
         const submissionData = {
           ...baseFormData,
           ip_or_code: formData.type === "realm" || showJavaIp ? formData.ip_or_code : "None",
@@ -390,12 +393,13 @@ export function SubmitPage() {
                 }
                 
                 // Sync Votifier
-                if (formData.enable_votifier && formData.votifier_ip && formData.votifier_port && formData.votifier_token) {
+                if (formData.enable_votifier && formData.votifier_ip && formData.votifier_port && (formData.votifier_token || formData.votifier_public_key)) {
                   await supabase.from('server_votifier').upsert({
                     server_id: id,
                     ip: formData.votifier_ip,
                     port: Number(formData.votifier_port),
-                    token: formData.votifier_token
+                    token: formData.votifier_token,
+                    public_key: formData.votifier_public_key || null
                   });
                 } else if (!formData.enable_votifier) {
                   await supabase.from('server_votifier').delete().eq('server_id', id);
@@ -422,7 +426,7 @@ export function SubmitPage() {
           },
         );
       } else {
-        const { enable_votifier, votifier_ip, votifier_port, votifier_token, ...baseFormData } = formData;
+        const { enable_votifier, votifier_ip, votifier_port, votifier_token, votifier_public_key, ...baseFormData } = formData;
         const submissionData = {
           ...baseFormData,
           ip_or_code: formData.type === "realm" || showJavaIp ? formData.ip_or_code : "None",
@@ -454,12 +458,13 @@ export function SubmitPage() {
               
               // Sync Votifier
               if (data?.id) {
-                if (formData.enable_votifier && formData.votifier_ip && formData.votifier_port && formData.votifier_token) {
+                if (formData.enable_votifier && formData.votifier_ip && formData.votifier_port && (formData.votifier_token || formData.votifier_public_key)) {
                   await supabase.from('server_votifier').upsert({
                     server_id: data.id,
                     ip: formData.votifier_ip,
                     port: Number(formData.votifier_port),
-                    token: formData.votifier_token
+                    token: formData.votifier_token,
+                    public_key: formData.votifier_public_key || null
                   });
                 }
               }
@@ -1227,10 +1232,25 @@ export function SubmitPage() {
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-realm-green transition-all font-headline text-sm font-mono"
                         value={formData.votifier_token}
                         onChange={(e) => setFormData({ ...formData, votifier_token: e.target.value })}
-                        required={formData.enable_votifier}
+                        required={formData.enable_votifier && !formData.votifier_public_key}
                       />
                       <p className="text-[10px] text-zinc-500 font-headline mt-1">
-                        Found in plugins/Votifier/config.yml under tokens.default. Note: We do not support RSA (V1).
+                        Found in plugins/Votifier/config.yml under tokens.default.
+                      </p>
+                    </div>
+                    <div className="space-y-2 col-span-1 md:col-span-2">
+                      <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+                        Public Key (V1 / RSA)
+                      </label>
+                      <textarea
+                        placeholder="-----BEGIN PUBLIC KEY-----..."
+                        className="w-full h-24 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-realm-green transition-all font-headline text-sm font-mono resize-none"
+                        value={formData.votifier_public_key}
+                        onChange={(e) => setFormData({ ...formData, votifier_public_key: e.target.value })}
+                        required={formData.enable_votifier && !formData.votifier_token}
+                      />
+                      <p className="text-[10px] text-zinc-500 font-headline mt-1">
+                        Required only for older Votifier versions using RSA encryption. Found in plugins/Votifier/rsa/public.key.
                       </p>
                     </div>
                   </motion.div>

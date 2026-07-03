@@ -622,6 +622,7 @@ export type Database = {
           ip: string
           port: number
           token: string
+          public_key: string | null
           created_at: string
         }
         Insert: {
@@ -629,6 +630,7 @@ export type Database = {
           ip: string
           port: number
           token: string
+          public_key?: string | null
           created_at?: string
         }
         Update: {
@@ -636,6 +638,7 @@ export type Database = {
           ip?: string
           port?: number
           token?: string
+          public_key?: string | null
           created_at?: string
         }
         Relationships: [

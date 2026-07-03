@@ -68,6 +68,7 @@ export interface ServerVotifier {
   ip: string
   port: number
   token: string
+  public_key: string | null
   created_at: string
 }
 
