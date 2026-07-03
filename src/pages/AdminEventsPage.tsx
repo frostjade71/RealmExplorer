@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useAdminServers, useOTMWinners, useAdminUsers, useOTMSettings } from '../hooks/queries'
 import { 
@@ -11,7 +11,7 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { OTMCategory, OTMWinner, OTMConfig } from '../types'
-import { Trophy, Calendar, Edit, X, Power, Timer, Trash2 } from 'lucide-react'
+import { Trophy, Calendar, Edit, X, Power, Timer, Trash2, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 // logo imported from public/logoRE.png as /logoRE.png
 import { useAuth } from '../contexts/AuthContext'
@@ -34,6 +34,30 @@ export function AdminEventsPage() {
   const updateSettings = useUpdateOTMSettingsMutation()
 
   const approvedServers = useMemo(() => servers.filter(s => s.status === 'approved'), [servers])
+
+  // Winners grouping logic
+  const groupedWinners = winners.reduce((acc, w) => {
+    const month = w.month || 'Unknown'
+    if (!acc[month]) acc[month] = []
+    acc[month].push(w)
+    return acc
+  }, {} as Record<string, typeof winners>)
+
+  const sortedWinnerMonths = Object.keys(groupedWinners).sort((a, b) => {
+    if (a === 'Unknown') return 1
+    if (b === 'Unknown') return -1
+    return new Date(b).getTime() - new Date(a).getTime()
+  })
+
+  const [expandedWinnerMonth, setExpandedWinnerMonth] = useState<string | null>(null)
+  const [winnerInitialized, setWinnerInitialized] = useState(false)
+
+  useEffect(() => {
+    if (!winnerInitialized && sortedWinnerMonths.length > 0) {
+      setExpandedWinnerMonth(sortedWinnerMonths[0])
+      setWinnerInitialized(true)
+    }
+  }, [sortedWinnerMonths, winnerInitialized])
 
   // Modals and Editing State
   const [editingWinner, setEditingWinner] = useState<OTMWinner | null>(null)
@@ -322,63 +346,94 @@ export function AdminEventsPage() {
 
         {/* Winners List Section */}
         <FramerIn delay={0.2} className="space-y-6">
-          <div className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden h-full">
-             <div className="px-6 py-4 border-b border-white/5 bg-black/20 flex items-center justify-between">
-                <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Historical Winners</span>
-                <span className="text-[9px] font-pixel text-realm-green/60 uppercase tracking-widest">{winners.length} Total</span>
-             </div>
-             <div className="divide-y divide-white/[0.03] max-h-[700px] overflow-y-auto custom-scrollbar">
-                {winners.map(w => (
-                  <div key={w.id} className="px-6 py-4 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
-                    <div className="flex items-center gap-4">
-                      {isPersonCategory(w.category) ? (
-                        <img 
-                          src={w.winner_image_url || "/logoRE.png"} 
-                          alt="Winner" 
-                          className="w-10 h-10 rounded-lg object-cover border border-white/10"
-                        />
-                      ) : (
-                        <img 
-                          src={w.servers?.icon_url || "/logoRE.png"} 
-                          alt="Winner" 
-                          className="w-10 h-10 rounded-lg object-cover border border-white/10"
-                        />
-                      )}
-                      <div>
-                        <div className="text-white font-bold text-sm leading-none mb-1">{w.winner_name || w.servers?.name}</div>
-                        <div className="text-[10px] text-white/40 uppercase tracking-widest flex items-center gap-2">
-                           <span className="text-realm-green/60">[{w.category}]</span> 
-                           <span>{w.month}</span>
+          <div className="flex items-center justify-between mb-2 px-2">
+             <span className="text-xl font-pixel text-white flex items-center gap-2">Historical Winners</span>
+             <span className="text-[9px] font-pixel text-realm-green/60 uppercase tracking-widest">{winners.length} Total</span>
+          </div>
+
+          <div className="space-y-3">
+            {loadingWinners ? (
+              <div className="bg-zinc-900 border border-white/10 rounded-lg p-12 text-center text-white/20 font-pixel uppercase">
+                Loading winners...
+              </div>
+            ) : sortedWinnerMonths.length > 0 ? (
+              sortedWinnerMonths.map(month => (
+                <div key={month} className="bg-zinc-900 border border-white/10 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setExpandedWinnerMonth(expandedWinnerMonth === month ? null : month)}
+                    className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <span className="font-headline font-bold text-white text-lg">{month}</span>
+                    <ChevronDown 
+                      className={`w-5 h-5 text-white/40 transition-transform ${expandedWinnerMonth === month ? 'rotate-180' : ''}`} 
+                    />
+                  </button>
+                  <AnimatePresence>
+                    {expandedWinnerMonth === month && (
+                      <motion.div
+                        initial={{ height: 0 }}
+                        animate={{ height: 'auto' }}
+                        exit={{ height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="divide-y divide-white/[0.03] border-t border-white/5">
+                          {groupedWinners[month].map((w: any) => (
+                            <div key={w.id} className="px-6 py-4 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
+                              <div className="flex items-center gap-4">
+                                {isPersonCategory(w.category) ? (
+                                  <img 
+                                    src={w.winner_image_url || "/logoRE.png"} 
+                                    alt="Winner" 
+                                    className="w-10 h-10 rounded-lg object-cover border border-white/10"
+                                  />
+                                ) : (
+                                  <img 
+                                    src={w.servers?.icon_url || "/logoRE.png"} 
+                                    alt="Winner" 
+                                    className="w-10 h-10 rounded-lg object-cover border border-white/10"
+                                  />
+                                )}
+                                <div>
+                                  <div className="text-white font-bold text-sm leading-none mb-1">{w.winner_name || w.servers?.name}</div>
+                                  <div className="text-[10px] text-white/40 uppercase tracking-widest flex items-center gap-2">
+                                     <span className="text-realm-green/60">[{w.category}]</span> 
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 opacity-10 group-hover:opacity-100 transition-opacity">
+                                <button 
+                                  onClick={() => setEditingWinner(w)}
+                                  className="p-2 text-white hover:text-realm-green transition-colors"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    if (confirm('Delete this winner record?')) {
+                                      deleteWinner.mutate(w.id, {
+                                        onSuccess: () => toast.success('Winner Deleted'),
+                                        onError: (err: any) => toast.error('Delete Failed', { description: err.message })
+                                      })
+                                    }
+                                  }}
+                                  className="p-2 text-white hover:text-red-500 transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 opacity-10 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={() => setEditingWinner(w)}
-                        className="p-2 text-white hover:text-realm-green transition-colors"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => {
-                          if (confirm('Delete this winner record?')) {
-                            deleteWinner.mutate(w.id, {
-                              onSuccess: () => toast.success('Winner Deleted'),
-                              onError: (err: any) => toast.error('Delete Failed', { description: err.message })
-                            })
-                          }
-                        }}
-                        className="p-2 text-white hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {winners.length === 0 && (
-                  <div className="px-6 py-8 text-center text-white/20 italic text-sm">No winners recorded.</div>
-                )}
-             </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))
+            ) : (
+              <div className="bg-zinc-900 border border-white/10 rounded-lg p-12 text-center text-white/20 font-pixel uppercase text-sm">
+                No winners recorded.
+              </div>
+            )}
           </div>
         </FramerIn>
       </div>

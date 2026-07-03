@@ -616,6 +616,45 @@ export type Database = {
           },
         ]
       }
+      server_votifier: {
+        Row: {
+          server_id: string
+          ip: string
+          port: number
+          token: string
+          created_at: string
+        }
+        Insert: {
+          server_id: string
+          ip: string
+          port: number
+          token: string
+          created_at?: string
+        }
+        Update: {
+          server_id?: string
+          ip?: string
+          port?: number
+          token?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_votifier_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: true
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_votifier_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: true
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       server_messages: {
         Row: {
           created_at: string | null

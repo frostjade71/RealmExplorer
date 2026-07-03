@@ -59,6 +59,73 @@ export function useServers(params?: {
   })
 }
 
+export function useTopVoters(serverId: string | undefined) {
+  return useQuery({
+    queryKey: ['topVoters', serverId],
+    enabled: !!serverId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_top_voters' as any, {
+        server_uuid: serverId!
+      })
+      if (error) throw error
+      return data as { minecraft_username: string; vote_count: number }[]
+    }
+  })
+}
+
+export function useRecentVoters(serverId: string | undefined) {
+  return useQuery({
+    queryKey: ['recentVoters', serverId],
+    enabled: !!serverId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('votes')
+        .select('minecraft_username, created_at')
+        .eq('server_id', serverId!)
+        .not('minecraft_username', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(5)
+      if (error) throw error
+      return data as unknown as { minecraft_username: string; created_at: string }[]
+    }
+  })
+}
+
+export function useServerRank(serverId: string | undefined) {
+  return useQuery({
+    queryKey: ['serverRank', serverId],
+    enabled: !!serverId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_server_rank' as any, {
+        server_uuid: serverId!
+      })
+      if (error) throw error
+      return data as number | null
+    }
+  })
+}
+
+export function useServerPlayerHistory(serverId: string | undefined) {
+  return useQuery({
+    queryKey: ['serverPlayerHistory', serverId],
+    enabled: !!serverId,
+    queryFn: async () => {
+      const eightDaysAgo = new Date()
+      eightDaysAgo.setDate(eightDaysAgo.getDate() - 8)
+      
+      const { data, error } = await supabase
+        .from('server_player_history' as any)
+        .select('record_date, max_players')
+        .eq('server_id', serverId!)
+        .gte('record_date', eightDaysAgo.toISOString().split('T')[0])
+        .order('record_date', { ascending: true })
+
+      if (error) throw error
+      return data as unknown as { record_date: string; max_players: number }[]
+    }
+  })
+}
+
 export function useServer(idOrSlug: string | undefined) {
   return useQuery({
     queryKey: ['server', idOrSlug],
@@ -730,3 +797,55 @@ export function useServerStaff(serverId: string | undefined) {
     }
   })
 }
+
+export interface LiveServerStatus {
+  online: boolean
+  players?: {
+    online: number
+    max: number
+  }
+  version?: string
+  motd?: {
+    html: string[]
+  }
+}
+
+export function useLiveServerStatus(server: Server | undefined | null) {
+  return useQuery({
+    queryKey: ['liveServerStatus', server?.id],
+    enabled: !!server && server.type === 'server' && server.status === 'approved',
+    queryFn: async () => {
+      if (!server) return null
+
+      // Prioritize Java IP
+      const hasJavaIp = server.ip_or_code && server.ip_or_code !== 'None' && !server.ip_or_code.startsWith('http')
+      const hasBedrockIp = !!server.bedrock_ip
+
+      if (!hasJavaIp && !hasBedrockIp) return null
+
+      try {
+        let url = ''
+        if (hasJavaIp) {
+          const port = server.port && server.port !== 25565 ? `:${server.port}` : ''
+          url = `https://api.mcsrvstat.us/3/${server.ip_or_code}${port}`
+        } else if (hasBedrockIp) {
+          const port = server.bedrock_port && server.bedrock_port !== 19132 ? `:${server.bedrock_port}` : ''
+          url = `https://api.mcsrvstat.us/bedrock/3/${server.bedrock_ip}${port}`
+        }
+
+        if (!url) return null
+
+        const res = await fetch(url)
+        if (!res.ok) throw new Error('Failed to fetch status')
+        const data = await res.json()
+        
+        return data as LiveServerStatus
+      } catch (err) {
+        console.error('Failed to fetch live server status:', err)
+        return null
+      }
+    },
+    refetchInterval: 60000, // Refetch every minute
+  })
+}
+

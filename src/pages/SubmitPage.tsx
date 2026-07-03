@@ -97,6 +97,10 @@ export function SubmitPage() {
     social_links: [] as ReorderableSocialLink[],
     submitter_role: roleParam,
     verify_discord: false,
+    enable_votifier: false,
+    votifier_ip: "",
+    votifier_port: "" as string | number,
+    votifier_token: "",
   });
 
   const [showBedrockIp, setShowBedrockIp] = useState(false);
@@ -189,8 +193,22 @@ export function SubmitPage() {
         banner: server.banner_url || "",
         gallery: server.gallery || [],
       });
+
+      if (id) {
+        supabase.from('server_votifier').select('*').eq('server_id', id).maybeSingle().then(({data}) => {
+          if (data) {
+            setFormData(prev => ({
+              ...prev,
+              enable_votifier: true,
+              votifier_ip: data.ip,
+              votifier_port: data.port,
+              votifier_token: data.token
+            }));
+          }
+        });
+      }
     }
-  }, [serverData]);
+  }, [serverData, id]);
 
   const { data: userServers = [] } = useUserServers(user?.id);
 
@@ -365,8 +383,20 @@ export function SubmitPage() {
                   }));
                   await supabase.from('server_staff' as any).insert(staffData);
                 }
+                
+                // Sync Votifier
+                if (formData.enable_votifier && formData.votifier_ip && formData.votifier_port && formData.votifier_token) {
+                  await supabase.from('server_votifier').upsert({
+                    server_id: id,
+                    ip: formData.votifier_ip,
+                    port: Number(formData.votifier_port),
+                    token: formData.votifier_token
+                  });
+                } else if (!formData.enable_votifier) {
+                  await supabase.from('server_votifier').delete().eq('server_id', id);
+                }
               } catch (err) {
-                console.error("Failed to sync staff:", err);
+                console.error("Failed to sync relations:", err);
               }
 
               cleanupOldImages(formData.icon_url, formData.banner_url);
@@ -415,8 +445,20 @@ export function SubmitPage() {
                 }));
                 await supabase.from('server_staff' as any).insert(staffData);
               }
+              
+              // Sync Votifier
+              if (data?.id) {
+                if (formData.enable_votifier && formData.votifier_ip && formData.votifier_port && formData.votifier_token) {
+                  await supabase.from('server_votifier').upsert({
+                    server_id: data.id,
+                    ip: formData.votifier_ip,
+                    port: Number(formData.votifier_port),
+                    token: formData.votifier_token
+                  });
+                }
+              }
             } catch (err) {
-              console.error("Failed to insert staff:", err);
+              console.error("Failed to sync relations:", err);
             }
 
             toast.success("Registration Submitted", {
@@ -1115,6 +1157,80 @@ export function SubmitPage() {
                 </div>
               )}
             </div>
+
+            {formData.type === "server" && (
+              <div className="space-y-4 col-span-2 pt-6 border-t border-zinc-800">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[14px]">hub</span> NuVotifier Configuration
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-headline">Enable Votifier</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, enable_votifier: !formData.enable_votifier })}
+                      className={`w-8 h-4 rounded-full transition-colors relative ${formData.enable_votifier ? 'bg-realm-green' : 'bg-zinc-800'}`}
+                    >
+                      <motion.div
+                        animate={{ x: formData.enable_votifier ? 16 : 2 }}
+                        className="w-3 h-3 bg-white rounded-full absolute top-0.5"
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                {formData.enable_votifier && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-950 border border-zinc-800 p-5 rounded-lg"
+                  >
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+                        IP Address
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 192.168.1.1 or play.example.com"
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-realm-green transition-all font-headline text-sm"
+                        value={formData.votifier_ip}
+                        onChange={(e) => setFormData({ ...formData, votifier_ip: e.target.value })}
+                        required={formData.enable_votifier}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+                        Port
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="8192"
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-realm-green transition-all font-headline text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        value={formData.votifier_port}
+                        onChange={(e) => setFormData({ ...formData, votifier_port: e.target.value ? parseInt(e.target.value) : "" })}
+                        required={formData.enable_votifier}
+                      />
+                    </div>
+                    <div className="space-y-2 col-span-1 md:col-span-2">
+                      <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+                        NuVotifier Token (V2)
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="Paste your NuVotifier token here..."
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-realm-green transition-all font-headline text-sm font-mono"
+                        value={formData.votifier_token}
+                        onChange={(e) => setFormData({ ...formData, votifier_token: e.target.value })}
+                        required={formData.enable_votifier}
+                      />
+                      <p className="text-[10px] text-zinc-500 font-headline mt-1">
+                        Found in plugins/Votifier/config.yml under tokens.default. Note: We do not support RSA (V1).
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            )}
 
             <div className="space-y-4 col-span-2 pt-6 border-t border-zinc-800">
               <div className="flex items-center justify-between">

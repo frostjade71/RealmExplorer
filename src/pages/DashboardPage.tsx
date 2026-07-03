@@ -144,7 +144,7 @@ function SponsorSettingsItem({ server, onRefetch }: { server: Server, onRefetch:
 
 export function DashboardPage() {
   const isMobile = useIsMobile()
-  const { user, hasPremiumPerks } = useAuth()
+  const { user, profile, hasPremiumPerks } = useAuth()
   const navigate = useNavigate()
   
   const { data: servers = [], isLoading: loading, refetch } = useUserServers(user?.id)
@@ -195,7 +195,11 @@ export function DashboardPage() {
 
   const confirmDelete = () => {
     if (deleteId) {
-      deleteMutation.mutate({ id: deleteId }, {
+      deleteMutation.mutate({ 
+        id: deleteId, 
+        adminId: user?.id, 
+        adminName: profile?.discord_username 
+      }, {
         onSuccess: () => setDeleteId(null)
       })
     }

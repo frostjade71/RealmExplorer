@@ -60,6 +60,15 @@ export interface Server {
   yesterday_vote_rank?: number | null
   yesterday_rating_rank?: number | null
   profiles?: Profile
+  server_votifier?: ServerVotifier | null
+}
+
+export interface ServerVotifier {
+  server_id: string
+  ip: string
+  port: number
+  token: string
+  created_at: string
 }
 
 export interface ServerRating {
