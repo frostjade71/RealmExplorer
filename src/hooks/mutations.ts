@@ -13,12 +13,23 @@ import { useAuth } from '../contexts/AuthContext'
 export function useVoteMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ userId, serverId }: { userId: string; serverId: string }) => {
-      const { error } = await supabase.from('votes').insert({ user_id: userId, server_id: serverId })
+    mutationFn: async ({ userId, serverId, mcUsername }: { userId: string; serverId: string; mcUsername?: string }) => {
+      const { error } = await supabase.from('votes').insert({ 
+        user_id: userId, 
+        server_id: serverId,
+        minecraft_username: mcUsername || null
+      } as any)
       if (error) {
         if (error.code === '23505') throw new Error('Already voted') // unique violation
         throw error
       }
+
+      if (mcUsername) {
+        supabase.functions.invoke('send-votifier', {
+          body: { serverId, mcUsername }
+        }).catch(err => console.error("Votifier dispatch failed:", err))
+      }
+
       return serverId
     },
     onSuccess: () => {
@@ -26,6 +37,8 @@ export function useVoteMutation() {
       queryClient.invalidateQueries({ queryKey: ['server'] })
       queryClient.invalidateQueries({ queryKey: ['servers'] })
       queryClient.invalidateQueries({ queryKey: ['voteStatus'] })
+      queryClient.invalidateQueries({ queryKey: ['recentVoters'] })
+      queryClient.invalidateQueries({ queryKey: ['topVoters'] })
     },
     onError: (error, variables) => {
       sendErrorNotification({
@@ -74,7 +87,7 @@ export function useDeleteServerMutation() {
 
       // 4. Log Action
       if (server) {
-        await logAction('SERVER_DELETED', { serverName: server.name }, adminId, adminName, id)
+        await logAction('SERVER_DELETED', { serverName: server.name, user: adminName || 'Unknown' }, adminId, adminName, id)
         await sendLogNotification({
           action: '🗑️ Server Deleted',
           adminName: adminName,

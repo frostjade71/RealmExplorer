@@ -265,12 +265,12 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
                   <ReactMarkdown 
                     remarkPlugins={[remarkBreaks, remarkGfm]}
                     components={{
-                      p: ({ children }) => <p className="mb-6 leading-relaxed text-white/60 text-sm md:text-base font-headline">{children}</p>,
-                      h1: ({ children }) => <h1 className="text-2xl md:text-3xl font-headline text-white mt-12 mb-8 uppercase leading-tight tracking-tight">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-xl md:text-2xl font-headline text-white mt-10 mb-6 uppercase leading-tight tracking-tight">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-lg md:text-xl font-headline text-white mt-8 mb-4 uppercase leading-tight tracking-tight">{children}</h3>,
-                      ul: ({ children }) => <ul className="space-y-4 mb-8 list-disc pl-6 text-white/60 font-headline">{children}</ul>,
-                      ol: ({ children }) => <ol className="space-y-4 mb-8 list-decimal pl-6 text-white/60 font-headline">{children}</ol>,
+                      p: ({ children }) => <p className="mb-4 leading-relaxed text-white/60 text-sm md:text-base font-headline">{children}</p>,
+                      h1: ({ children }) => <h1 className="text-2xl md:text-3xl font-headline text-white mt-8 mb-4 uppercase leading-tight tracking-tight">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-xl md:text-2xl font-headline text-white mt-6 mb-3 uppercase leading-tight tracking-tight">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-lg md:text-xl font-headline text-white mt-4 mb-2 uppercase leading-tight tracking-tight">{children}</h3>,
+                      ul: ({ children }) => <ul className="space-y-2 mb-4 list-disc pl-6 text-white/60 font-headline">{children}</ul>,
+                      ol: ({ children }) => <ol className="space-y-2 mb-4 list-decimal pl-6 text-white/60 font-headline">{children}</ol>,
                       li: ({ children }) => <li className="pl-2">{children}</li>,
                       strong: ({ children }) => <strong className="text-white font-bold">{children}</strong>,
                       a: ({ href, children }) => (
@@ -284,7 +284,7 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
                           {children}
                         </blockquote>
                       ),
-                      code: ({ children }) => <code className="bg-zinc-800 text-realm-green px-1.5 py-0.5 rounded text-sm font-mono">{children}</code>,
+                      code: ({ children }) => <code className="bg-zinc-800 text-realm-green px-1.5 py-0.5 rounded text-sm font-mono break-all">{children}</code>,
                       pre: ({ children }) => (
                         <pre className="bg-zinc-900 border border-white/5 rounded-2xl p-6 my-8 overflow-x-auto no-scrollbar font-mono text-xs md:text-sm">
                           {children}
@@ -292,7 +292,7 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
                       ),
                     }}
                   >
-                    {content || '*No content yet...*'}
+                    {(content || '').replace(/\n{3,}/g, match => '\n\n' + '&nbsp;\n\n'.repeat(match.length - 2))}
                   </ReactMarkdown>
                 </div>
               </div>

@@ -5,7 +5,7 @@ import { Timer } from 'lucide-react'
 interface VoteTimerProps {
   lastVoteTime: string
   onFinish?: () => void
-  variant?: 'default' | 'compact'
+  variant?: 'default' | 'compact' | 'hidden'
 }
 
 export function VoteTimer({ lastVoteTime, onFinish, variant = 'default' }: VoteTimerProps) {
@@ -40,6 +40,10 @@ export function VoteTimer({ lastVoteTime, onFinish, variant = 'default' }: VoteT
 
     return () => clearInterval(timer)
   }, [lastVoteTime, onFinish])
+
+  if (variant === 'hidden') {
+    return <span className="hidden">{timeLeft}</span>
+  }
 
   if (variant === 'compact') {
     return (

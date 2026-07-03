@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useBadges, useAdminServers, useAdminUsers, useAssignBadge, useUnassignBadge } from '../hooks/queries'
 import type { Badge } from '../types'
-import { Search, Shield, User, Server as ServerIcon, Plus, Trash2, Check, Award, Info } from 'lucide-react'
+import { Search, User, Server as ServerIcon, Plus, Trash2, Check, Award, Info, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '../lib/supabase'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -45,6 +45,30 @@ export function AdminBadgesPage() {
       return data as any[]
     }
   })
+
+  // Group assignments by month
+  const groupedAssignments = assignedBadges.reduce((acc, ab) => {
+    const month = ab.month || 'N/A'
+    if (!acc[month]) acc[month] = []
+    acc[month].push(ab)
+    return acc
+  }, {} as Record<string, any[]>)
+
+  const sortedMonths = Object.keys(groupedAssignments).sort((a, b) => {
+    if (a === 'N/A') return 1
+    if (b === 'N/A') return -1
+    return new Date(b).getTime() - new Date(a).getTime()
+  })
+
+  const [expandedMonth, setExpandedMonth] = useState<string | null>(null)
+  const [hasInitialized, setHasInitialized] = useState(false)
+
+  useEffect(() => {
+    if (!hasInitialized && sortedMonths.length > 0) {
+      setExpandedMonth(sortedMonths[0])
+      setHasInitialized(true)
+    }
+  }, [sortedMonths, hasInitialized])
 
   const filteredTargets = targetType === 'server' 
     ? servers.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -136,7 +160,11 @@ export function AdminBadgesPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-pixel text-white mb-2 tracking-tighter">BADGE MANAGEMENT</h1>
+          <div className="flex items-center gap-2 mb-2">
+            <Award className="text-realm-green w-4 h-4" />
+            <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Reward System</span>
+          </div>
+          <h1 className="text-3xl font-pixel text-white mb-2">Badge Management</h1>
           <p className="text-white/40 font-headline font-medium">Assign and manage prestigious badges for servers and community members.</p>
         </div>
       </div>
@@ -144,36 +172,31 @@ export function AdminBadgesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Available Badges */}
         <div className="lg:col-span-1 space-y-4">
-          <h2 className="text-xl font-pixel text-realm-green flex items-center gap-2">
-            <Award size={20} /> AVAILABLE BADGES
+          <h2 className="text-xl font-pixel text-white flex items-center gap-2">
+            Available Badges
           </h2>
           <div className="grid grid-cols-1 gap-3">
             {badges.map((badge) => (
-              <motion.button
+              <motion.div
                 key={badge.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  setSelectedBadge(badge)
-                  setTargetType(badge.target_type)
-                  setSearchQuery('')
-                }}
-                className={`flex items-start gap-4 p-4 rounded-lg border transition-all duration-300 text-left ${
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`relative flex items-start gap-4 p-4 rounded-lg border transition-all duration-300 text-left ${
                   selectedBadge?.id === badge.id
-                    ? 'bg-realm-green/10 border-realm-green text-realm-green shadow-sm'
-                    : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/20'
+                    ? 'bg-realm-green/10 border-realm-green shadow-sm'
+                    : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
                 }`}
               >
-                <div className="w-12 h-12 bg-black/40 rounded-lg border border-white/10 flex items-center justify-center shrink-0 p-2 overflow-hidden">
+                <div className="w-12 h-12 flex items-center justify-center shrink-0 overflow-hidden">
                    <img 
                     src={badge.image_url.startsWith('http') ? badge.image_url : (badge.image_url.includes('/') ? `/${badge.image_url}` : `/badges/${badge.image_url}`)} 
                     alt={badge.name} 
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <div>
+                <div className="flex-1 pb-8">
                   <h3 className="font-headline font-bold text-sm text-white mb-1 flex items-center gap-2">
-                    {badge.name}
+                    <span className="capitalize">{badge.name.toLowerCase()}</span>
                     {badge.type === 'automatic' && (
                       <span className="text-[10px] font-pixel bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded uppercase tracking-wider">Auto</span>
                     )}
@@ -181,14 +204,32 @@ export function AdminBadgesPage() {
                   <p className="text-xs text-white/40 line-clamp-2">{badge.description}</p>
                   <div className="mt-2 flex items-center gap-1.5">
                     {badge.target_type === 'server' ? (
-                      <ServerIcon size={12} className="opacity-40" />
+                      <ServerIcon size={12} className="opacity-40 text-white" />
                     ) : (
-                      <User size={12} className="opacity-40" />
+                      <User size={12} className="opacity-40 text-white" />
                     )}
-                    <span className="text-[10px] uppercase font-pixel opacity-40">{badge.target_type}s</span>
+                    <span className="text-[10px] uppercase font-pixel opacity-40 text-white">{badge.target_type}s</span>
                   </div>
                 </div>
-              </motion.button>
+                <button
+                  onClick={() => {
+                    setSelectedBadge(badge)
+                    setTargetType(badge.target_type)
+                    setSearchQuery('')
+                  }}
+                  className={`absolute bottom-3 right-3 text-[10px] font-pixel uppercase px-3 py-1.5 rounded transition-all ${
+                    selectedBadge?.id === badge.id 
+                      ? 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]' 
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                  }`}
+                >
+                  {selectedBadge?.id === badge.id ? (
+                    <span className="flex items-center gap-1"><Check size={12} strokeWidth={3} /> Selected</span>
+                  ) : (
+                    <span className="flex items-center gap-1"><Plus size={12} strokeWidth={3} /> Add</span>
+                  )}
+                </button>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -209,7 +250,7 @@ export function AdminBadgesPage() {
                 
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-realm-green/10 rounded-lg border border-realm-green/20 flex items-center justify-center p-2 overflow-hidden">
+                    <div className="w-14 h-14 flex items-center justify-center overflow-hidden">
                        <img 
                         src={selectedBadge.image_url.startsWith('http') ? selectedBadge.image_url : (selectedBadge.image_url.includes('/') ? `/${selectedBadge.image_url}` : `/badges/${selectedBadge.image_url}`)} 
                         alt="" 
@@ -217,7 +258,7 @@ export function AdminBadgesPage() {
                       />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-pixel text-white mb-1 uppercase tracking-tighter">Assigning {selectedBadge.name}</h2>
+                      <h2 className="text-2xl font-headline font-bold text-white mb-1 capitalize">Assigning {selectedBadge.name.toLowerCase()}</h2>
                       <p className="text-white/40 text-sm font-headline">Select a {selectedBadge.target_type} to grant this badge to.</p>
                     </div>
                   </div>
@@ -318,71 +359,92 @@ export function AdminBadgesPage() {
                 className="space-y-4"
               >
                 <h2 className="text-xl font-pixel text-white flex items-center gap-2">
-                  <Shield size={20} /> RECENT ASSIGNMENTS
+                  Recent Assignments
                 </h2>
 
-                <div className="bg-zinc-900 border border-white/10 rounded-lg overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-white/5 bg-white/5">
-                          <th className="px-6 py-4 text-[10px] font-pixel text-white/40 uppercase tracking-widest">Badge</th>
-                          <th className="px-6 py-4 text-[10px] font-pixel text-white/40 uppercase tracking-widest">Recipient</th>
-                          <th className="px-6 py-4 text-[10px] font-pixel text-white/40 uppercase tracking-widest">Month</th>
-                          <th className="px-6 py-4 text-[10px] font-pixel text-white/40 uppercase tracking-widest">Date</th>
-                          <th className="px-6 py-4 text-right"></th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5 font-headline">
-                        {assignedLoading ? (
-                          <tr>
-                            <td colSpan={4} className="px-6 py-12 text-center text-white/20 font-pixel uppercase">Loading assignments...</td>
-                          </tr>
-                        ) : assignedBadges.length > 0 ? (
-                          assignedBadges.map((ab) => (
-                            <tr key={ab.id} className="hover:bg-white/5 transition-colors group">
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-white/5 rounded-lg border border-white/10 p-1.5 overflow-hidden">
-                                    <img 
-                                      src={ab.badge?.image_url ? (ab.badge.image_url.startsWith('http') ? ab.badge.image_url : (ab.badge.image_url.includes('/') ? `/${ab.badge.image_url}` : `/badges/${ab.badge.image_url}`)) : ''} 
-                                      alt="" 
-                                      className="w-full h-full object-contain"
-                                    />
-                                  </div>
-                                  <span className="font-bold text-sm text-white">{ab.badge?.name}</span>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-2">
-                                  {ab.server_id ? <ServerIcon size={14} className="text-realm-green" /> : <User size={14} className="text-blue-400" />}
-                                  <span className="text-sm font-medium text-white/80">{getTargetName(ab)}</span>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className="text-xs font-pixel text-realm-green uppercase">{ab.month || 'N/A'}</span>
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className="text-xs text-white/40">{new Date(ab.granted_at).toLocaleDateString()}</span>
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                <button 
-                                  onClick={() => handleUnassign(ab.id)}
-                                  className="p-2 text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan={4} className="px-6 py-12 text-center text-white/20 font-pixel uppercase">No manual assignments yet</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                <div className="space-y-3">
+                  {assignedLoading ? (
+                    <div className="bg-zinc-900 border border-white/10 rounded-lg p-12 text-center text-white/20 font-pixel uppercase">
+                      Loading assignments...
+                    </div>
+                  ) : sortedMonths.length > 0 ? (
+                    sortedMonths.map((month) => (
+                      <div key={month} className="bg-zinc-900 border border-white/10 rounded-lg overflow-hidden">
+                        <button
+                          onClick={() => setExpandedMonth(expandedMonth === month ? null : month)}
+                          className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 transition-colors"
+                        >
+                          <span className="font-headline font-bold text-white text-lg">{month}</span>
+                          <ChevronDown 
+                            className={`w-5 h-5 text-white/40 transition-transform ${expandedMonth === month ? 'rotate-180' : ''}`} 
+                          />
+                        </button>
+                        
+                        <AnimatePresence>
+                          {expandedMonth === month && (
+                            <motion.div
+                              initial={{ height: 0 }}
+                              animate={{ height: 'auto' }}
+                              exit={{ height: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                  <thead>
+                                    <tr className="border-b border-white/5 bg-black/20">
+                                      <th className="px-6 py-4 text-[10px] font-pixel text-white/40 uppercase tracking-widest">Badge</th>
+                                      <th className="px-6 py-4 text-[10px] font-pixel text-white/40 uppercase tracking-widest">Recipient</th>
+                                      <th className="px-6 py-4 text-[10px] font-pixel text-white/40 uppercase tracking-widest">Date</th>
+                                      <th className="px-6 py-4 text-right"></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-white/5 font-headline">
+                                    {groupedAssignments[month].map((ab: any) => (
+                                      <tr key={ab.id} className="hover:bg-white/5 transition-colors group">
+                                        <td className="px-6 py-4">
+                                          <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
+                                              <img 
+                                                src={ab.badge?.image_url ? (ab.badge.image_url.startsWith('http') ? ab.badge.image_url : (ab.badge.image_url.includes('/') ? `/${ab.badge.image_url}` : `/badges/${ab.badge.image_url}`)) : ''} 
+                                                alt="" 
+                                                className="w-full h-full object-contain"
+                                              />
+                                            </div>
+                                            <span className="font-bold text-sm text-white capitalize">{(ab.badge?.name || '').toLowerCase()}</span>
+                                          </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                          <div className="flex items-center gap-2">
+                                            {ab.server_id ? <ServerIcon size={14} className="text-realm-green" /> : <User size={14} className="text-blue-400" />}
+                                            <span className="text-sm font-medium text-white/80">{getTargetName(ab)}</span>
+                                          </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                          <span className="text-xs text-white/40">{new Date(ab.granted_at).toLocaleDateString()}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                          <button 
+                                            onClick={() => handleUnassign(ab.id)}
+                                            className="p-2 text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                                          >
+                                            <Trash2 size={16} />
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="bg-zinc-900 border border-white/10 rounded-lg p-12 text-center text-white/20 font-pixel uppercase">
+                      No manual assignments yet
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}

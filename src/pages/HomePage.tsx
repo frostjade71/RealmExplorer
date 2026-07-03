@@ -147,7 +147,7 @@ export function HomePage() {
           
           <FramerIn delay={0.8}>
             <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-10 md:mb-12">
-              <Link to="/servers" className="bg-[#006e15] hover:brightness-110 text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all flex items-center gap-2.5 group shadow-xl shadow-green-900/10 text-[12px] md:text-sm">
+              <Link to="/servers" className="bg-[#4EC44E] hover:bg-[#5cd45c] text-zinc-950 px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-colors flex items-center gap-2.5 group shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] border-b-[4px] border-[#3da53d] active:border-b-0 active:border-t-[4px] active:border-t-transparent text-[12px] md:text-sm">
                 Browse Servers
                 <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform text-sm">arrow_forward</span>
               </Link>
@@ -159,7 +159,7 @@ export function HomePage() {
                     signInWithDiscord()
                   }
                 }}
-                className={`bg-white/5 border border-white/10 hover:border-white/30 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-sm'} text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all text-[12px] md:text-sm flex items-center justify-center gap-2 group`}
+                className={`bg-zinc-900/80 hover:bg-zinc-800/80 border-b-[4px] border-zinc-950 active:border-b-0 active:border-t-[4px] active:border-t-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-colors text-[12px] md:text-sm flex items-center justify-center gap-2 group`}
               >
                 List your Server
                 <span className="material-symbols-outlined text-[16px] md:text-[18px] group-hover:scale-110 transition-transform">add_circle</span>
@@ -193,7 +193,7 @@ export function HomePage() {
 
       <section className="py-12 md:py-24 px-8 bg-surface-container-lowest">
         <div className="max-w-7xl mx-auto">
-          <FramerIn className="mb-10 md:mb-16">
+          <FramerIn className="mb-14 md:mb-20">
             <h2 className="font-pixel text-on-surface text-xl md:text-2xl mb-4 text-white">Server Categories</h2>
             <div className="h-1 w-16 md:w-24 bg-primary-container"></div>
           </FramerIn>
@@ -238,7 +238,7 @@ export function HomePage() {
 
       <section className="pt-0 pb-12 md:pb-16 px-8 bg-[#0A0A0A]">
         <div className="max-w-7xl mx-auto flex flex-col items-center">
-          <FramerIn className="text-center mb-8">
+          <FramerIn className="text-center mb-12 md:mb-16">
             <h2 className="font-pixel text-white text-xl md:text-2xl mb-2">Our Affiliates</h2>
             <div className="h-1 w-12 md:w-16 bg-primary-container mx-auto"></div>
           </FramerIn>
@@ -254,7 +254,7 @@ export function HomePage() {
       {featured.length > 0 && (
         <section className="py-12 md:py-24 px-8 bg-zinc-950">
           <div className="max-w-7xl mx-auto">
-            <FramerIn className="text-center mb-10 md:mb-16">
+            <FramerIn className="text-center mb-14 md:mb-20">
               <h2 className="font-pixel text-white text-xl md:text-3xl mb-4 uppercase tracking-widest">Hall of Fame</h2>
               <p className="text-zinc-400 font-headline text-xs md:text-sm">This month's featured servers and realms.</p>
             </FramerIn>
@@ -281,8 +281,8 @@ export function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent z-10" />
           
           <div className="relative z-20">
-            <h2 className="font-pixel text-white text-xl md:text-3xl mb-4 md:mb-6">Ready to Explore?</h2>
-            <p className="text-white/80 font-headline text-xs md:text-base max-w-xl mx-auto mb-6 md:mb-8 leading-relaxed px-4">
+            <h2 className="font-pixel text-white text-xl md:text-3xl mb-6 md:mb-8">Ready to Explore?</h2>
+            <p className="text-white/80 font-headline text-xs md:text-base max-w-xl mx-auto mb-10 md:mb-14 leading-relaxed px-4">
               Join thousands of players and creators in the most sophisticated Minecraft ecosystem ever built.
             </p>
             <div className="flex flex-wrap justify-center gap-3 md:gap-4">
