@@ -1198,7 +1198,7 @@ export function SubmitPage() {
                   >
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
-                        IP Address
+                        Votifier IP Address
                       </label>
                       <input
                         type="text"
@@ -1208,10 +1208,13 @@ export function SubmitPage() {
                         onChange={(e) => setFormData({ ...formData, votifier_ip: e.target.value })}
                         required={formData.enable_votifier}
                       />
+                      <p className="text-[10px] text-zinc-500 font-headline mt-1">
+                        Usually the same as your Minecraft server IP.
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
-                        Port
+                        Votifier Port
                       </label>
                       <input
                         type="number"
@@ -1221,10 +1224,13 @@ export function SubmitPage() {
                         onChange={(e) => setFormData({ ...formData, votifier_port: e.target.value ? parseInt(e.target.value) : "" })}
                         required={formData.enable_votifier}
                       />
+                      <p className="text-[10px] text-zinc-500 font-headline mt-1">
+                        Must be a dedicated port, NOT your game port!
+                      </p>
                     </div>
                     <div className="space-y-2 col-span-1 md:col-span-2">
                       <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
-                        NuVotifier Token (V2)
+                        NuVotifier Token (V2 Protocol - Recommended)
                       </label>
                       <input
                         type="password"
@@ -1235,12 +1241,12 @@ export function SubmitPage() {
                         required={formData.enable_votifier && !formData.votifier_public_key}
                       />
                       <p className="text-[10px] text-zinc-500 font-headline mt-1">
-                        Found in plugins/Votifier/config.yml under tokens.default.
+                        Found in plugins/Votifier/config.yml or plugins/VotifierPlus/config.yml under "tokens". Highly recommended.
                       </p>
                     </div>
                     <div className="space-y-2 col-span-1 md:col-span-2">
                       <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
-                        Public Key (V1 / RSA)
+                        Public Key (V1 Protocol - Legacy)
                       </label>
                       <textarea
                         placeholder="-----BEGIN PUBLIC KEY-----..."
@@ -1250,7 +1256,7 @@ export function SubmitPage() {
                         required={formData.enable_votifier && !formData.votifier_token}
                       />
                       <p className="text-[10px] text-zinc-500 font-headline mt-1">
-                        Required only for older Votifier versions using RSA encryption. Found in plugins/Votifier/rsa/public.key.
+                        Only use this if your server uses an old V1 Votifier plugin. Leave blank if you are using a Token.
                       </p>
                     </div>
                   </motion.div>

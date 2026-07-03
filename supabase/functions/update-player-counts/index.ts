@@ -20,10 +20,9 @@ serve(async (req) => {
     // 1. Fetch all approved servers
     const { data: servers, error: serversError } = await supabaseClient
       .from('servers')
-      .select('id, ip_or_code, port')
+      .select('id, ip_or_code, port, bedrock_ip, bedrock_port')
       .eq('status', 'approved')
       .eq('type', 'server')
-      .not('ip_or_code', 'is', null)
 
     if (serversError) throw serversError
     if (!servers || servers.length === 0) {
@@ -37,14 +36,24 @@ serve(async (req) => {
 
     // 2. Loop through servers and fetch player counts
     for (const server of servers) {
-      if (server.ip_or_code === 'None') continue
+      const hasJavaIp = server.ip_or_code && server.ip_or_code !== 'None' && !server.ip_or_code.startsWith('http')
+      const hasBedrockIp = !!server.bedrock_ip
 
-      const address = server.port && server.port !== 25565 
-        ? `${server.ip_or_code}:${server.port}`
-        : server.ip_or_code
+      if (!hasJavaIp && !hasBedrockIp) continue
+
+      let url = ''
+      if (hasJavaIp) {
+        const port = server.port && server.port !== 25565 ? `:${server.port}` : ''
+        url = `https://api.mcsrvstat.us/3/${server.ip_or_code}${port}`
+      } else if (hasBedrockIp) {
+        const port = server.bedrock_port && server.bedrock_port !== 19132 ? `:${server.bedrock_port}` : ''
+        url = `https://api.mcsrvstat.us/bedrock/3/${server.bedrock_ip}${port}`
+      }
+
+      if (!url) continue
 
       try {
-        const response = await fetch(`https://api.mcsrvstat.us/3/${address}`)
+        const response = await fetch(url)
         if (!response.ok) throw new Error(`API returned ${response.status}`)
         const data = await response.json()
 
@@ -83,7 +92,7 @@ serve(async (req) => {
           }
         }
       } catch (err) {
-        console.error(`Error fetching stats for ${server.ip_or_code}:`, err)
+        console.error(`Error fetching stats for server ${server.id}:`, err)
         failedCount++
       }
     }

@@ -123,10 +123,10 @@ serve(async (req) => {
           modelObj.uuid = playerUuid;
         }
 
-        const payloadString = JSON.stringify({ model: modelObj })
+        const payloadString = JSON.stringify(modelObj)
 
         // Generate HMAC-SHA256 signature
-        const keyBuf = new TextEncoder().encode(config.token)
+        const keyBuf = new TextEncoder().encode(config.token.trim())
         const cryptoKey = await crypto.subtle.importKey(
           "raw",
           keyBuf,
@@ -153,6 +153,22 @@ serve(async (req) => {
         finalBuf.set(packetBuf, 4)
 
         await conn.write(finalBuf)
+        
+        // Read response from NuVotifier server
+        const respBuf = new Uint8Array(512)
+        const respBytes = await conn.read(respBuf)
+        if (respBytes) {
+          const respStr = new TextDecoder().decode(respBuf.subarray(0, respBytes))
+          try {
+            const resp = JSON.parse(respStr)
+            if (resp.status === 'error') {
+              throw new Error(`NuVotifier rejected vote: ${resp.cause} - ${resp.errorMessage}`)
+            }
+          } catch (e) {
+            // Not JSON or other parse error, log it
+            console.log("Response from server:", respStr)
+          }
+        }
         
         console.log(`Vote successfully sent via V2 to ${config.ip}:${config.port} for user ${mcUsername}`)
       } else {

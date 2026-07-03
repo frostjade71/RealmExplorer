@@ -5,7 +5,7 @@ import { useServer, useUserVoteStatus, useServerRatings, useEntityBadges, useSer
 import { useVoteMutation, useSubmitRatingMutation, useSubmitReportMutation, useDeleteRatingMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { CategoryBadge } from '../components/CategoryBadge'
-import { Globe, Copy, CheckCircle, ArrowUpSquare, Star, ExternalLink, Calendar, Clock, Flag, Mail, ChevronLeft, ChevronRight, Activity, Users, Trophy, Gift, Info, RefreshCw, Share2, FileText, TrendingUp, Crown } from 'lucide-react'
+import { Globe, Copy, CheckCircle, ArrowUpSquare, Star, ExternalLink, Calendar, Clock, Flag, Mail, ChevronLeft, ChevronRight, Activity, Users, Trophy, Gift, Info, RefreshCw, Share2, FileText, TrendingUp, Crown, Eye } from 'lucide-react'
 import { formatDistanceToNow, format, subDays } from 'date-fns'
 import { SiDiscord, SiTiktok, SiInstagram, SiYoutube, SiFacebook, SiTwitch } from 'react-icons/si'
 import { AnimatedPage } from '../components/AnimatedPage'
@@ -642,8 +642,9 @@ export function ServerDetailPage() {
                         </motion.button>
                         <motion.button 
                           onClick={() => setViewMode('voting')}
-                          className="px-3 bg-zinc-900 border-y border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-none font-headline font-bold text-[9px] md:text-[10px] uppercase tracking-widest transition-colors flex-shrink-0 flex items-center"
+                          className="px-3 bg-zinc-900 border-y border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-none font-headline font-bold text-[9px] md:text-[10px] uppercase tracking-widest transition-colors flex-shrink-0 flex items-center gap-1.5"
                         >
+                          <Eye className="w-3 h-3 md:w-3.5 md:h-3.5" />
                           View Votes
                         </motion.button>
                         <motion.button 
