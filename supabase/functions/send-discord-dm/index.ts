@@ -18,6 +18,7 @@ interface DMRequest {
   server_slug?: string;
   admin_name?: string;
   icon_url?: string | null;
+  is_project?: boolean;
 }
 
 Deno.serve(async (req: Request) => {
@@ -35,9 +36,9 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body: DMRequest = await req.json();
-    const { discord_id, subject, message, type, server_name, server_slug, admin_name, icon_url } = body;
+    const { discord_id, subject, message, type, server_name, server_slug, admin_name, icon_url, is_project } = body;
 
-    console.log(`Attempting DM to discord_id: ${discord_id} ${server_name ? `for server: ${server_name}` : ''}`);
+    console.log(`Attempting DM to discord_id: ${discord_id} ${server_name ? `for ${is_project ? 'project' : 'server'}: ${server_name}` : ''}`);
 
     if (!discord_id) {
       console.error('No discord_id provided');
@@ -75,19 +76,19 @@ Deno.serve(async (req: Request) => {
     // Step 2: Build the embed
     const isRejection = type === 'rejection';
     const isWelcome = type === 'welcome';
-    const serverUrl = server_slug ? `https://www.realmexplorer.xyz/server/${server_slug}` : 'https://www.realmexplorer.xyz';
+    const serverUrl = server_slug ? `https://www.realmexplorer.xyz/${is_project ? 'project' : 'server'}/${server_slug}` : 'https://www.realmexplorer.xyz';
 
     const embed: any = {
       title: isRejection 
-        ? '❌ Server Listing Update' 
+        ? (is_project ? '❌ Project Listing Update' : '❌ Server Listing Update')
         : isWelcome 
           ? 'Welcome to Explorer+' 
           : '📧 Staff Message — Realm Explorer',
       description: isRejection
-        ? `Your server **${server_name}** requires attention from our team.`
+        ? `Your ${is_project ? 'project' : 'server'} **${server_name}** requires attention from our team.`
         : isWelcome
           ? `# Welcome to Explorer+! \nWe are thrilled to have you as part of our **Explorer+ Family**. Your support helps us keep Realm Explorer growing and thriving!\n\n## 🚀 Your Premium Perks are Active:\n- **Submit up to 5 Servers/Realms**: Expand your reach across the entire community.\n- **Custom Profile Banner**: Personalize your identity with a unique background.\n- **Extended Gallery**: Show off your worlds with up to 5 images per listing.\n- **Priority Exploration**: Your listings now have a higher chance to appear at the top!\n- **Golden Profile**: Stand out with premium golden borders on your profile and listings.\n- **Social Links**: Connect deeper with up to 6 social links.\n\n> **Need Help?**\n> If you have any questions or need help setting up your new features, feel free to reach out to our staff in the Discord server.`
-          : `A staff member has reached out regarding your server **${server_name}**.`,
+          : `A staff member has reached out regarding your ${is_project ? 'project' : 'server'} **${server_name}**.`,
       color: isRejection ? 0xe74c3c : isWelcome ? 0xf1c40f : 0x4EC44E,
       fields: [
         { name: 'Subject', value: subject, inline: false },

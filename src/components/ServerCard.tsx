@@ -199,12 +199,9 @@ export function ServerCard({
           
           {(actions || showRole) && (
             <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-outline-variant/20 mt-auto">
-              <div className="flex items-center gap-4 md:gap-6">
-              </div>
-              
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 w-full">
                 {actions && (
-                  <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                  <div onClick={(e) => e.stopPropagation()} className="flex items-center w-full">
                     {actions}
                   </div>
                 )}

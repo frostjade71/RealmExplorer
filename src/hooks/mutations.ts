@@ -104,6 +104,58 @@ export function useDeleteServerMutation() {
   })
 }
 
+export function useDeleteProjectMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, adminId, adminName }: { id: string, adminId?: string | null, adminName?: string | null }) => {
+      const { data } = await supabase.from('projects' as any).select('icon_url, file_url, custom_license_url, gallery, name').eq('id', id).single()
+      const project = data as unknown as { icon_url: string | null; file_url: string | null; custom_license_url: string | null; gallery: string[]; name: string } | null;
+
+      if (project) {
+        const filesToDelete: string[] = []
+        const getPath = (url: string) => {
+          if (!url || !url.includes('project-files/')) return null
+          return url.split('project-files/').pop()
+        }
+
+        const iconPath = getPath(project.icon_url || '')
+        const filePath = getPath(project.file_url || '')
+        const licensePath = getPath(project.custom_license_url || '')
+        const galleryPaths = (project.gallery || []).map((url: string) => getPath(url)).filter(Boolean) as string[]
+        
+        if (iconPath) filesToDelete.push(iconPath)
+        if (filePath) filesToDelete.push(filePath)
+        if (licensePath) filesToDelete.push(licensePath)
+        filesToDelete.push(...galleryPaths)
+
+        if (filesToDelete.length > 0) {
+          await supabase.storage.from('project-files').remove(filesToDelete)
+        }
+      }
+
+      await supabase.from('notifications').delete().eq('related_id', id)
+
+      const { error } = await supabase.from('projects' as any).delete().eq('id', id)
+      if (error) throw error
+
+      if (project) {
+        await logAction('PROJECT_DELETED', { projectName: project.name, user: adminName || 'Unknown' }, adminId, adminName, id)
+        await sendLogNotification({
+          action: '🗑️ Project Deleted',
+          adminName: adminName,
+          details: `**${project.name}** has been permanently deleted from the platform.`,
+          color: 0xe74c3c
+        })
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProjects'] })
+      queryClient.invalidateQueries({ queryKey: ['adminProjects'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    }
+  })
+}
+
 export function useUpdateServerStatusMutation() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -1427,6 +1479,9 @@ export function useUpdateProjectStatusMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, status, adminId, adminName }: { id: string, status: string, adminId?: string | null, adminName?: string | null }) => {
+      const { data: projectData } = await supabase.from('projects' as any).select('owner_id, name, status, slug, icon_url').eq('id', id).single()
+      const project = projectData as unknown as { owner_id: string; name: string; status: string; slug: string; icon_url: string | null } | null;
+      
       const { data, error } = await supabase
         .from('projects' as any)
         .update({ status, updated_at: new Date().toISOString() })
@@ -1436,8 +1491,65 @@ export function useUpdateProjectStatusMutation() {
       
       if (error) throw error
 
+      if (status === 'approved' && project?.owner_id) {
+        await supabase.from('notifications').insert({
+          user_id: project.owner_id,
+          type: 'approval',
+          title: 'Project Approved',
+          message: `Your project "${project.name}" has been approved!`,
+          related_id: id
+        } as any)
+      }
+
       if (adminId) {
-        await logAction('UPDATE_PROJECT_STATUS', { status }, adminId, adminName, id)
+        await logAction(
+          status === 'approved' ? 'PROJECT_APPROVED' : 'PROJECT_STATUS_CHANGED', 
+          { projectName: project?.name, newStatus: status },
+          adminId,
+          adminName,
+          id
+        )
+
+        if (status !== 'approved' && status !== 'rejected' && project?.name && status !== project.status) {
+          await sendLogNotification({
+            action: '📝 Project Status Updated',
+            adminName: adminName,
+            details: `**${project.name}** status changed to **${status}** (previously: \`${project.status}\`).`,
+          })
+        } else if (status === 'approved' && project?.name && status !== project.status) {
+          if (project.status === 'pending') {
+            await sendApprovalNotification({
+              serverName: project.name,
+              adminName: adminName || 'A Staff Member',
+              slug: project.slug,
+              iconUrl: project.icon_url,
+              type: 'new_listing',
+              target: 'public',
+              isProject: true
+            })
+            await sendApprovalNotification({
+              serverName: project.name,
+              adminName: adminName || 'A Staff Member',
+              slug: project.slug,
+              iconUrl: project.icon_url,
+              type: 'new_listing',
+              target: 'logs',
+              previousStatus: project.status,
+              isProject: true
+            })
+          } else {
+            await sendApprovalNotification({
+              serverName: project.name,
+              adminName: adminName || 'A Staff Member',
+              slug: project.slug,
+              iconUrl: project.icon_url,
+              type: 'asset_update',
+              target: 'logs',
+              previousStatus: project.status,
+              isProject: true
+            })
+          }
+        }
       }
 
       return data
@@ -1452,3 +1564,122 @@ export function useUpdateProjectStatusMutation() {
     }
   })
 }
+
+export function useSendProjectMessageMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      subject, 
+      message, 
+      type,
+      adminId,
+      adminName 
+    }: { 
+      projectId: string; 
+      subject: string; 
+      message: string; 
+      type: 'contact' | 'rejection';
+      adminId?: string | null;
+      adminName?: string | null;
+    }) => {
+      // 1. Get project data and owner's discord_id for DM
+      const { data: projectData } = await supabase
+        .from('projects' as any)
+        .select('owner_id, name, status, slug, icon_url')
+        .eq('id', projectId)
+        .single()
+        
+      const project = projectData as unknown as { owner_id: string; name: string; status: string; slug: string; icon_url: string | null } | null;
+
+      let ownerDiscordId: string | null = null
+      if (project?.owner_id) {
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('discord_id')
+          .eq('id', project.owner_id)
+          .single()
+        ownerDiscordId = ownerProfile?.discord_id || null
+      }
+
+      // 2. Send Discord DM via Edge Function
+      let dmSent = false
+      if (ownerDiscordId) {
+        try {
+          const { data: dmResult, error: dmError } = await supabase.functions.invoke('send-discord-dm', {
+            body: {
+              discord_id: ownerDiscordId,
+              subject,
+              message,
+              type,
+              server_name: project?.name || 'Unknown Project',
+              server_slug: project?.slug || '',
+              admin_name: adminName || 'Realm Explorer Staff',
+              icon_url: project?.icon_url,
+              is_project: true
+            }
+          })
+          if (dmError) {
+            console.error('Edge function error:', dmError)
+          } else {
+            dmSent = dmResult?.dm_sent === true
+            if (!dmSent) {
+              console.warn('DM not delivered:', dmResult)
+            }
+          }
+        } catch (err) {
+          console.error('Failed to invoke send-discord-dm:', err)
+        }
+      }
+
+      // 3. Update project status (only for rejections - contact keeps project public)
+      const newStatus = type === 'rejection' ? 'rejected' : null
+      if (newStatus) {
+        const { error: statusError } = await supabase.from('projects' as any).update({ status: newStatus }).eq('id', projectId)
+        if (statusError) throw statusError
+      }
+
+      // 4. Create in-app notification (always, as fallback)
+      if (project && project.owner_id) {
+        let title = type === 'rejection' ? 'Project Listing Rejected' : 'New Staff Message'
+        let messageBody = type === 'rejection' 
+          ? `Your project "${project.name}" listing was rejected. Check your Discord DMs for details.` 
+          : `A staff member sent a message regarding "${project.name}". Check your Discord DMs.`
+
+        await supabase.from('notifications').insert({
+          user_id: project.owner_id,
+          type: type === 'rejection' ? 'rejection' : 'staff_outreach',
+          title,
+          message: messageBody,
+          related_id: projectId
+        } as any)
+      }
+
+      // 5. Log Action
+      await logAction(
+        type === 'rejection' ? 'PROJECT_REJECTED' : 'PROJECT_CONTACTED',
+        { projectName: project?.name, subject, dmSent },
+        adminId,
+        adminName,
+        projectId
+      )
+
+      await sendLogNotification({
+        action: type === 'rejection' ? '<:9752barrierblockmc:1271214264635494460> Project Listing Rejected' : '📧 Staff Outreach Sent',
+        adminName: adminName,
+        details: type === 'rejection'
+          ? `**${project?.name}** status changed to **rejected** (previously: \`${project?.status}\`).\n\n**Subject:** ${subject}\n**Discord DM:** ${dmSent ? '<:check:1296934814414536779> Delivered' : '⚠️ Failed (in-app notification sent as fallback)'}`
+          : `Staff message sent to **${project?.name}** owner.\n\n**Subject:** ${subject}\n**Discord DM:** ${dmSent ? '<:check:1296934814414536779> Delivered' : '⚠️ Failed (in-app notification sent as fallback)'}`,
+        color: type === 'rejection' ? 0xe67e22 : 0x3498db
+      })
+
+      return { projectId, dmSent }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminProjects'] })
+      queryClient.invalidateQueries({ queryKey: ['project'] })
+      queryClient.invalidateQueries({ queryKey: ['userProjects'] })
+    }
+  })
+}
+

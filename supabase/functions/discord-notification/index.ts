@@ -29,7 +29,7 @@ Deno.serve(async (req: Request) => {
     let useBotApi = false;
 
     if (type === 'approval') {
-      const { serverName, adminName, slug, iconUrl, approvalType = 'new_listing', target = 'public', previousStatus } = payload;
+      const { serverName, adminName, slug, iconUrl, approvalType = 'new_listing', target = 'public', previousStatus, isProject } = payload;
       
       // Determine if we should use Bot API or Webhook
       if (target === 'public' && DISCORD_BOT_TOKEN && PUBLIC_CHANNEL_ID) {
@@ -39,8 +39,10 @@ Deno.serve(async (req: Request) => {
         targetEndpoint = target === 'public' ? WEBHOOK_URL : LOGS_WEBHOOK_URL;
       }
       
-      const serverUrl = `https://www.realmexplorer.xyz/server/${slug}`;
-      const title = approvalType === 'new_listing' ? '<:icon:1296934822362742937> New Server Published!' : 'Visual Assets Approved';
+      const serverUrl = isProject ? `https://www.realmexplorer.xyz/project/${slug}` : `https://www.realmexplorer.xyz/server/${slug}`;
+      const title = approvalType === 'new_listing' 
+        ? (isProject ? '<:icon:1296934822362742937> New Project Published!' : '<:icon:1296934822362742937> New Server Published!')
+        : 'Visual Assets Approved';
       let description = approvalType === 'new_listing'
         ? `**${serverName}** has been approved and been Listed !`
         : `**${serverName}**'s new visual assets have been reviewed and approved.`;

@@ -68,7 +68,11 @@ export function NotificationDropdown() {
       navigate('/upgrade')
       setIsOpen(false)
     } else if (n.related_id) {
-      navigate(`/server/${n.related_id}`)
+      if (n.title?.toLowerCase().includes('project') || n.message?.toLowerCase().includes('project')) {
+        navigate(`/projects/${n.related_id}`)
+      } else {
+        navigate(`/server/${n.related_id}`)
+      }
       setIsOpen(false)
     }
   }

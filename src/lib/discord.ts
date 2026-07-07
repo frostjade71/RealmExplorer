@@ -9,6 +9,7 @@ export async function sendApprovalNotification(params: {
   type?: 'new_listing' | 'asset_update';
   target?: 'public' | 'logs';
   previousStatus?: string | null;
+  isProject?: boolean;
 }) {
   try {
     const { error } = await supabase.functions.invoke('discord-notification', {
@@ -22,6 +23,7 @@ export async function sendApprovalNotification(params: {
           approvalType: params.type || 'new_listing',
           target: params.target || 'public',
           previousStatus: params.previousStatus,
+          isProject: params.isProject,
         }
       }
     });

@@ -5,7 +5,7 @@ import { useIsMobile } from '../hooks/useMediaQuery'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useUserServers, useServerAppeals, useUserProjects } from '../hooks/queries'
-import { useDeleteServerMutation, useSubmitAppealMutation } from '../hooks/mutations'
+import { useDeleteServerMutation, useSubmitAppealMutation, useDeleteProjectMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { ServerCard } from '../components/ServerCard'
 import { ProjectCard } from '../components/ProjectCard'
@@ -156,10 +156,12 @@ export function DashboardPage() {
   const { data: projects = [], isLoading: loadingProjects } = useUserProjects(user?.id)
   const limit = hasPremiumPerks ? 5 : 1
   const hasReachedLimit = servers.length >= limit
-  const deleteMutation = useDeleteServerMutation()
+  const deleteServerMutation = useDeleteServerMutation()
+  const deleteProjectMutation = useDeleteProjectMutation()
   
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteName, setDeleteName] = useState('')
+  const [deleteType, setDeleteType] = useState<'server' | 'project'>('server')
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false)
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
 
@@ -228,14 +230,16 @@ export function DashboardPage() {
     }
   }, [actionParam, searchParams, setSearchParams])
 
-  const handleDeleteClick = (id: string, name: string) => {
+  const handleDeleteClick = (id: string, name: string, type: 'server' | 'project' = 'server') => {
     setDeleteId(id)
     setDeleteName(name)
+    setDeleteType(type)
   }
 
   const confirmDelete = () => {
     if (deleteId) {
-      deleteMutation.mutate({ 
+      const mutation = deleteType === 'project' ? deleteProjectMutation : deleteServerMutation
+      mutation.mutate({ 
         id: deleteId, 
         adminId: user?.id, 
         adminName: profile?.discord_username 
@@ -244,6 +248,8 @@ export function DashboardPage() {
       })
     }
   }
+
+  const isDeleting = deleteServerMutation.isPending || deleteProjectMutation.isPending
 
   if (loadingServers || loadingProjects) return <LoadingSpinner />
 
@@ -319,10 +325,10 @@ export function DashboardPage() {
                   </button>
                   <button 
                     onClick={confirmDelete}
-                    disabled={deleteMutation.isPending}
+                    disabled={isDeleting}
                     className="py-2.5 rounded-xl bg-red-500 text-white font-headline font-bold text-[10px] hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 uppercase tracking-widest"
                   >
-                    {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                    {isDeleting ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
               </motion.div>
@@ -457,7 +463,7 @@ export function DashboardPage() {
               hideVotes: true,
               hideRatings: true,
               actions: (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full">
                   {server.status === 'rejected' ? (
                     <button 
                       onClick={(e) => {
@@ -484,10 +490,10 @@ export function DashboardPage() {
                       e.stopPropagation()
                       navigate(`/submit/${server.id}`)
                     }}
-                    className="text-[10px] md:text-xs font-bold text-blue-400 hover:text-blue-300 px-3 md:px-4 py-2 bg-blue-500/10 rounded-md transition-colors border border-blue-500/20 flex items-center justify-center gap-2 hover:bg-blue-500/20"
+                    className="text-[10px] md:text-xs font-bold text-blue-400 hover:text-blue-300 px-3 md:px-4 py-2 bg-blue-500/10 rounded-md transition-colors border border-blue-500/20 flex-1 flex items-center justify-center gap-2 hover:bg-blue-500/20"
                   >
                     <Pencil className="w-3 h-3" />
-                    Edit
+                    Edit Server
                   </button>
                   <button 
                     onClick={(e) => {
@@ -558,9 +564,21 @@ export function DashboardPage() {
                           e.stopPropagation()
                           navigate(`/submit/project?id=${project.id}`)
                         }}
-                        className="text-[10px] md:text-xs font-bold text-blue-400 hover:text-blue-300 px-3 py-1.5 md:py-2 bg-blue-500/10 rounded-md border border-blue-500/20 flex-1 text-center transition-colors hover:bg-blue-500/20"
+                        className="text-[10px] md:text-xs font-bold text-blue-400 hover:text-blue-300 px-3 py-1.5 md:py-2 bg-blue-500/10 rounded-md border border-blue-500/20 flex-1 flex items-center justify-center gap-2 transition-colors hover:bg-blue-500/20"
                       >
+                        <Pencil className="w-3 h-3" />
                         Edit Project
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleDeleteClick(project.id, project.name, 'project')
+                        }}
+                        className="p-1.5 md:p-2 text-red-500 hover:text-red-400 bg-red-500/10 rounded-md transition-colors border border-red-500/20 flex items-center justify-center hover:bg-red-500/20"
+                        title="Delete Listing"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                       </button>
                     </div>
                   }

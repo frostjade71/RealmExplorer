@@ -54,7 +54,7 @@ export function ProjectSelectionModal({ isOpen, onClose }: ProjectSelectionModal
             className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl overflow-hidden"
           >
             <div className="p-5 border-b border-zinc-800 flex justify-between items-center relative z-10 bg-zinc-900">
-              <h2 className="font-pixel text-white text-xs md:text-sm uppercase tracking-widest">Select a Project</h2>
+              <h2 className="font-pixel text-white text-xs md:text-sm uppercase tracking-widest">Select a Version</h2>
               <button 
                 onClick={onClose}
                 className="p-2 text-zinc-500 hover:text-white transition-colors"

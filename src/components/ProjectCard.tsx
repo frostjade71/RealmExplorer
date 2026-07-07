@@ -18,9 +18,10 @@ export function ProjectCard({
   const statusInfo = {
     draft: { label: 'Draft', bg: 'bg-zinc-800 border-zinc-700', text: 'text-zinc-400', icon: <Edit3 className="w-3 h-3" /> },
     published: { label: 'Published', bg: 'bg-realm-green/10', text: 'text-realm-green', icon: <CheckCircle className="w-3 h-3" /> },
+    approved: { label: 'Approved', bg: 'bg-realm-green/10 border-transparent', text: 'text-realm-green', icon: null },
     archived: { label: 'Archived', bg: 'bg-yellow-500/10 border-yellow-500/20', text: 'text-yellow-500', icon: <Archive className="w-3 h-3" /> },
     pending: { label: 'Pending', bg: 'bg-orange-500/10 border-orange-500/50', text: 'text-orange-500', icon: <Clock className="w-3 h-3 text-orange-500" /> }
-  }[project.status as 'draft' | 'published' | 'archived' | 'pending'] || { label: project.status, bg: 'bg-zinc-800', text: 'text-zinc-400', icon: <Edit3 className="w-3 h-3" /> }
+  }[project.status as 'draft' | 'published' | 'archived' | 'pending' | 'approved'] || { label: project.status, bg: 'bg-zinc-800', text: 'text-zinc-400', icon: <Edit3 className="w-3 h-3" /> }
 
   const getCategoryIcon = (c: string) => {
     const Icon = c === 'Mods' ? Wrench :

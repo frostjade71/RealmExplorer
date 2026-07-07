@@ -26,3 +26,5 @@ database/
 *.sw?
 
 test_dm.js
+supabase/.temp
+notes.md

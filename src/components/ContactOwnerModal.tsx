@@ -35,7 +35,7 @@ export function ContactOwnerModal({
   // Pre-fill subject if it's a rejection
   useState(() => {
     if (type === 'rejection' && !subject) {
-      setSubject('Server Listing Rejected')
+      setSubject(title === 'Reject Project Listing' ? 'Project Listing Rejected' : 'Server Listing Rejected')
     }
   })
 

@@ -1,5 +1,5 @@
 import { useAdminProjects } from '../hooks/queries'
-import { useUpdateProjectStatusMutation } from '../hooks/mutations'
+import { useUpdateProjectStatusMutation, useSendProjectMessageMutation } from '../hooks/mutations'
 import type { ProjectStatus } from '../types'
 import { LoadingSpinner } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
@@ -7,7 +7,8 @@ import { FramerIn } from '../components/FramerIn'
 import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, Check, X, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Check, X, Clock, ChevronLeft, ChevronRight, Mail } from 'lucide-react'
+import { ContactOwnerModal } from '../components/ContactOwnerModal'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -16,10 +17,12 @@ export function AdminProjectsPage() {
   const navigate = useNavigate()
   const { data: projects = [], isLoading: loading } = useAdminProjects()
   const updateMutation = useUpdateProjectStatusMutation()
+  const sendMessageMutation = useSendProjectMessageMutation()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('review')
   const [currentPage, setCurrentPage] = useState(1)
+  const [modalConfig, setModalConfig] = useState<{ isOpen: boolean, type: 'contact' | 'rejection', project: any | null }>({ isOpen: false, type: 'contact', project: null })
   const ITEMS_PER_PAGE = 20
 
   const filteredProjects = useMemo(() => {
@@ -58,6 +61,40 @@ export function AdminProjectsPage() {
         }
       }
     )
+  }
+
+  const handleModalSubmit = async (subject: string, message: string) => {
+    if (!modalConfig.project || !profile) return
+
+    try {
+      const result = await sendMessageMutation.mutateAsync({
+        projectId: modalConfig.project.id,
+        subject,
+        message,
+        type: modalConfig.type,
+        adminId: profile.id,
+        adminName: profile.discord_username
+      })
+
+      if (modalConfig.type === 'rejection') {
+        handleUpdateStatus(modalConfig.project.id, 'rejected')
+      }
+
+      if (result?.dmSent) {
+        toast.success(modalConfig.type === 'rejection' ? 'Project Rejected' : 'Message Sent', {
+          description: `Discord DM delivered to ${modalConfig.project.name} owner.`
+        })
+      } else {
+        toast.warning(modalConfig.type === 'rejection' ? 'Project Rejected (DM Failed)' : 'Message Sent (DM Failed)', {
+          description: `Could not deliver Discord DM. An in-app notification was sent as fallback.`
+        })
+      }
+
+      setModalConfig({ ...modalConfig, isOpen: false })
+    } catch (error: any) {
+      console.error('Failed to process admin action:', error)
+      toast.error('Action Failed', { description: error.message || 'An error occurred.' })
+    }
   }
 
   if (loading) return <LoadingSpinner />
@@ -228,6 +265,16 @@ export function AdminProjectsPage() {
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-2 opacity-100 transition-opacity duration-300">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setModalConfig({ isOpen: true, type: 'contact', project })
+                          }}
+                          className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-blue-500/20 group/btn"
+                          title="Contact Owner"
+                        >
+                          <Mail className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                        </button>
                         {project.status !== 'approved' && (
                           <button 
                             onClick={(e) => {
@@ -244,7 +291,7 @@ export function AdminProjectsPage() {
                           <button 
                             onClick={(e) => {
                               e.stopPropagation()
-                              handleUpdateStatus(project.id, 'rejected')
+                              setModalConfig({ isOpen: true, type: 'rejection', project })
                             }}
                             className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-red-500/20 group/btn"
                             title="Reject"
@@ -285,6 +332,16 @@ export function AdminProjectsPage() {
               </div>
             )}
       </FramerIn>
+
+      <ContactOwnerModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig({ ...modalConfig, isOpen: false })}
+        onSubmit={handleModalSubmit}
+        isSubmitting={sendMessageMutation.isPending || updateMutation.isPending}
+        title={modalConfig.type === 'rejection' ? 'Reject Project Listing' : 'Contact Owner'}
+        submitLabel={modalConfig.type === 'rejection' ? 'Reject & Send' : 'Send Message'}
+        type={modalConfig.type}
+      />
     </AnimatedPage>
   )
 }
