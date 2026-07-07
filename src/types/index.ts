@@ -264,3 +264,30 @@ export interface ServerStaff {
   created_at: string
   profiles?: Profile
 }
+
+export type ProjectType = 'java' | 'bedrock'
+export type ProjectStatus = 'draft' | 'pending' | 'approved' | 'rejected'
+
+export interface Project {
+  id: string
+  owner_id: string
+  name: string
+  description: string
+  slug: string
+  type: ProjectType
+  category: string
+  file_url: string | null
+  icon_url: string | null
+  gallery: string[]
+  status: ProjectStatus
+  compatibility: string[]
+  platforms: string[]
+  license: string | null
+  custom_license_url: string | null
+  likes: number
+  downloads: number
+  created_at: string
+  updated_at: string
+  profiles?: Profile
+}
+

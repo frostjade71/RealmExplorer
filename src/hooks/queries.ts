@@ -19,7 +19,8 @@ import type {
   OTMConfig,
   Badge,
   ServerStaff,
-  ServerAppeal
+  ServerAppeal,
+  Project
 } from '../types'
 
 export function useServers(params?: {
@@ -611,36 +612,6 @@ export function useBlogPostLikes(postId: string | undefined, userId: string | un
     }
   })
 }
-export function useServerAnalytics(serverId: string | undefined) {
-  return useQuery({
-    queryKey: ['serverAnalytics', serverId],
-    enabled: !!serverId,
-    queryFn: async () => {
-      // Fetch all votes for this server to calculate trends
-      const { data: votes, error: votesError } = await supabase
-        .from('votes')
-        .select('created_at')
-        .eq('server_id', serverId!)
-        .order('created_at', { ascending: true })
-      
-      if (votesError) throw votesError
-
-      // Fetch recent ratings
-      const { data: ratings, error: ratingsError } = await supabase
-        .from('server_ratings')
-        .select('*, profiles(discord_username, discord_avatar)')
-        .eq('server_id', serverId!)
-        .order('created_at', { ascending: false })
-      
-      if (ratingsError) throw ratingsError
-
-      return { 
-        votes: votes as { created_at: string }[], 
-        ratings: ratings as (ServerRating & { profiles: Profile })[] 
-      }
-    }
-  })
-}
 
 export function useBadges() {
   return useQuery({
@@ -870,4 +841,68 @@ export function useServerAppeals(status?: string) {
   })
 }
 
+export function useUserProjects(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['userProjects', userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects' as any)
+        .select('*')
+        .eq('owner_id', userId!)
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      return data as unknown as Project[]
+    }
+  })
+}
 
+export function useProject(idOrSlug: string | undefined) {
+  return useQuery({
+    queryKey: ['project', idOrSlug],
+    enabled: !!idOrSlug,
+    queryFn: async () => {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug!)
+      let query = supabase.from('projects' as any).select('*')
+      if (isUuid) {
+        query = query.eq('id', idOrSlug!)
+      } else {
+        query = query.eq('slug', idOrSlug!)
+      }
+
+      const { data, error } = await query.maybeSingle()
+      if (error) throw error
+      if (!data) throw new Error('Project not found')
+      
+      const project = data as any
+      
+      // Fetch profile separately to avoid RLS join issues
+      if (project.owner_id) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', project.owner_id)
+          .single()
+        
+        if (profile) project.profiles = profile
+      }
+
+      return project as unknown as Project
+    }
+  })
+}
+
+export function useAdminProjects() {
+  return useQuery({
+    queryKey: ['adminProjects'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects' as any)
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data as unknown as Project[]
+    }
+  })
+}

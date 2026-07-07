@@ -2,7 +2,7 @@ import { useSearchParams, Link } from 'react-router-dom'
 import { useServers } from '../hooks/queries'
 import { useState, useMemo } from 'react'
 import type { Server } from '../types'
-import { ServerCard } from '../components/ServerCard'
+import { ProjectCard } from '../components/ProjectCard'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -13,8 +13,8 @@ import { MetaTags } from '../components/MetaTags'
 
 // Asset imports
 import golemGif from '../assets/pjdirectory/20756-irongolem (1).gif'
-import modsIcon from '../assets/pjdirectory/Banner_Pattern_JE1_BE1.png'
-import buildsIcon from '../assets/pjdirectory/4441_MCdiamondpickaxe.png'
+import javaIcon from '../assets/category/10421-grass.png'
+import bedrockIcon from '../assets/category/437888-bedrock.png'
 
 export function ProjectsPage() {
   const isMobile = useIsMobile()
@@ -46,19 +46,24 @@ export function ProjectsPage() {
   }, [filteredProjects, PAGE_SIZE])
 
   const projectTypes = [
-    { id: 'addons', label: 'Add-ons' },
-    { id: 'builds', label: 'Builds' },
+    { id: 'java', label: 'Java' },
+    { id: 'bedrock', label: 'Bedrock' },
   ]
 
   const projectCategories: Record<string, { id: string, label: string }[]> = {
-    addons: [
-      { id: 'resource', label: 'Resource' },
-      { id: 'behavior', label: 'Behavior' },
-      { id: 'scripts', label: 'Scripts' },
+    java: [
+      { id: 'mods', label: 'Mods' },
+      { id: 'modpacks', label: 'Modpacks' },
+      { id: 'datapacks', label: 'Datapacks' },
+      { id: 'shaders', label: 'Shaders' },
+      { id: 'plugins', label: 'Plugins' },
+      { id: 'builds', label: 'Builds' },
     ],
-    builds: [
-      { id: 'maps', label: 'Maps' },
-      { id: 'schematics', label: 'Schematics' },
+    bedrock: [
+      { id: 'addons', label: 'Add-ons' },
+      { id: 'resource_pack', label: 'Resource Pack' },
+      { id: 'behavior_pack', label: 'Behavior Pack' },
+      { id: 'builds', label: 'Builds' },
     ]
   }
 
@@ -141,33 +146,33 @@ export function ProjectsPage() {
             </button>
 
             <button
-              onClick={() => setType('addons')}
-              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeType === 'addons' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+              onClick={() => setType('java')}
+              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeType === 'java' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
-              {activeType === 'addons' && (
+              {activeType === 'java' && (
                 <motion.div 
                   layoutId="hero-cat"
                   className="absolute inset-0 bg-blue-400/10 border border-blue-400/20 rounded-xl"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
-              <img src={modsIcon} alt="Add-ons" className="w-4 h-4 object-contain relative z-10" />
-              <span className="relative">Add-ons</span>
+              <img src={javaIcon} alt="Java" className="w-4 h-4 object-contain relative z-10" />
+              <span className="relative">Java</span>
             </button>
 
             <button
-              onClick={() => setType('builds')}
-              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeType === 'builds' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+              onClick={() => setType('bedrock')}
+              className={`relative px-4 py-2 rounded-xl text-xs md:text-sm font-headline font-bold flex items-center gap-2 transition-colors ${activeType === 'bedrock' ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
-              {activeType === 'builds' && (
+              {activeType === 'bedrock' && (
                 <motion.div 
                   layoutId="hero-cat"
                   className="absolute inset-0 bg-blue-400/10 border border-blue-400/20 rounded-xl"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
-              <img src={buildsIcon} alt="Builds" className="w-4 h-4 object-contain relative z-10" />
-              <span className="relative">Builds</span>
+              <img src={bedrockIcon} alt="Bedrock" className="w-4 h-4 object-contain relative z-10" />
+              <span className="relative">Bedrock</span>
             </button>
           </motion.div>
         </div>
@@ -256,16 +261,24 @@ export function ProjectsPage() {
               className="w-full py-12 md:py-20 flex flex-col items-center"
             >
               <EmptyState 
-                title="Coming Soon" 
-                message="We're currently preparing our community projects directory. Stay tuned for some amazing mods and builds!" 
+                title="Pre-Upload is now Live!" 
+                message="You can now pre-upload your projects before the official release. Get ready for the Project Explorer update!" 
                 action={
-                  <Link 
-                    to="/pj"
-                    className="flex items-center gap-2 text-zinc-500 hover:text-blue-400 transition-all font-headline font-bold text-sm group underline decoration-zinc-800 underline-offset-4 hover:decoration-blue-400/50"
-                  >
-                    <span>why are we doing this?</span>
-                    <img src={golemGif} alt="Iron Golem" className="w-6 h-6 object-contain group-hover:scale-110 transition-transform" />
-                  </Link>
+                  <div className="flex flex-col items-center gap-4 mt-2">
+                    <Link 
+                      to="/dashboard?action=upload_project"
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg font-headline font-bold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40"
+                    >
+                      Upload a Project
+                    </Link>
+                    <Link 
+                      to="/pj"
+                      className="flex items-center gap-2 text-zinc-500 hover:text-blue-400 transition-all font-headline font-bold text-sm group underline decoration-zinc-800 underline-offset-4 hover:decoration-blue-400/50"
+                    >
+                      <span>why are we doing this?</span>
+                      <img src={golemGif} alt="Iron Golem" className="w-6 h-6 object-contain group-hover:scale-110 transition-transform" />
+                    </Link>
+                  </div>
                 }
               />
             </motion.div>
@@ -291,7 +304,7 @@ export function ProjectsPage() {
                     visible: { opacity: 1, y: 0 }
                   }}
                 >
-                  <ServerCard server={project} />
+                  <ProjectCard project={project} />
                 </motion.div>
               ))}
             </motion.div>

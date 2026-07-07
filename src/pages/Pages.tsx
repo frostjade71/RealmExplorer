@@ -3,6 +3,8 @@ export { ServerDetailPage } from './ServerDetailPage'
 export { DirectoryPage as ServersPage } from './DirectoryPage'
 export { ProjectsPage } from './ProjectsPage'
 export { WhyProjectsPage } from './WhyProjectsPage'
+export { ProjectSubmitPage } from './ProjectSubmitPage'
+export { ProjectDetailPage } from './ProjectDetailPage'
 import { EventsPage } from './EventsPage'
 export { EventsPage }
 export const ROTMPage = () => <EventsPage category="realm" />
@@ -14,7 +16,7 @@ export { OTMStandingsPage } from './OTMStandingsPage'
 export { AboutPage } from './AboutPage'
 export { SubmitPage } from './SubmitPage'
 export { DashboardPage } from './DashboardPage'
-export { ServerAnalyticsPage } from './ServerAnalyticsPage'
+
 export { TeamPage } from './TeamPage'
 export { BlogPage } from './BlogPage'
 export { AdminBlogPage } from './AdminBlogPage'
@@ -30,6 +32,7 @@ export { StatusPage } from './StatusPage'
 export function NotFoundPage() { return <div className="p-12 text-center text-white font-pixel">404 - Not Found</div> }
 
 export { AdminServersPage } from './AdminServersPage'
+export { AdminProjectsPage } from './AdminProjectsPage'
 export { AdminUsersPage } from './AdminUsersPage'
 export { AdminSettingsPage } from './AdminSettingsPage'
 export { AdminOverviewPage } from './AdminOverviewPage'

@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
-import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 import modsBg from '../assets/dashboard/iocnsdev.webp'
-import buildsBg from '../assets/dashboard/building.webp'
+import buildsBg from '../assets/dashboard/furniture.png'
 
 interface ProjectSelectionModalProps {
   isOpen: boolean
@@ -13,25 +13,25 @@ interface ProjectSelectionModalProps {
 export function ProjectSelectionModal({ isOpen, onClose }: ProjectSelectionModalProps) {
   const projects = [
     {
-      id: 'Add-ons',
-      title: 'Add-ons',
-      desc: 'Submit your community Add-ons and creations.',
+      id: 'Java',
+      title: 'Java',
+      desc: 'Submit your community Java projects and creations.',
       bg: modsBg,
       icon: 'extension'
     },
     {
-      id: 'Builds',
-      title: 'Builds',
-      desc: 'Showcase your amazing builds and maps.',
+      id: 'Bedrock',
+      title: 'Bedrock',
+      desc: 'Showcase your amazing Bedrock projects and maps.',
       bg: buildsBg,
       icon: 'architecture'
     }
   ]
 
-  const handleSelect = () => {
-    toast.info('Soon', {
-        description: 'Project submissions are coming soon!'
-    })
+  const navigate = useNavigate()
+
+  const handleSelect = (type: string) => {
+    navigate(`/submit/project?type=${type}`)
     onClose()
   }
 
@@ -67,7 +67,7 @@ export function ProjectSelectionModal({ isOpen, onClose }: ProjectSelectionModal
               {projects.map((project) => (
                 <button 
                   key={project.id} 
-                  onClick={handleSelect}
+                  onClick={() => handleSelect(project.id.toLowerCase())}
                   className="relative bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden transition-all group min-h-[120px] flex flex-col justify-end p-5 text-left"
                 >
                   {/* Background Image with Overlay */}

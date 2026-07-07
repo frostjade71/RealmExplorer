@@ -147,13 +147,13 @@ function generateEmbed(stats: any) {
   const offlineEmoji = "<a:offline:1502469496118448208>";
   
   return {
-    title: "<:logo:1498001412788064346> Realm Explorer - Live Status",
+    title: "<a:mchop:1296934851592589336> Realm Explorer - Live Status",
     description: "Real-time metrics from the Realm Explorer website.",
     color: 5763719,
     fields: [
-      { name: "<:users:1436833472202412176> Total Users", value: `\`${stats.userCount || 0}\``, inline: true },
+      { name: "👥 Total Users", value: `\`${stats.userCount || 0}\``, inline: true },
       { name: "<:servers:1296934822362742937> Active Servers", value: `\`${stats.serverCount || 0}\``, inline: true },
-      { name: "<:votes:1502056182783676577> Total Votes", value: `\`${stats.voteCount || 0}\``, inline: true },
+      { name: "🗳️ Total Votes", value: `\`${stats.voteCount || 0}\``, inline: true },
       { name: `${onlineEmoji} Database`, value: "Operational", inline: true },
       { name: `${onlineEmoji} Edge`, value: "Operational", inline: true },
       { name: `${stats.websiteOnline ? onlineEmoji : offlineEmoji} Portal`, value: stats.websiteOnline ? "Operational" : "Down / Issue", inline: true },

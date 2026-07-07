@@ -1,7 +1,7 @@
 import { useLocation, Link, Outlet } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
-import { useAdminServers, useCategoryRequests, useReports, useServerAppeals } from '../hooks/queries'
+import { useAdminServers, useAdminProjects, useCategoryRequests, useReports, useServerAppeals } from '../hooks/queries'
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import logo from '../assets/rerealm.webp'
@@ -26,6 +26,8 @@ export function AdminLayout() {
   const pendingCatRequestsCount = catRequests.filter(r => r.status === 'pending').length
   const { data: reports = [] } = useReports()
   const pendingReportsCount = reports.filter(r => r.status === 'pending' || r.status === 'reviewing').length
+  const { data: projects = [] } = useAdminProjects()
+  const pendingProjectsCount = projects.filter(p => p.status === 'pending').length
 
   const navItems = [
     { to: '/admin', label: 'Overview', icon: 'dashboard' },
@@ -34,6 +36,12 @@ export function AdminLayout() {
       label: 'Manage Servers', 
       icon: 'dns',
       indicatorCount: needsReviewCount 
+    },
+    { 
+      to: '/admin/projects', 
+      label: 'Manage Projects', 
+      icon: 'inventory_2',
+      indicatorCount: pendingProjectsCount 
     },
     { 
       to: '/admin/reports', 

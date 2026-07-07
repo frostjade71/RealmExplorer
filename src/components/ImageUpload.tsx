@@ -8,12 +8,14 @@ import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion'
 
 interface ImageUploadProps {
   label: string
-  onUpload: (url: string) => void
+  onUpload: (url: string, file?: Blob) => void
   value?: string
   aspectRatio?: 'square' | 'video'
+  bucket?: string
+  immediateUpload?: boolean
 }
 
-export function ImageUpload({ label, onUpload, value, aspectRatio = 'square' }: ImageUploadProps) {
+export function ImageUpload({ label, onUpload, value, aspectRatio = 'square', bucket = 'server-assets', immediateUpload = true }: ImageUploadProps) {
   const { user } = useAuth()
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -53,7 +55,7 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square' }: 
       // Cleanup previous session-uploaded image if it exists
       if (currentUploadPath.current) {
         await supabase.storage
-          .from('server-assets')
+          .from(bucket)
           .remove([currentUploadPath.current])
         currentUploadPath.current = null
       }
@@ -82,34 +84,46 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square' }: 
       const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.webp`
       const filePath = `${user.id}/${fileName}`
 
-      // Upload to Supabase Storage
-      setUploadProgress(40)
-      
-      const { error: uploadError } = await supabase.storage
-        .from('server-assets')
-        .upload(filePath, webpBlob, {
-          contentType: 'image/webp',
-          upsert: true,
-          cacheControl: 'public, max-age=31536000, immutable' // 1 year immutable cache
-        })
+      if (immediateUpload) {
+        // Upload to Supabase Storage
+        setUploadProgress(40)
+        
+        const { error: uploadError } = await supabase.storage
+          .from(bucket)
+          .upload(filePath, webpBlob, {
+            contentType: 'image/webp',
+            upsert: true,
+            cacheControl: 'public, max-age=31536000, immutable' // 1 year immutable cache
+          })
 
-      if (uploadError) throw uploadError
+        if (uploadError) throw uploadError
 
-      setUploadProgress(80)
+        setUploadProgress(80)
 
-      // Update current session path
-      currentUploadPath.current = filePath
+        // Update current session path
+        currentUploadPath.current = filePath
 
-      // Get Public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('server-assets')
-        .getPublicUrl(filePath)
+        // Get Public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(filePath)
 
-      setUploadProgress(100)
-      await new Promise(r => setTimeout(r, 400)) // delay to let the animation show
+        setUploadProgress(100)
+        await new Promise(r => setTimeout(r, 400)) // delay to let the animation show
 
-      setPreview(publicUrl)
-      onUpload(publicUrl)
+        setPreview(publicUrl)
+        onUpload(publicUrl, webpBlob)
+      } else {
+        // Just simulate and return local blob URL
+        setUploadProgress(60)
+        await new Promise(r => setTimeout(r, 200))
+        setUploadProgress(100)
+        await new Promise(r => setTimeout(r, 200))
+        
+        const localUrl = URL.createObjectURL(webpBlob)
+        setPreview(localUrl)
+        onUpload(localUrl, webpBlob)
+      }
     } catch (error: any) {
       console.error('Error uploading image:', error.message)
       alert('Error uploading image. Please try again.')
@@ -121,9 +135,9 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square' }: 
 
   const removeImage = async () => {
     // If we just uploaded this in the current session, delete it from storage
-    if (currentUploadPath.current) {
+    if (currentUploadPath.current && immediateUpload) {
       await supabase.storage
-        .from('server-assets')
+        .from(bucket)
         .remove([currentUploadPath.current])
       currentUploadPath.current = null
     }

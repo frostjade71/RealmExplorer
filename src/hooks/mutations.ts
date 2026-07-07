@@ -1371,3 +1371,84 @@ export function useResolveAppealMutation() {
     }
   })
 }
+
+export function useSubmitProjectMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (projectData: any) => {
+      if (projectData.id) {
+        const { data, error } = await supabase
+          .from('projects' as any)
+          .update({ ...projectData, updated_at: new Date().toISOString() })
+          .eq('id', projectData.id)
+          .select()
+          .single()
+        if (error) throw error
+        return data
+      } else {
+        const { data, error } = await supabase
+          .from('projects' as any)
+          .insert(projectData)
+          .select()
+          .single()
+        if (error) throw error
+        return data
+      }
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['userProjects'] })
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ['project', data.id] })
+        queryClient.invalidateQueries({ queryKey: ['project', data.slug] })
+      }
+    }
+  })
+}
+
+export function useUploadProjectFileMutation() {
+  return useMutation({
+    mutationFn: async ({ file, path }: { file: File, path: string }) => {
+      const { error } = await supabase.storage
+        .from('project-files')
+        .upload(path, file, { upsert: true })
+      
+      if (error) throw error
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('project-files')
+        .getPublicUrl(path)
+        
+      return publicUrl
+    }
+  })
+}
+
+export function useUpdateProjectStatusMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, status, adminId, adminName }: { id: string, status: string, adminId?: string | null, adminName?: string | null }) => {
+      const { data, error } = await supabase
+        .from('projects' as any)
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) throw error
+
+      if (adminId) {
+        await logAction('UPDATE_PROJECT_STATUS', { status }, adminId, adminName, id)
+      }
+
+      return data
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['adminProjects'] })
+      queryClient.invalidateQueries({ queryKey: ['userProjects'] })
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ['project', data.id] })
+        queryClient.invalidateQueries({ queryKey: ['project', data.slug] })
+      }
+    }
+  })
+}

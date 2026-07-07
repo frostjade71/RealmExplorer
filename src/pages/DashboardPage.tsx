@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { createPortal } from 'react-dom'
 import { useIsMobile } from '../hooks/useMediaQuery'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useUserServers, useServerAppeals } from '../hooks/queries'
+import { useUserServers, useServerAppeals, useUserProjects } from '../hooks/queries'
 import { useDeleteServerMutation, useSubmitAppealMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { ServerCard } from '../components/ServerCard'
+import { ProjectCard } from '../components/ProjectCard'
 import { SponsorServerCard } from '../components/SponsorServerCard'
-import { PlusCircle, Pencil, Trash2, BarChart2, Check, Palette, AlertCircle } from 'lucide-react'
+import { PlusCircle, Pencil, Trash2, Check, Palette, AlertCircle, Server as ServerIcon, Folder, Bookmark } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -147,8 +148,12 @@ export function DashboardPage() {
   const isMobile = useIsMobile()
   const { user, profile, hasPremiumPerks } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const actionParam = searchParams.get('action')
+  const [activeTab, setActiveTab] = useState<'servers' | 'projects' | 'saved'>('servers')
   
-  const { data: servers = [], isLoading: loading, refetch } = useUserServers(user?.id)
+  const { data: servers = [], isLoading: loadingServers, refetch } = useUserServers(user?.id)
+  const { data: projects = [], isLoading: loadingProjects } = useUserProjects(user?.id)
   const limit = hasPremiumPerks ? 5 : 1
   const hasReachedLimit = servers.length >= limit
   const deleteMutation = useDeleteServerMutation()
@@ -202,7 +207,7 @@ export function DashboardPage() {
 
   // Handle hash scrolling for #sponsor
   useEffect(() => {
-    if (window.location.hash === '#sponsor' && servers.length > 0) {
+    if (window.location.hash === '#sponsor' && servers.length > 0 && activeTab === 'servers') {
       const timer = setTimeout(() => {
         const element = document.getElementById('sponsor-section')
         if (element) {
@@ -211,7 +216,17 @@ export function DashboardPage() {
       }, 300)
       return () => clearTimeout(timer)
     }
-  }, [servers])
+  }, [servers, activeTab])
+
+  // Handle upload project action query param
+  useEffect(() => {
+    if (actionParam === 'upload_project') {
+      setIsProjectModalOpen(true)
+      setActiveTab('projects')
+      searchParams.delete('action')
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [actionParam, searchParams, setSearchParams])
 
   const handleDeleteClick = (id: string, name: string) => {
     setDeleteId(id)
@@ -230,7 +245,7 @@ export function DashboardPage() {
     }
   }
 
-  if (loading) return <LoadingSpinner />
+  if (loadingServers || loadingProjects) return <LoadingSpinner />
 
   if (isSuccess) {
     return (
@@ -339,11 +354,30 @@ export function DashboardPage() {
         serverName={appealServerName}
       />
 
-      <AnimatedPage className="max-w-7xl mx-auto px-8 py-12">
+      <AnimatedPage className="w-full max-w-7xl mx-auto px-8 py-12">
         <FramerIn delay={0.1} className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div>
-            <h1 className="font-pixel text-xs md:text-lg text-white mb-2 uppercase tracking-wide">Your Listings</h1>
-            <div className="h-px w-full bg-zinc-800"></div>
+          <div className="flex gap-4 border-b border-zinc-800 w-full sm:w-auto">
+            <button 
+              onClick={() => setActiveTab('servers')}
+              className={`font-headline font-bold text-sm md:text-base pb-3 px-2 transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'servers' ? 'border-realm-green text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+            >
+              <ServerIcon className="w-4 h-4 md:w-5 md:h-5" />
+              Servers
+            </button>
+            <button 
+              onClick={() => setActiveTab('projects')}
+              className={`font-headline font-bold text-sm md:text-base pb-3 px-2 transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'projects' ? 'border-blue-500 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+            >
+              <Folder className="w-4 h-4 md:w-5 md:h-5" />
+              Projects
+            </button>
+            <button 
+              onClick={() => setActiveTab('saved')}
+              className={`font-headline font-bold text-sm md:text-base pb-3 px-2 transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'saved' ? 'border-orange-500 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+            >
+              <Bookmark className="w-4 h-4 md:w-5 md:h-5" />
+              Saved
+            </button>
           </div>
           
           <div className="flex flex-wrap items-center gap-3 self-end sm:self-auto">
@@ -388,6 +422,8 @@ export function DashboardPage() {
         </FramerIn>
 
 
+      {activeTab === 'servers' && (
+        <>
       {servers.length === 0 ? (
         <FramerIn delay={0.4}>
           <EmptyState 
@@ -409,7 +445,7 @@ export function DashboardPage() {
               }
             }
           }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 will-change-transform"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 will-change-transform"
         >
           {servers.map(server => {
             const isSponsored = server.is_sponsored && server.sponsored_until && new Date(server.sponsored_until) > new Date();
@@ -441,19 +477,7 @@ export function DashboardPage() {
                       <AlertCircle className="w-3 h-3" />
                       {hasPendingAppeal ? 'Appealed' : 'Appeal'}
                     </button>
-                  ) : (
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        navigate(`/dashboard/analytics/${server.id}`)
-                      }}
-                      className="text-[10px] md:text-xs font-bold text-emerald-400 hover:text-emerald-300 px-3 md:px-4 py-2 bg-emerald-500/10 rounded-md transition-colors border border-emerald-500/20 flex items-center justify-center gap-2 hover:bg-emerald-500/20"
-                    >
-                      <BarChart2 className="w-3 h-3" />
-                      Analytics
-                    </button>
-                  )}
+                  ) : null}
                   <button 
                     onClick={(e) => {
                       e.preventDefault()
@@ -499,9 +523,66 @@ export function DashboardPage() {
           })}
         </motion.div>
       )}
+      </>
+      )}
+
+      {activeTab === 'projects' && (
+        <>
+        {projects.length === 0 ? (
+          <FramerIn delay={0.4}>
+            <EmptyState 
+              title="No Projects Found" 
+              message="You haven't submitted any projects yet. Click 'New Project' to get started." 
+            />
+          </FramerIn>
+        ) : (
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.4 } }
+            }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 will-change-transform"
+          >
+            {projects.map((project: any) => (
+              <motion.div key={project.id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="relative">
+                <ProjectCard
+                  project={project}
+                  showStatus={true}
+                  actions={
+                    <div className="flex items-center gap-2 w-full">
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          navigate(`/submit/project?id=${project.id}`)
+                        }}
+                        className="text-[10px] md:text-xs font-bold text-blue-400 hover:text-blue-300 px-3 py-1.5 md:py-2 bg-blue-500/10 rounded-md border border-blue-500/20 flex-1 text-center transition-colors hover:bg-blue-500/20"
+                      >
+                        Edit Project
+                      </button>
+                    </div>
+                  }
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+        </>
+      )}
+
+      {activeTab === 'saved' && (
+        <FramerIn delay={0.4}>
+          <EmptyState 
+            title="No Saved Items" 
+            message="You haven't saved any servers or projects yet. Browse the directory and click the save icon to add items here." 
+          />
+        </FramerIn>
+      )}
 
       {/* Your Sponsors Section */}
-      {(() => {
+      {activeTab === 'servers' && (() => {
         const sponsoredServers = servers.filter(s => s.is_sponsored && s.sponsored_until && new Date(s.sponsored_until) > new Date())
         if (sponsoredServers.length === 0) return null
 
@@ -525,6 +606,7 @@ export function DashboardPage() {
       })()}
 
       {/* Sponsor Section */}
+      {activeTab === 'servers' && (
       <div id="sponsor-section" className="mt-16 border-t border-zinc-800 pt-16 max-w-4xl mx-auto">
         <FramerIn delay={0.6}>
           <div className="text-center mb-10">
@@ -713,6 +795,7 @@ export function DashboardPage() {
           </div>
         </FramerIn>
       </div>
+      )}
     </AnimatedPage>
     </>
   )

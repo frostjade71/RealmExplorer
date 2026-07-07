@@ -142,7 +142,6 @@ export function CommunityOneWidget() {
     '/servers',
     '/admin',
     '/profile',
-    '/dashboard/analytics',
     '/submit',
     '/status'
   ]

@@ -13,6 +13,8 @@ import {
   ServersPage,
   ProjectsPage,
   WhyProjectsPage,
+  ProjectSubmitPage,
+  ProjectDetailPage,
   ROTMPage,
   SOTMPage,
   BOTMPage,
@@ -23,6 +25,7 @@ import {
   DashboardPage,
   NotFoundPage,
   AdminServersPage,
+  AdminProjectsPage,
   AdminUsersPage,
   AdminSettingsPage,
   AdminOverviewPage,
@@ -38,7 +41,7 @@ import {
   AdminBlogPage,
   BlogPostDetailPage,
   ProfilePage,
-  ServerAnalyticsPage,
+
   AdminBadgesPage,
   TermsPage,
   PrivacyPage,
@@ -67,6 +70,10 @@ export const router = createBrowserRouter([
       {
         path: '/pj',
         element: <WhyProjectsPage />,
+      },
+      {
+        path: '/projects/:slug',
+        element: <ProjectDetailPage />,
       },
       {
         path: '/rotm',
@@ -157,13 +164,14 @@ export const router = createBrowserRouter([
             element: <SubmitPage />,
           },
           {
+            path: '/submit/project',
+            element: <ProjectSubmitPage />,
+          },
+          {
             path: '/dashboard',
             element: <DashboardPage />,
           },
-          {
-            path: '/dashboard/analytics/:id',
-            element: <ServerAnalyticsPage />,
-          },
+
         ],
       },
       {
@@ -187,6 +195,10 @@ export const router = createBrowserRouter([
           {
             path: 'servers',
             element: <AdminServersPage />,
+          },
+          {
+            path: 'projects',
+            element: <AdminProjectsPage />,
           },
           { 
             path: 'reports', 

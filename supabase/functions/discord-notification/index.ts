@@ -121,6 +121,27 @@ Deno.serve(async (req: Request) => {
           timestamp: new Date().toISOString()
         }]
       };
+    } else if (type === 'staff_project_review') {
+      const { projectName, iconUrl } = payload;
+      targetEndpoint = STAFF_WEBHOOK_URL;
+      const adminPanelUrl = 'https://www.realmexplorer.xyz/admin/projects';
+
+      discordPayload = {
+        username: 'Realm Explorer | Staff Alert',
+        content: STAFF_ROLE_ID ? `<@&${STAFF_ROLE_ID}>` : undefined,
+        embeds: [{
+          title: '📑 New Project Submission',
+          description: `**${projectName}** needs reviewing !`,
+          color: 0xffa500, // Orange
+          thumbnail: iconUrl ? { url: iconUrl } : undefined,
+          fields: [{
+            name: 'Action Required',
+            value: `Please visit the [Admin Dashboard](${adminPanelUrl}) to review and approve this update.`,
+          }],
+          footer: { text: 'Staff Notification System' },
+          timestamp: new Date().toISOString()
+        }]
+      };
     } else if (type === 'payment') {
       const { username, amount, currency, orderId, purchaseType } = payload;
       targetEndpoint = LOGS_WEBHOOK_URL;

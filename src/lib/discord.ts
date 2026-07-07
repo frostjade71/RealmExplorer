@@ -55,6 +55,27 @@ export async function sendStaffReviewNotification(params: {
   }
 }
 
+export async function sendProjectReviewNotification(params: {
+  projectName: string;
+  iconUrl?: string | null;
+}) {
+  try {
+    const { error } = await supabase.functions.invoke('discord-notification', {
+      body: {
+        type: 'staff_project_review',
+        payload: {
+          projectName: params.projectName,
+          iconUrl: params.iconUrl,
+        }
+      }
+    });
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Failed to send Project Review notification:', error);
+  }
+}
+
 export async function sendLogNotification(params: {
   action: string;
   adminName?: string | null;
