@@ -791,6 +791,7 @@ export type Database = {
           weighted_rating: number | null
           yesterday_rating_rank: number | null
           yesterday_vote_rank: number | null
+          has_been_listed: boolean
         }
         Insert: {
           average_rating?: number | null
@@ -823,6 +824,7 @@ export type Database = {
           weighted_rating?: number | null
           yesterday_rating_rank?: number | null
           yesterday_vote_rank?: number | null
+          has_been_listed?: boolean
         }
         Update: {
           average_rating?: number | null
@@ -855,6 +857,7 @@ export type Database = {
           weighted_rating?: number | null
           yesterday_rating_rank?: number | null
           yesterday_vote_rank?: number | null
+          has_been_listed?: boolean
         }
         Relationships: [
           {

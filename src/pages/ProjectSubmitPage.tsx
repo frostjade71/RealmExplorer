@@ -21,7 +21,19 @@ const CATEGORIES = {
 }
 
 const PLATFORMS = ['Fabric', 'NeoForge', 'Forge', 'Quilt', 'Vanilla']
-const VERSIONS = ['1.21', '1.20.4', '1.20.1', '1.19.4', '1.19.2', '1.18.2']
+const VERSIONS = [
+  '26.3-snapshot-3',
+  '26.2',
+  '26.1.x',
+  '1.21.x',
+  '1.20.x',
+  '1.19.x',
+  '1.18.x',
+  '1.17.x',
+  '1.16.x',
+  '1.15.x',
+  '1.14.x'
+]
 const LICENSES = ['MIT', 'Apache 2.0', 'GPLv3', 'All Rights Reserved', 'Custom']
 
 export function ProjectSubmitPage() {
@@ -45,6 +57,7 @@ export function ProjectSubmitPage() {
     license: 'MIT',
     custom_license_url: '',
     icon_url: '',
+    short_description: '',
   })
 
   const [projectFile, setProjectFile] = useState<File | null>(null)
@@ -65,6 +78,7 @@ export function ProjectSubmitPage() {
         license: existingProject.license || 'MIT',
         custom_license_url: existingProject.custom_license_url || '',
         icon_url: existingProject.icon_url || '',
+        short_description: existingProject.short_description || '',
       })
     }
   }, [existingProject])
@@ -137,6 +151,25 @@ export function ProjectSubmitPage() {
 
     setIsSubmitting(true)
     try {
+      const hasChanges = 
+        projectFile !== null || 
+        licenseFile !== null || 
+        projectIconBlob !== null ||
+        formData.name !== existingProject?.name ||
+        formData.description !== existingProject?.description ||
+        formData.short_description !== existingProject?.short_description ||
+        formData.type !== existingProject?.type ||
+        formData.category !== existingProject?.category ||
+        formData.license !== existingProject?.license ||
+        JSON.stringify([...formData.compatibility].sort()) !== JSON.stringify([...(existingProject?.compatibility || [])].sort()) ||
+        JSON.stringify([...formData.platforms].sort()) !== JSON.stringify([...(existingProject?.platforms || [])].sort());
+
+      if (existingProject && !hasChanges) {
+        toast.info('No changes detected', { description: 'Your project is already up to date.' })
+        setIsSubmitting(false)
+        return
+      }
+
       let finalFileUrl = existingProject?.file_url || null
       let finalLicenseUrl = existingProject?.custom_license_url || null
       let finalIconUrl = formData.icon_url
@@ -184,6 +217,7 @@ export function ProjectSubmitPage() {
         license: formData.license,
         custom_license_url: finalLicenseUrl,
         icon_url: finalIconUrl || null,
+        short_description: formData.short_description,
         file_url: finalFileUrl,
         status: (e.nativeEvent as SubmitEvent).submitter?.getAttribute('name') === 'submit_review' ? 'pending' : (existingProject?.status || 'draft')
       }
@@ -327,6 +361,20 @@ export function ProjectSubmitPage() {
                   />
                 </div>
               )}
+            </div>
+            <div className="space-y-2 col-span-2">
+              <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
+                <FileText className="w-3 h-3" /> Short Description
+              </label>
+              <input
+                required
+                type="text"
+                maxLength={120}
+                placeholder="A brief catchy tagline for your project..."
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline focus:ring-1 focus:ring-realm-green/30"
+                value={formData.short_description}
+                onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
+              />
             </div>
             
             <div className="space-y-2 col-span-2">

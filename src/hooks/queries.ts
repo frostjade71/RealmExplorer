@@ -613,6 +613,38 @@ export function useBlogPostLikes(postId: string | undefined, userId: string | un
   })
 }
 
+export function useProjectLikes(projectId: string | undefined, userId: string | undefined) {
+  return useQuery({
+    queryKey: ['projectLikes', projectId, userId],
+    enabled: !!projectId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_likes' as any)
+        .select(`
+          user_id,
+          profiles (
+            discord_username
+          )
+        `)
+        .eq('project_id', projectId!)
+
+      if (error) throw error
+
+      const usernames = data
+        ?.map((l: any) => l.profiles?.discord_username)
+        .filter(Boolean) || []
+
+      const hasLiked = userId ? data?.some((l: any) => l.user_id === userId) : false
+
+      return { 
+        count: data?.length || 0, 
+        hasLiked,
+        likedBy: usernames
+      }
+    }
+  })
+}
+
 export function useBadges() {
   return useQuery({
     queryKey: ['badges'],

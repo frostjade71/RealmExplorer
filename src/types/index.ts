@@ -272,6 +272,7 @@ export interface Project {
   id: string
   owner_id: string
   name: string
+  short_description: string | null
   description: string
   slug: string
   type: ProjectType

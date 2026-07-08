@@ -1479,12 +1479,16 @@ export function useUpdateProjectStatusMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, status, adminId, adminName }: { id: string, status: string, adminId?: string | null, adminName?: string | null }) => {
-      const { data: projectData } = await supabase.from('projects' as any).select('owner_id, name, status, slug, icon_url').eq('id', id).single()
-      const project = projectData as unknown as { owner_id: string; name: string; status: string; slug: string; icon_url: string | null } | null;
+      const { data: projectData } = await supabase.from('projects' as any).select('owner_id, name, status, slug, icon_url, has_been_approved').eq('id', id).single()
+      const project = projectData as unknown as { owner_id: string; name: string; status: string; slug: string; icon_url: string | null; has_been_approved: boolean } | null;
       
       const { data, error } = await supabase
         .from('projects' as any)
-        .update({ status, updated_at: new Date().toISOString() })
+        .update({ 
+          status, 
+          updated_at: new Date().toISOString(),
+          ...(status === 'approved' ? { has_been_approved: true } : {})
+        })
         .eq('id', id)
         .select()
         .single()
@@ -1517,7 +1521,7 @@ export function useUpdateProjectStatusMutation() {
             details: `**${project.name}** status changed to **${status}** (previously: \`${project.status}\`).`,
           })
         } else if (status === 'approved' && project?.name && status !== project.status) {
-          if (project.status === 'pending') {
+          if (!project.has_been_approved) {
             await sendApprovalNotification({
               serverName: project.name,
               adminName: adminName || 'A Staff Member',
@@ -1683,3 +1687,48 @@ export function useSendProjectMessageMutation() {
   })
 }
 
+export function useIncrementProjectDownloadMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ projectId, currentDownloads }: { projectId: string, currentDownloads: number }) => {
+      const { data, error } = await supabase
+        .from('projects' as any)
+        .update({ downloads: currentDownloads + 1 } as any)
+        .eq('id', projectId)
+        .select()
+        .single()
+      if (error) throw error
+      return data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] })
+    }
+  })
+}
+
+export function useToggleProjectLikeMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ projectId, userId, isLiking }: { projectId: string, userId: string, isLiking: boolean }) => {
+      if (!isLiking) {
+        const { error } = await supabase
+          .from('project_likes' as any)
+          .delete()
+          .eq('project_id', projectId)
+          .eq('user_id', userId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('project_likes' as any)
+          .insert([{ project_id: projectId, user_id: userId }] as any)
+        if (error) throw error
+      }
+    },
+    onSuccess: () => {
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['projectLikes'] })
+        queryClient.invalidateQueries({ queryKey: ['project'] })
+      }, 500)
+    }
+  })
+}

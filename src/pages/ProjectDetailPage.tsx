@@ -1,10 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useProject } from '../hooks/queries'
+import { useProject, useProjectLikes } from '../hooks/queries'
+import { useIncrementProjectDownloadMutation, useToggleProjectLikeMutation } from '../hooks/mutations'
+import { useAuth } from '../contexts/AuthContext'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
-import { Download, Heart, Clock, Calendar, CheckCircle, Share2, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Layers, Archive, Edit3 } from 'lucide-react'
+import { Download, Heart, Clock, Calendar, CheckCircle, Share2, Archive, Edit3, Upload, Bookmark, Flag, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Layers } from 'lucide-react'
 import javaIcon from '../assets/category/10421-grass.png'
 import bedrockIcon from '../assets/category/437888-bedrock.png'
+import fabricIcon from '../assets/platform/482016-fabricapiminecraft.png'
+import forgeIcon from '../assets/platform/260039-neoforge.png'
+import quiltIcon from '../assets/platform/quiltaa.png'
+import vanillaIcon from '../assets/category/10421-grass.png'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
@@ -16,10 +22,15 @@ export function ProjectDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   
+  const { user, signInWithDiscord } = useAuth()
   const { data: project, isLoading, error } = useProject(slug)
-  const [isLiked, setIsLiked] = useState(false)
+  const { data: projectLikes } = useProjectLikes(project?.id, user?.id)
+  
+  const isLiked = projectLikes?.hasLiked ?? false
+
   const [shareCopied, setShareCopied] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'gallery' | 'reviews'>('overview')
+  const [isLikingLocal, setIsLikingLocal] = useState(false)
 
   // Redirect UUID to slug if needed
   useEffect(() => {
@@ -45,12 +56,38 @@ export function ProjectDetailPage() {
     }
   }
 
+  const incrementDownloadMutation = useIncrementProjectDownloadMutation()
+  const toggleLikeMutation = useToggleProjectLikeMutation()
+
   const handleDownload = () => {
     if (project?.file_url) {
+      if (project.id) {
+        incrementDownloadMutation.mutate({ projectId: project.id, currentDownloads: project.downloads || 0 })
+      }
       window.open(project.file_url, '_blank')
     } else {
       toast.error('No download file available.')
     }
+  }
+
+  const handleToggleLike = () => {
+    if (!project?.id) return
+    if (!user) {
+      toast.error('Please log in to like projects')
+      signInWithDiscord()
+      return
+    }
+    
+    setIsLikingLocal(true)
+    toggleLikeMutation.mutate({
+      projectId: project.id,
+      userId: user.id,
+      isLiking: !isLiked
+    }, {
+      onSettled: () => {
+        setTimeout(() => setIsLikingLocal(false), 500)
+      }
+    })
   }
 
   if (isLoading) return <LoadingSpinner />
@@ -100,11 +137,33 @@ export function ProjectDetailPage() {
                  c === 'Resource Pack' ? Paintbrush :
                  c === 'Behavior Pack' ? Activity :
                  Layers;
-    return <Icon className="w-3 h-3 md:w-3.5 md:h-3.5" />
+    return <Icon className="w-3.5 h-3.5" />
   }
+
+  const getPlatformIcon = (p: string) => {
+    const lower = p.toLowerCase();
+    if (lower === 'fabric') return fabricIcon;
+    if (lower.includes('forge')) return forgeIcon;
+    if (lower === 'quilt') return quiltIcon;
+    if (lower === 'vanilla') return vanillaIcon;
+    return null;
+  }
+
+
 
   return (
     <AnimatedPage className="min-h-screen bg-zinc-950 pb-20">
+      {/* Top Loading Bar for Like Mutation */}
+      {(toggleLikeMutation.isPending || isLikingLocal) && (
+        <div className="fixed top-0 left-0 right-0 h-1 bg-transparent z-50 overflow-hidden pointer-events-none">
+          <motion.div 
+            initial={{ x: '-100vw' }}
+            animate={{ x: '100vw' }}
+            transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
+            className="h-full w-1/3 bg-[#4EC44E]"
+          />
+        </div>
+      )}
       
       <div className="max-w-5xl mx-auto w-full px-4 md:px-8 pt-8 md:pt-12">
         
@@ -131,44 +190,80 @@ export function ProjectDetailPage() {
           </div>
         </div>
         
-        <div className="flex-1 w-full pt-1 md:pt-2">
+        <div className="flex-1 w-full pt-0">
           <div className="flex flex-col md:flex-row justify-between items-start gap-2 md:gap-4">
             <div className="min-w-0 md:flex-1 w-full md:w-auto">
-              <h1 className="text-lg md:text-2xl font-pixel text-white mb-2 md:mb-3 break-words whitespace-normal leading-tight">{project.name}</h1>
-              <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-2 md:mb-4">
+              <h1 className="text-lg md:text-2xl font-pixel text-white mb-1 break-words whitespace-normal leading-tight">{project.name}</h1>
+              <div className="flex flex-col gap-1 mb-1">
                 {statusInfo && (
-                  <div className={`flex items-center gap-1.5 px-2 py-0.5 text-[9px] md:text-[10px] font-bold uppercase tracking-wider rounded border ${statusInfo.bg} ${statusInfo.text}`}>
+                  <div className={`flex items-center gap-1.5 px-2 py-0.5 w-fit text-[9px] md:text-[10px] font-bold uppercase tracking-wider rounded border ${statusInfo.bg} ${statusInfo.text}`}>
                     {statusInfo.icon}
                     <span>{statusInfo.label}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] md:text-[10px] font-headline font-bold uppercase tracking-wider w-fit bg-zinc-800/50 text-zinc-400 border border-zinc-700/50">
-                  <img src={project.type === 'java' ? javaIcon : bedrockIcon} alt={project.type} className="w-3 h-3 md:w-3.5 md:h-3.5 object-contain" />
-                  <span>{project.type}</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] md:text-[10px] font-headline font-bold uppercase tracking-wider w-fit bg-zinc-800/50 text-zinc-400 border border-zinc-700/50">
-                  {getCategoryIcon(project.category)}
-                  <span>{project.category}</span>
-                </div>
+                {project.short_description && (
+                  <p className="text-sm md:text-base text-zinc-300 font-headline">
+                    {project.short_description}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center md:items-end gap-2 w-full md:w-auto mt-2 md:mt-0">
+              <div className="flex items-stretch gap-2 w-full">
+                <button 
+                  onClick={handleDownload}
+                  className="bg-[#4EC44E] hover:bg-[#5cd45c] text-zinc-950 px-4 py-2.5 md:px-6 md:py-3 rounded-lg font-headline font-bold transition-all flex-1 flex items-center justify-center gap-2 group shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] border-b-[4px] border-[#3da53d] active:border-b-0 active:border-t-[4px] active:border-t-transparent text-sm md:text-base"
+                >
+                  <Upload className="w-5 h-5" />
+                  <span className="truncate flex items-center gap-1.5 leading-tight">
+                    Download
+                  </span>
+                </button>
+                
+                <button 
+                  onClick={handleToggleLike}
+                  className={`bg-zinc-900/80 hover:bg-zinc-800/80 border-b-[4px] border-zinc-950 active:border-b-0 active:border-t-[4px] active:border-t-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm px-4 py-2.5 md:px-5 md:py-3 rounded-lg transition-all flex-shrink-0 flex items-center justify-center group ${isLiked ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'}`}
+                  title="Like"
+                >
+                  <Heart className={`w-5 h-5 transition-transform ${isLiked ? 'fill-current text-red-500' : ''}`} />
+                </button>
+
+                <button 
+                  className="bg-zinc-900/80 hover:bg-zinc-800/80 border-b-[4px] border-zinc-950 active:border-b-0 active:border-t-[4px] active:border-t-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm text-zinc-400 hover:text-white px-4 py-2.5 md:px-5 md:py-3 rounded-lg transition-colors flex-shrink-0 flex items-center justify-center group"
+                  title="Save"
+                >
+                  <Bookmark className="w-5 h-5" />
+                </button>
               </div>
             </div>
           </div>
           {/* Metrics Preview */}
-          <div className="flex flex-wrap items-center gap-4 md:gap-6 mt-3">
-            <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-xs md:text-sm">
-              <Download className="w-4 h-4 text-zinc-500" />
+          <div className="flex flex-wrap items-center justify-end gap-4 md:gap-6 mt-1.5">
+            <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-sm md:text-base" title="Downloads">
+              <Download className="w-4 h-4 md:w-5 md:h-5 text-zinc-500" />
               <span className="font-bold text-white">{project.downloads || 0}</span>
-              <span className="text-zinc-500 uppercase tracking-widest text-[10px] ml-1">Downloads</span>
             </div>
-            <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-xs md:text-sm">
-              <Heart className="w-4 h-4 text-red-500/70" />
+            <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-sm md:text-base" title="Likes">
+              <Heart className="w-4 h-4 md:w-5 md:h-5 text-zinc-500" />
               <span className="font-bold text-white">{project.likes || 0}</span>
-              <span className="text-zinc-500 uppercase tracking-widest text-[10px] ml-1">Likes</span>
             </div>
             {project.platforms && project.platforms.length > 0 && (
-              <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-xs md:text-sm">
-                <span className="material-symbols-outlined text-[16px] text-zinc-500">dns</span>
-                <span className="font-bold text-white">{project.platforms.join(', ')}</span>
+              <div className="flex flex-wrap items-center gap-2 text-zinc-400 font-headline text-sm md:text-base">
+                {project.platforms.map((p: string, idx: number) => {
+                  const IconSrc = getPlatformIcon(p);
+                  return (
+                    <div key={p} className="flex items-center gap-1.5">
+                      {IconSrc ? (
+                        <img src={IconSrc} alt={p} className="w-4 h-4 md:w-5 md:h-5 object-contain" />
+                      ) : (
+                        <span className="material-symbols-outlined text-[16px] md:text-[18px] text-zinc-500">dns</span>
+                      )}
+                      <span className="font-bold text-white">{p}</span>
+                      {idx < project.platforms.length - 1 && <span className="text-zinc-600 ml-0.5">,</span>}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -251,8 +346,58 @@ export function ProjectDetailPage() {
           </FramerIn>
 
           <FramerIn delay={0.4} className="w-full space-y-4 md:space-y-4">
+            {/* Platform / Compatibility */}
+            {(project.compatibility?.length > 0 || project.platforms?.length > 0) && (
+              <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-6 rounded-lg">
+                <h3 className="font-headline font-bold text-zinc-500 text-sm md:text-base mb-4 pb-4 border-b border-zinc-800/50 flex items-center gap-2 relative z-0">
+                  <div className="absolute left-0 bottom-0 -top-5 md:-top-6 -right-5 md:-right-6 bg-gradient-to-r from-transparent via-transparent to-realm-green/10 -z-10 rounded-tr-lg" />
+                  <span className="material-symbols-outlined text-[16px] md:text-[18px]">verified</span>
+                  Compatibility
+                </h3>
+                <div className="mb-3 text-sm font-bold text-zinc-300 flex items-center gap-2">
+                  <img src={project.type === 'java' ? javaIcon : bedrockIcon} alt={project.type} className="w-4 h-4 object-contain" />
+                  Minecraft: {project.type === 'java' ? 'Java Edition' : 'Bedrock Edition'}
+                </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {project.compatibility && project.compatibility.length > 0 && project.compatibility.map((v: string) => (
+                    <span key={v} className="bg-zinc-800/80 text-zinc-300 border border-zinc-700 px-3 py-1.5 rounded-lg text-xs font-bold">
+                      {v}
+                    </span>
+                  ))}
+                </div>
+                {((project.platforms && project.platforms.length > 0) || project.category || project.type) && (
+                  <>
+                    <h3 className="font-headline font-bold text-zinc-500 text-sm md:text-base mb-4 mt-6 pb-4 border-b border-zinc-800/50 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px] md:text-[18px]">dns</span>
+                      Platforms
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {project.type && (
+                        <span className="bg-zinc-800/80 text-zinc-300 border border-zinc-700 px-3 py-1.5 rounded-lg text-xs font-bold capitalize flex items-center gap-1.5">
+                          <img src={project.type === 'java' ? javaIcon : bedrockIcon} alt={project.type} className="w-3.5 h-3.5 object-contain" />
+                          {project.type}
+                        </span>
+                      )}
+                      {project.category && (
+                        <span className="bg-zinc-800/80 text-zinc-300 border border-zinc-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                          {getCategoryIcon(project.category)}
+                          {project.category}
+                        </span>
+                      )}
+                      {project.platforms && project.platforms.map((p: string) => (
+                        <span key={p} className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                          {getPlatformIcon(p) && <img src={getPlatformIcon(p)!} alt={p} className="w-3.5 h-3.5 object-contain" />}
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Project Information equivalent to Server Information */}
-            <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-6 rounded-lg">
+            <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-6 rounded-lg mt-4">
               <h3 className="font-headline font-bold text-zinc-500 text-sm md:text-base mb-8 pb-4 border-b border-zinc-800/50 flex items-center gap-2 relative z-0">
                 <div className="absolute left-0 bottom-0 -top-5 md:-top-6 -right-5 md:-right-6 bg-gradient-to-r from-transparent via-transparent to-realm-green/10 -z-10 rounded-tr-lg" />
                 <span className="material-symbols-outlined text-[16px] md:text-[18px]">description</span>
@@ -299,39 +444,6 @@ export function ProjectDetailPage() {
               </div>
             </div>
 
-            {/* Platform / Compatibility */}
-            {(project.compatibility?.length > 0 || project.platforms?.length > 0) && (
-              <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-6 rounded-lg mt-4">
-                <h3 className="font-headline font-bold text-zinc-500 text-sm md:text-base mb-4 pb-4 border-b border-zinc-800/50 flex items-center gap-2 relative z-0">
-                  <div className="absolute left-0 bottom-0 -top-5 md:-top-6 -right-5 md:-right-6 bg-gradient-to-r from-transparent via-transparent to-realm-green/10 -z-10 rounded-tr-lg" />
-                  <span className="material-symbols-outlined text-[16px] md:text-[18px]">verified</span>
-                  Compatibility
-                </h3>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.compatibility && project.compatibility.length > 0 && project.compatibility.map((v: string) => (
-                    <span key={v} className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg text-xs font-bold">
-                      {v}
-                    </span>
-                  ))}
-                </div>
-                {project.type === 'java' && project.platforms && project.platforms.length > 0 && (
-                  <>
-                    <h3 className="font-headline font-bold text-zinc-500 text-sm md:text-base mb-4 mt-6 pb-4 border-b border-zinc-800/50 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[16px] md:text-[18px]">dns</span>
-                      Platforms
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {project.platforms.map((p: string) => (
-                        <span key={p} className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1.5 rounded-lg text-xs font-bold">
-                          {p}
-                        </span>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
             {/* Project Actions equivalent to Server Actions */}
             <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-6 rounded-lg mt-4">
               <h3 className="font-headline font-bold text-zinc-500 text-sm md:text-base mb-8 pb-4 border-b border-zinc-800/50 flex items-center gap-2">
@@ -340,29 +452,19 @@ export function ProjectDetailPage() {
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 <button 
-                  onClick={handleDownload}
-                  className="w-full bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg flex items-center justify-center gap-2 text-blue-400 hover:bg-blue-500 hover:text-white transition-all group col-span-2"
-                >
-                  <Download className="w-4 h-4 transition-transform group-hover:-translate-y-1" />
-                  <span className="font-headline font-bold uppercase tracking-widest text-[10px]">Download Project</span>
-                </button>
-
-                <button 
-                  onClick={() => setIsLiked(!isLiked)}
-                  className={`w-full bg-zinc-900/80 border border-zinc-800 p-3 rounded-lg flex items-center justify-center gap-2 hover:border-zinc-700 transition-all group ${
-                    isLiked ? 'text-red-500' : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  <Heart className={`w-4 h-4 transition-transform group-hover:scale-110 ${isLiked ? 'fill-current text-red-500' : ''}`} />
-                  <span className="font-headline font-bold uppercase tracking-widest text-[10px]">Like</span>
-                </button>
-
-                <button 
                   onClick={handleShare}
-                  className="w-full bg-zinc-900/80 border border-zinc-800 p-3 rounded-lg flex items-center justify-center gap-2 text-zinc-400 hover:text-white hover:border-zinc-700 transition-all group"
+                  className="w-full bg-zinc-900/80 border border-zinc-800 p-3 rounded-lg flex items-center justify-center gap-2 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors group"
                 >
-                  {shareCopied ? <CheckCircle className="w-4 h-4 text-realm-green" /> : <Share2 className="w-4 h-4 transition-transform group-hover:scale-110" />}
+                  {shareCopied ? <CheckCircle className="w-4 h-4 text-realm-green" /> : <Share2 className="w-4 h-4" />}
                   <span className="font-headline font-bold uppercase tracking-widest text-[10px]">Share</span>
+                </button>
+
+                <button 
+                  onClick={() => toast('Report functionality coming soon!', { icon: '🚩' })}
+                  className="w-full bg-zinc-900/80 border border-zinc-800 p-3 rounded-lg flex items-center justify-center gap-2 text-zinc-500 hover:text-red-400 hover:border-red-500/40 transition-colors group"
+                >
+                  <Flag className="w-4 h-4" />
+                  <span className="font-headline font-bold uppercase tracking-widest text-[10px]">Report</span>
                 </button>
               </div>
             </div>

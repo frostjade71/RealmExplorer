@@ -337,17 +337,21 @@ export function SubmitPage() {
         let newStatus: import("../types").ServerStatus = currentStatus;
 
         if (iconChanged || bannerChanged || galleryChanged) {
-          if (iconChanged && bannerChanged && galleryChanged)
-            newStatus = "Review All Assets";
-          else if (iconChanged && bannerChanged)
-            newStatus = "Review Icon & Cover";
-          else if (iconChanged && galleryChanged)
-            newStatus = "Review Icon & Gallery";
-          else if (bannerChanged && galleryChanged)
-            newStatus = "Review Cover & Gallery";
-          else if (iconChanged) newStatus = "Review Icon";
-          else if (bannerChanged) newStatus = "Review Cover";
-          else if (galleryChanged) newStatus = "Review Gallery";
+          if (currentStatus === 'pending') {
+            newStatus = 'pending';
+          } else {
+            if (iconChanged && bannerChanged && galleryChanged)
+              newStatus = "Review All Assets";
+            else if (iconChanged && bannerChanged)
+              newStatus = "Review Icon & Cover";
+            else if (iconChanged && galleryChanged)
+              newStatus = "Review Icon & Gallery";
+            else if (bannerChanged && galleryChanged)
+              newStatus = "Review Cover & Gallery";
+            else if (iconChanged) newStatus = "Review Icon";
+            else if (bannerChanged) newStatus = "Review Cover";
+            else if (galleryChanged) newStatus = "Review Gallery";
+          }
         } else if (
           currentStatus === "rejected" ||
           currentStatus === "emailed"
