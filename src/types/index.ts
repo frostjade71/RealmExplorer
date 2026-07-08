@@ -291,6 +291,7 @@ export interface Project {
   downloads: number
   average_rating: number
   rating_count: number
+  social_links: SocialLink[] | null
   created_at: string
   updated_at: string
   profiles?: Profile

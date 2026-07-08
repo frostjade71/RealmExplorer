@@ -27,7 +27,7 @@ export function ProfilePage() {
   const { data: profile, isLoading: profileLoading, error: profileError } = useProfileByUsername(username)
   const { data: servers = [], isLoading: serversLoading } = useUserServers(profile?.id, 'approved')
   const { data: badges = [] } = useEntityBadges(profile?.id, 'user')
-  const { user, hasPremiumPerks } = useAuth()
+  const { user } = useAuth()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isBioModalOpen, setIsBioModalOpen] = useState(false)
   const [isBannerModalOpen, setIsBannerModalOpen] = useState(false)
@@ -152,17 +152,9 @@ const getPlatformBorderColor = (platform: string) => {
         
         {isOwnProfile && (
           <button 
-            onClick={() => {
-              if (hasPremiumPerks) {
-                setIsBannerModalOpen(true)
-              } else {
-                toast.info('Explorer+ Feature', {
-                  description: 'Upgrade to Explorer+ to customize your profile banner!'
-                })
-              }
-            }}
+            onClick={() => setIsBannerModalOpen(true)}
             className="absolute top-4 right-6 z-30 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-lg border border-white/10 text-white/70 hover:text-white transition-all shadow-xl group"
-            title={hasPremiumPerks ? "Update Profile Banner" : "Upgrade to unlock Banner"}
+            title="Update Profile Banner"
           >
             <Pencil className="w-4 h-4 group-hover:scale-110 transition-transform" />
           </button>
@@ -252,7 +244,7 @@ const getPlatformBorderColor = (platform: string) => {
               {(profile.bio || isOwnProfile) && (
                 <div className="group/bio px-2">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-pixel text-[8px] text-zinc-500 uppercase tracking-widest">
+                    <h3 className="font-pixel text-[8px] text-white uppercase tracking-widest">
                       Bio
                     </h3>
                     {isOwnProfile && (
@@ -370,7 +362,7 @@ const getPlatformBorderColor = (platform: string) => {
                     }
                   }
                 }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 will-change-transform"
               >
                 {servers.map(server => (
                   <motion.div 

@@ -6,7 +6,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { LoadingSpinner, EmptyState, TopLoadingBar } from '../components/FeedbackStates'
 import { RatingModal } from '../components/RatingModal'
 import { LicenseModal } from '../components/LicenseModal'
-import { Download, Heart, Clock, Calendar, CheckCircle, Share2, Archive, Edit3, Upload, Bookmark, BookmarkMinus, Flag, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Layers, Star, Users, Scale } from 'lucide-react'
+import { Download, Heart, Clock, Calendar, CheckCircle, Share2, Archive, Edit3, Upload, Bookmark, BookmarkMinus, Flag, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Layers, Star, Users, Scale, Globe, Mail } from 'lucide-react'
+import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch } from 'react-icons/si'
 import javaIcon from '../assets/category/10421-grass.png'
 import bedrockIcon from '../assets/category/437888-bedrock.png'
 import fabricIcon from '../assets/platform/482016-fabricapiminecraft.png'
@@ -78,9 +79,35 @@ export function ProjectDetailPage() {
   const handleDownload = () => {
     if (project?.file_url) {
       if (project.id) {
-        incrementDownloadMutation.mutate({ projectId: project.id, currentDownloads: project.downloads || 0 })
+        const downloadedProjects = JSON.parse(localStorage.getItem('downloaded_projects') || '[]')
+        if (!downloadedProjects.includes(project.id)) {
+          incrementDownloadMutation.mutate({ projectId: project.id, currentDownloads: project.downloads || 0 })
+          downloadedProjects.push(project.id)
+          localStorage.setItem('downloaded_projects', JSON.stringify(downloadedProjects))
+        }
       }
-      window.open(project.file_url, '_blank')
+      
+      try {
+        const fileUrl = new URL(project.file_url)
+        const filenameFromUrl = decodeURIComponent(fileUrl.pathname.split('/').pop() || '')
+        
+        const isUUIDFormat = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-zA-Z0-9]+$/.test(filenameFromUrl)
+        
+        let downloadName = filenameFromUrl
+        
+        if (isUUIDFormat || !filenameFromUrl) {
+          // Fallback to project name for old files
+          const extension = fileUrl.pathname.split('.').pop() || 'zip'
+          const safeProjectName = project.name.replace(/[^a-zA-Z0-9]/g, '-')
+          downloadName = `${safeProjectName}.${extension}`
+        }
+        
+        fileUrl.searchParams.set('download', downloadName)
+        
+        window.open(fileUrl.toString(), '_blank')
+      } catch (e) {
+        window.open(project.file_url, '_blank')
+      }
     } else {
       toast.error('No download file available.')
     }
@@ -246,6 +273,47 @@ export function ProjectDetailPage() {
                     {project.short_description}
                   </p>
                 )}
+                
+                {/* Social Links */}
+                {(project.social_links && project.social_links.length > 0) && (
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    {project.social_links.map((link, idx) => {
+                      const icons: Record<string, React.ReactNode> = {
+                        website: <Globe className="w-4 h-4" />,
+                        instagram: <SiInstagram className="w-4 h-4" />,
+                        youtube: <SiYoutube className="w-4 h-4" />,
+                        tiktok: <SiTiktok className="w-4 h-4" />,
+                        facebook: <SiFacebook className="w-4 h-4" />,
+                        twitch: <SiTwitch className="w-4 h-4" />,
+                        discord: <SiDiscord className="w-4 h-4" />,
+                        email: <Mail className="w-4 h-4" />
+                      }
+                      const colors: Record<string, { text: string; border: string }> = {
+                        website: { text: 'text-white', border: 'hover:border-white/30' },
+                        instagram: { text: 'text-pink-500', border: 'hover:border-pink-500/40' },
+                        youtube: { text: 'text-red-600', border: 'hover:border-red-600/40' },
+                        tiktok: { text: 'text-white', border: 'hover:border-white/40' },
+                        facebook: { text: 'text-blue-600', border: 'hover:border-blue-600/40' },
+                        twitch: { text: 'text-purple-500', border: 'hover:border-purple-500/40' },
+                        discord: { text: 'text-[#5865F2]', border: 'hover:border-[#5865F2]/40' },
+                        email: { text: 'text-white', border: 'hover:border-white/30' }
+                      }
+                      const theme = colors[link.platform] || { text: 'text-white', border: 'hover:border-white/30' }
+                      return (
+                        <a 
+                          key={idx}
+                          href={link.url} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className={`flex items-center justify-center p-2 bg-zinc-900 border border-zinc-800 rounded-md ${theme.text} ${theme.border} transition-all shadow-sm`}
+                          title={link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}
+                        >
+                          {icons[link.platform] || <Globe className="w-4 h-4" />}
+                        </a>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -277,40 +345,41 @@ export function ProjectDetailPage() {
                   <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
                 </button>
               </div>
-            </div>
-          </div>
-          {/* Metrics Preview */}
-          <div className="flex flex-wrap items-center justify-end gap-4 md:gap-6 mt-1.5">
-            <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-sm md:text-base" title="Downloads">
-              <Download className="w-4 h-4 md:w-5 md:h-5 text-zinc-500" />
-              <span className="font-bold text-white">{project.downloads || 0}</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-sm md:text-base" title="Likes">
-              <Heart className="w-4 h-4 md:w-5 md:h-5 text-zinc-500" />
-              <span className="font-bold text-white">{project.likes || 0}</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-sm md:text-base" title="Saves">
-              <Bookmark className="w-4 h-4 md:w-5 md:h-5 text-zinc-500" />
-              <span className="font-bold text-white">{project.saves || 0}</span>
-            </div>
-            {project.platforms && project.platforms.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 text-zinc-400 font-headline text-sm md:text-base">
-                {project.platforms.map((p: string, idx: number) => {
-                  const IconSrc = getPlatformIcon(p);
-                  return (
-                    <div key={p} className="flex items-center gap-1.5">
-                      {IconSrc ? (
-                        <img src={IconSrc} alt={p} className="w-4 h-4 md:w-5 md:h-5 object-contain" />
-                      ) : (
-                        <span className="material-symbols-outlined text-[16px] md:text-[18px] text-zinc-500">dns</span>
-                      )}
-                      <span className="font-bold text-white">{p}</span>
-                      {idx < project.platforms.length - 1 && <span className="text-zinc-600 ml-0.5">,</span>}
-                    </div>
-                  )
-                })}
+
+              {/* Metrics Preview */}
+              <div className="flex flex-wrap items-center justify-end gap-3 md:gap-4 mt-0.5 w-full">
+                <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-sm md:text-base" title="Downloads">
+                  <Download className="w-4 h-4 md:w-5 md:h-5 text-zinc-500" />
+                  <span className="font-bold text-white">{project.downloads || 0}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-sm md:text-base" title="Likes">
+                  <Heart className="w-4 h-4 md:w-5 md:h-5 text-zinc-500" />
+                  <span className="font-bold text-white">{project.likes || 0}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-sm md:text-base" title="Saves">
+                  <Bookmark className="w-4 h-4 md:w-5 md:h-5 text-zinc-500" />
+                  <span className="font-bold text-white">{project.saves || 0}</span>
+                </div>
+                {project.platforms && project.platforms.length > 0 && (
+                  <div className="flex flex-wrap items-center justify-end gap-2 text-zinc-400 font-headline text-sm md:text-base">
+                    {project.platforms.map((p: string, idx: number) => {
+                      const IconSrc = getPlatformIcon(p);
+                      return (
+                        <div key={p} className="flex items-center gap-1.5">
+                          {IconSrc ? (
+                            <img src={IconSrc} alt={p} className="w-4 h-4 md:w-5 md:h-5 object-contain" />
+                          ) : (
+                            <span className="material-symbols-outlined text-[16px] md:text-[18px] text-zinc-500">dns</span>
+                          )}
+                          <span className="font-bold text-white">{p}</span>
+                          {idx < project.platforms.length - 1 && <span className="text-zinc-600 ml-0.5">,</span>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </FramerIn>

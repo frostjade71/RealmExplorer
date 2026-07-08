@@ -1039,8 +1039,8 @@ export function useSavedServers(userId: string | undefined) {
       const serverIds = data.map((d: any) => d.server_id)
       
       const { data: servers, error: serversError } = await supabase
-        .from('servers')
-        .select('*')
+        .from('public_servers')
+        .select('*, profiles(*)')
         .in('id', serverIds)
       
       if (serversError) throw serversError

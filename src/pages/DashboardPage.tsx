@@ -150,7 +150,16 @@ export function DashboardPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const actionParam = searchParams.get('action')
-  const [activeTab, setActiveTab] = useState<'servers' | 'projects' | 'saved'>('servers')
+  const tabParam = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState<'servers' | 'projects' | 'saved'>(
+    (tabParam as 'servers' | 'projects' | 'saved') || 'servers'
+  )
+  
+  useEffect(() => {
+    if (tabParam && ['servers', 'projects', 'saved'].includes(tabParam)) {
+      setActiveTab(tabParam as 'servers' | 'projects' | 'saved')
+    }
+  }, [tabParam])
   
   const { data: servers = [], isLoading: loadingServers, refetch } = useUserServers(user?.id)
   const { data: projects = [], isLoading: loadingProjects } = useUserProjects(user?.id)
@@ -418,7 +427,7 @@ export function DashboardPage() {
             </button>
           </div>
           
-          <div className="flex flex-wrap items-center gap-3 self-end sm:self-auto">
+          <div className="flex flex-wrap items-center justify-end gap-3 w-full sm:w-auto">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0 relative group/limit">
               <button 
                 onClick={() => {
@@ -437,7 +446,7 @@ export function DashboardPage() {
                 }`}
               >
                 <PlusCircle className="w-4 h-4 md:w-5 h-5" />
-                New Project ({projects.length}/{projectLimit})
+                New Project
               </button>
             </motion.div>
 
@@ -465,7 +474,7 @@ export function DashboardPage() {
                 }`}
               >
                 <PlusCircle className="w-4 h-4 md:w-5 h-5" />
-                New Listing ({servers.length}/{limit})
+                New Listing
               </button>
             </motion.div>
           </div>

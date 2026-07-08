@@ -70,7 +70,7 @@ export function SubmitPage() {
   const limits = {
     gallery: hasPremiumPerks ? 5 : 1,
     description: hasPremiumPerks ? 5000 : 2000,
-    socialLinks: hasPremiumPerks ? 6 : 2,
+    socialLinks: 4,
     listings: hasPremiumPerks ? 5 : 1,
     staff: hasPremiumPerks ? 6 : 3
   };
@@ -875,15 +875,9 @@ export function SubmitPage() {
                   type="button"
                   onClick={() => {
                     if ((formData.social_links?.length || 0) >= limits.socialLinks) {
-                      if (!hasPremiumPerks) {
-                        toast.info('Explorer+ Feature', {
-                          description: 'Upgrade to Explorer+ to add up to 6 social links!'
-                        })
-                      } else {
-                        toast.warning('Limit Reached', {
-                          description: `Maximum of ${limits.socialLinks} social links reached.`
-                        })
-                      }
+                      toast.warning('Limit Reached', {
+                        description: `Maximum of ${limits.socialLinks} social links reached.`
+                      })
                       return
                     }
                     const newSocialLinks = [

@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, Zap, ShieldCheck, Image as ImageIcon, PlusCircle, Share2, FileText, Sparkles, ArrowUp, X, Ticket, ChevronDown, Users, Tag } from 'lucide-react'
+import { Check, Zap, ShieldCheck, Image as ImageIcon, PlusCircle, Share2, FileText, Sparkles, ArrowUp, X, Ticket, ChevronDown, Users, Tag, Palette } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { useAuth } from '../contexts/AuthContext'
@@ -106,11 +106,7 @@ export function UpgradePage() {
       desc: 'Your listings has a higher chance to be on the top when users shuffle.', 
       icon: <ArrowUp className="w-5 h-5 text-yellow-400" /> 
     },
-    { 
-      title: 'Profile Banner', 
-      desc: 'Add a custom banner to your explorer profile.', 
-      icon: <ImageIcon className="w-5 h-5 text-realm-green" /> 
-    },
+
     { 
       title: 'Extended Gallery', 
       desc: 'Upload up to 5 images per listing gallery.', 
@@ -150,6 +146,11 @@ export function UpgradePage() {
       title: 'Supporter Role', 
       desc: 'Get the Supporter role and Explorer+ role on our Discord server.', 
       icon: <Zap className="w-5 h-5 text-orange-400" /> 
+    },
+    {
+      title: 'Future Project Page Customizations',
+      desc: 'Increased limits and more.',
+      icon: <Palette className="w-5 h-5 text-fuchsia-400" />
     },
   ]
 
@@ -477,8 +478,9 @@ export function UpgradePage() {
                       { name: 'Description Length', free: '2,000 Chars', plus: '5,000 Chars' },
                       { name: 'Shuffle Cooldown', free: '6 Seconds', plus: '2 Seconds' },
                       { name: 'Social Links', free: '2 Links', plus: '6 Links' },
-                      { name: 'Profile Banner', free: false, plus: true },
+
                       { name: 'Golden Profile Border', free: false, plus: true },
+                      { name: 'Project Page Customizations', free: false, plus: true },
                       { name: 'Discord Roles', free: false, plus: true },
                       { name: 'Priority Support', free: false, plus: true },
                       { name: 'Animated Elements', free: false, plus: true },

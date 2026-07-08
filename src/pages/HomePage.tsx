@@ -11,7 +11,8 @@ import { CategoryRequestModal } from '../components/CategoryRequestModal'
 import { useCreateCategoryRequestMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
-import heroVideo from '../assets/hero/heroRE.mp4'
+import { SiDiscord } from 'react-icons/si'
+import heroVideo from '../assets/hero/heroREv4.mp4'
 import ctaBg from '../assets/homepage/Minecraft Buddies.jpg'
 import mcGif from '../assets/category/gif/6128-minecraft.gif'
 import communityOneLogo from '../assets/affiliates/communityonelogo.png'
@@ -128,7 +129,7 @@ export function HomePage() {
           <FramerIn delay={0.2}>
             <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
               <img src={mcGif} alt="Minecraft Icon" className="w-5 h-5 object-contain" />
-              <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase">2.0 releasing in mid-july</span>
+              <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase">2.0 releasing in late-july!</span>
             </div>
           </FramerIn>
           
@@ -287,16 +288,17 @@ export function HomePage() {
             </p>
             <div className="flex flex-wrap justify-center gap-3 md:gap-4">
               <a 
-                href="https://discord.gg/realmexplorer" 
+                href="https://discord.gg/G8CyUZjPRt" 
                 target="_blank" 
                 rel="noreferrer"
-                className="bg-white text-[#006e15] px-6 md:px-8 py-3 md:py-4 rounded-lg font-headline font-bold hover:bg-[#4EC44E] hover:text-white transition-all min-w-[140px] md:min-w-[180px] flex items-center justify-center text-xs md:text-sm"
+                className="bg-[#5865F2] hover:bg-[#6974f3] text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] border-b-[4px] border-[#4752C4] active:border-b-0 active:border-t-[4px] active:border-t-transparent min-w-[140px] md:min-w-[180px] flex items-center justify-center gap-2 text-xs md:text-sm"
               >
-                Join Discord
+                <SiDiscord className="w-4 h-4 md:w-5 md:h-5" />
+                Join our Discord
               </a>
               <Link 
                 to="/servers" 
-                className="bg-green-900/40 text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-lg font-headline font-bold hover:bg-green-900 transition-all min-w-[140px] md:min-w-[180px] flex items-center justify-center text-xs md:text-sm"
+                className="bg-[#4EC44E] hover:bg-[#5cd45c] text-zinc-950 px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] border-b-[4px] border-[#3da53d] active:border-b-0 active:border-t-[4px] active:border-t-transparent min-w-[140px] md:min-w-[180px] flex items-center justify-center text-xs md:text-sm"
               >
                 Browse Realms
               </Link>

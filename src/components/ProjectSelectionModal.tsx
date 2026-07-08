@@ -95,7 +95,7 @@ export function ProjectSelectionModal({ isOpen, onClose }: ProjectSelectionModal
 
             <div className="p-5 bg-zinc-950 border-t border-zinc-800 text-center">
               <p className="text-zinc-500 font-headline text-[9px] uppercase tracking-widest">
-                Choose the type of project you want to list.
+                Choose the version of the project you want to list.
               </p>
             </div>
           </motion.div>

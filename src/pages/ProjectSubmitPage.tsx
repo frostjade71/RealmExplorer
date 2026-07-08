@@ -3,17 +3,22 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
 import { supabase } from '../lib/supabase'
-import { ArrowLeft, Loader2, FileText, Layers, Tags, Type, Link, CheckCircle, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Edit3, Eye } from 'lucide-react'
+import { ArrowLeft, Loader2, FileText, Layers, Tags, Type, Link, CheckCircle, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Edit3, Eye, Trash2, GripVertical, Globe, Plus } from 'lucide-react'
+import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch } from 'react-icons/si'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { CustomSelect } from '../components/CustomSelect'
 import { ImageUpload } from '../components/ImageUpload'
 import { FileUpload } from '../components/FileUpload'
 import { RichText } from '../components/RichText'
-import { useProject } from '../hooks/queries'
+import { useProject, useUserProjects } from '../hooks/queries'
 import { useSubmitProjectMutation, useUploadProjectFileMutation } from '../hooks/mutations'
 import { sendProjectReviewNotification } from '../lib/discord'
-import type { ProjectType } from '../types'
-import { motion } from 'framer-motion'
+import type { ProjectType, SocialLink } from '../types'
+import { motion, Reorder } from 'framer-motion'
+
+interface ReorderableSocialLink extends SocialLink {
+  localId: string;
+}
 
 const CATEGORIES = {
   java: ['Mods', 'Modpacks', 'Datapacks', 'Shaders', 'Plugins', 'Builds'],
@@ -34,10 +39,10 @@ const VERSIONS = [
   '1.15.x',
   '1.14.x'
 ]
-const LICENSES = ['MIT', 'Apache 2.0', 'GPLv3', 'All Rights Reserved', 'Custom']
+const LICENSES = ['MIT', 'Apache 2.0', 'GPLv3', 'Custom']
 
 export function ProjectSubmitPage() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const projectId = searchParams.get('id')
@@ -46,6 +51,23 @@ export function ProjectSubmitPage() {
   const { data: existingProject, isLoading: loadingProject } = useProject(projectId || undefined)
   const submitMutation = useSubmitProjectMutation()
   const uploadMutation = useUploadProjectFileMutation()
+
+  const isEditing = !!projectId;
+  const { data: userProjects = [] } = useUserProjects(user?.id);
+
+  const limits = {
+    socialLinks: 4,
+    listings: isAdmin ? 5 : 1
+  };
+
+  useEffect(() => {
+    if (!isEditing && userProjects.length >= limits.listings) {
+      toast.error("Project Limit Reached", {
+        description: `Your current tier allows up to ${limits.listings} project${limits.listings > 1 ? 's' : ''}.`
+      });
+      navigate("/dashboard?tab=projects");
+    }
+  }, [isEditing, userProjects, limits.listings, navigate]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -59,6 +81,7 @@ export function ProjectSubmitPage() {
     icon_url: '',
     gallery_url: '',
     short_description: '',
+    social_links: [] as ReorderableSocialLink[],
   })
 
   const [projectFile, setProjectFile] = useState<File | null>(null)
@@ -82,6 +105,7 @@ export function ProjectSubmitPage() {
         icon_url: existingProject.icon_url || '',
         gallery_url: (existingProject.gallery && existingProject.gallery.length > 0) ? existingProject.gallery[0] : '',
         short_description: existingProject.short_description || '',
+        social_links: (existingProject.social_links || []).map((l: any) => ({ ...l, localId: crypto.randomUUID() })),
       })
     }
   }, [existingProject])
@@ -167,7 +191,8 @@ export function ProjectSubmitPage() {
         formData.license !== existingProject?.license ||
         formData.gallery_url !== ((existingProject?.gallery && existingProject.gallery.length > 0) ? existingProject.gallery[0] : '') ||
         JSON.stringify([...formData.compatibility].sort()) !== JSON.stringify([...(existingProject?.compatibility || [])].sort()) ||
-        JSON.stringify([...formData.platforms].sort()) !== JSON.stringify([...(existingProject?.platforms || [])].sort());
+        JSON.stringify([...formData.platforms].sort()) !== JSON.stringify([...(existingProject?.platforms || [])].sort()) ||
+        JSON.stringify(formData.social_links.map(l => ({ platform: l.platform, url: l.url }))) !== JSON.stringify(existingProject?.social_links || []);
 
       if (existingProject && !hasChanges) {
         toast.info('No changes detected', { description: 'Your project is already up to date.' })
@@ -217,8 +242,7 @@ export function ProjectSubmitPage() {
       }
 
       if (projectFile) {
-        const fileExt = projectFile.name.split('.').pop()
-        const path = `files/${crypto.randomUUID()}.${fileExt}`
+        const path = `files/${crypto.randomUUID()}/${projectFile.name}`
         finalFileUrl = await uploadMutation.mutateAsync({ file: projectFile, path })
       }
 
@@ -253,6 +277,7 @@ export function ProjectSubmitPage() {
         custom_license_url: finalLicenseUrl,
         icon_url: finalIconUrl || null,
         gallery: finalGalleryUrl ? [finalGalleryUrl] : [],
+        social_links: formData.social_links.map(l => ({ platform: l.platform, url: l.url })),
         short_description: formData.short_description,
         file_url: finalFileUrl,
         status: (e.nativeEvent as SubmitEvent).submitter?.getAttribute('name') === 'submit_review' ? 'pending' : (existingProject?.status || 'draft')
@@ -269,7 +294,7 @@ export function ProjectSubmitPage() {
       }
 
       toast.success(projectId ? 'Project updated successfully' : 'Project submitted successfully')
-      navigate('/dashboard')
+      navigate('/dashboard?tab=projects')
     } catch (err: any) {
       toast.error('Submission Failed', { description: err.message })
     } finally {
@@ -285,7 +310,7 @@ export function ProjectSubmitPage() {
     <AnimatedPage className="min-h-screen bg-zinc-950 pb-20">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <button 
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/dashboard?tab=projects')}
           className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -458,6 +483,105 @@ export function ProjectSubmitPage() {
               )}
             </div>
 
+            <div className="space-y-4 col-span-2">
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
+                  <Link className="w-3 h-3" /> Social Links
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (formData.social_links.length >= limits.socialLinks) {
+                      toast.warning('Limit Reached', {
+                        description: `You can only add up to ${limits.socialLinks} social links.`
+                      })
+                      return
+                    }
+                    setFormData(prev => ({
+                      ...prev,
+                      social_links: [...prev.social_links, { platform: 'discord', url: '', localId: crypto.randomUUID() }]
+                    }))
+                  }}
+                  disabled={formData.social_links.length >= limits.socialLinks}
+                  className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50"
+                >
+                  <Plus className="w-3 h-3" /> Add Link
+                </button>
+              </div>
+
+              {formData.social_links.length === 0 ? (
+                <div className="text-center py-6 bg-zinc-950/50 border border-dashed border-zinc-800 rounded-lg">
+                  <Globe className="w-6 h-6 text-zinc-600 mx-auto mb-2" />
+                  <p className="text-zinc-500 font-headline text-xs">No social links added yet.</p>
+                </div>
+              ) : (
+                <Reorder.Group
+                  axis="y"
+                  values={formData.social_links}
+                  onReorder={(newOrder) => setFormData(prev => ({ ...prev, social_links: newOrder }))}
+                  className="space-y-2"
+                >
+                  {formData.social_links.map((link, index) => (
+                    <Reorder.Item
+                      key={link.localId}
+                      value={link}
+                      className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 bg-zinc-950 border border-zinc-800 p-2 sm:p-3 rounded-lg group relative"
+                    >
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="cursor-grab active:cursor-grabbing p-1.5 text-zinc-600 hover:text-zinc-400 transition-colors hidden sm:block touch-none">
+                          <GripVertical className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 sm:w-40 sm:flex-none">
+                          <CustomSelect
+                            value={link.platform}
+                            onChange={(val) => {
+                              const newLinks = [...formData.social_links]
+                              newLinks[index].platform = val as any
+                              setFormData(prev => ({ ...prev, social_links: newLinks }))
+                            }}
+                            options={[
+                              { key: 'discord', label: 'Discord', icon: <SiDiscord className="w-4 h-4 text-[#5865F2]" /> },
+                              { key: 'youtube', label: 'YouTube', icon: <SiYoutube className="w-4 h-4 text-[#FF0000]" /> },
+                              { key: 'instagram', label: 'Instagram', icon: <SiInstagram className="w-4 h-4 text-[#E4405F]" /> },
+                              { key: 'tiktok', label: 'TikTok', icon: <SiTiktok className="w-4 h-4 text-white" /> },
+                              { key: 'twitch', label: 'Twitch', icon: <SiTwitch className="w-4 h-4 text-[#9146FF]" /> },
+                              { key: 'facebook', label: 'Facebook', icon: <SiFacebook className="w-4 h-4 text-[#1877F2]" /> },
+                              { key: 'website', label: 'Website', icon: <Globe className="w-4 h-4 text-blue-400" /> },
+                            ]}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 w-full sm:flex-1">
+                        <input
+                          type="url"
+                          required
+                          placeholder="https://..."
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-white outline-none focus:border-realm-green transition-all font-headline text-xs"
+                          value={link.url}
+                          onChange={(e) => {
+                            const newLinks = [...formData.social_links]
+                            newLinks[index].url = e.target.value
+                            setFormData(prev => ({ ...prev, social_links: newLinks }))
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newLinks = formData.social_links.filter((_, i) => i !== index)
+                            setFormData(prev => ({ ...prev, social_links: newLinks }))
+                          }}
+                          className="p-2.5 text-red-500/50 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                          title="Remove Link"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </Reorder.Item>
+                  ))}
+                </Reorder.Group>
+              )}
+            </div>
+
             <div className="space-y-2 col-span-2">
               <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
                 <FileText className="w-3 h-3" /> Gallery
@@ -531,7 +655,7 @@ export function ProjectSubmitPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="button"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/dashboard?tab=projects")}
               className="px-6 py-3 rounded-lg font-headline font-bold text-zinc-500 hover:text-white transition-colors whitespace-nowrap"
             >
               Cancel

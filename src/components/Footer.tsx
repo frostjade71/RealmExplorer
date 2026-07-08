@@ -52,7 +52,7 @@ export function Footer() {
             </a>
           </div>
           <p className="font-body text-[10px] md:text-xs text-white/40">
-            v1.8.0 | © 2026 Realm Explorer
+            v1.9.2 | © 2026 Realm Explorer
           </p>
         </div>
         
@@ -63,7 +63,7 @@ export function Footer() {
             <div className="flex flex-col gap-2">
               <Link to="/about" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">About Us</Link>
               <a 
-                href="https://discord.gg/e9dcs77wpF" 
+                href="https://discord.com/channels/1258132272419311676/1491872395160584202" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
