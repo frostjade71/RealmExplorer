@@ -6,13 +6,14 @@ import { ProjectCard } from '../components/ProjectCard'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, Globe } from 'lucide-react'
+import { Search, X, Globe, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Layers } from 'lucide-react'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import projectsHero from '../assets/hero/directoryprojets.jpg'
 import { MetaTags } from '../components/MetaTags'
 
 // Asset imports
 import golemGif from '../assets/pjdirectory/20756-irongolem (1).gif'
+import craftingGif from '../assets/pjdirectory/craftingcrafting.gif'
 import javaIcon from '../assets/category/10421-grass.png'
 import bedrockIcon from '../assets/category/437888-bedrock.png'
 
@@ -26,16 +27,11 @@ export function ProjectsPage() {
   const PAGE_SIZE = 24
   const [localSearch, setLocalSearch] = useState(initialSearch)
 
-  // For now, projects are not yet in the DB, so we'll show an empty state or use a placeholder
-  // We'll use useServers with a filter that returns nothing for now, or just hardcode empty
   const { isLoading: loading } = useServers({
     searchQuery: initialSearch,
     limit: 1000
   })
 
-  // Filter out non-projects if we were using the same table, 
-  // but since we don't have a project type yet, we'll just show empty for now
-  // to match "Soon" functionality
   const filteredProjects = useMemo<Server[]>(() => {
     // Return empty array for now as projects are "Coming Soon"
     return []
@@ -89,6 +85,20 @@ export function ProjectsPage() {
       searchParams.delete('category')
     }
     setSearchParams(searchParams)
+  }
+
+  const getCategoryIcon = (c: string) => {
+    const Icon = c === 'Mods' ? Wrench :
+                 c === 'Modpacks' ? Package :
+                 c === 'Datapacks' ? Database :
+                 c === 'Shaders' ? Sparkles :
+                 c === 'Plugins' ? Puzzle :
+                 c === 'Builds' ? Hammer :
+                 c === 'Add-ons' ? PlusCircle :
+                 c === 'Resource Pack' ? Paintbrush :
+                 c === 'Behavior Pack' ? Activity :
+                 Layers;
+    return <Icon className="w-3.5 h-3.5" />
   }
 
   return (
@@ -220,6 +230,7 @@ export function ProjectsPage() {
                 onClick={() => setType(type.id)}
                 className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeType === type.id ? 'bg-blue-500 text-white border-blue-500' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
               >
+                <img src={type.id === 'java' ? javaIcon : bedrockIcon} alt={type.label} className="w-3.5 h-3.5 object-contain" />
                 {type.label}
               </button>
             ))}
@@ -231,8 +242,9 @@ export function ProjectsPage() {
                   <button
                     key={cat.id}
                     onClick={() => setCategory(cat.id)}
-                    className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-zinc-100 text-zinc-900 border-zinc-100' : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700'}`}
+                    className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-zinc-100 text-zinc-900 border-zinc-100' : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700'}`}
                   >
+                    {getCategoryIcon(cat.label)}
                     {cat.label}
                   </button>
                 ))}
@@ -263,11 +275,12 @@ export function ProjectsPage() {
               <EmptyState 
                 title="Pre-Upload is now Live!" 
                 message="You can now pre-upload your projects before the official release. Get ready for the Project Explorer update!" 
+                icon={<img src={craftingGif} alt="Crafting" className="w-full h-full object-cover rounded-xl" />}
                 action={
                   <div className="flex flex-col items-center gap-4 mt-2">
                     <Link 
                       to="/dashboard?action=upload_project"
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded-lg font-headline font-bold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40"
+                      className="bg-blue-500 hover:bg-blue-400 text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-colors flex items-center justify-center gap-2.5 group shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] border-b-[4px] border-blue-700 active:border-b-0 active:border-t-[4px] active:border-t-transparent text-[12px] md:text-sm"
                     >
                       Upload a Project
                     </Link>

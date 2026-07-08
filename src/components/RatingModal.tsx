@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, X, Send } from 'lucide-react'
+import { Star, X, Send, Trash2 } from 'lucide-react'
 
 interface RatingModalProps {
   isOpen: boolean
@@ -12,6 +12,7 @@ interface RatingModalProps {
   isRemoving?: boolean
   initialRating?: number
   initialComment?: string
+  type?: 'server' | 'project'
 }
 
 export function RatingModal({ 
@@ -22,7 +23,8 @@ export function RatingModal({
   isSubmitting,
   isRemoving,
   initialRating = 0,
-  initialComment = ''
+  initialComment = '',
+  type = 'server'
 }: RatingModalProps) {
   const [rating, setRating] = useState(initialRating)
   const [hoverRating, setHoverRating] = useState(0)
@@ -57,7 +59,7 @@ export function RatingModal({
             {/* Header */}
             <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
               <h2 className="font-pixel text-white text-base md:text-lg uppercase tracking-wider">
-                {initialRating > 0 ? 'Edit Rating' : 'Rate Server'}
+                {initialRating > 0 ? 'Edit Rating' : `Rate ${type === 'server' ? 'Server' : 'Project'}`}
               </h2>
               <button 
                 onClick={onClose}
@@ -111,7 +113,7 @@ export function RatingModal({
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   disabled={isSubmitting || isRemoving}
-                  placeholder="Tell others what you think of this server..."
+                  placeholder={`Tell others what you think of this ${type}...`}
                   className="w-full h-32 bg-white/5 border border-white/10 rounded-xl p-4 text-white font-body text-sm focus:outline-none focus:ring-2 focus:ring-realm-green/50 placeholder:text-white/10 resize-none transition-all disabled:opacity-50"
                 />
               </div>
@@ -151,7 +153,7 @@ export function RatingModal({
                       <div className="w-5 h-5 border-2 border-red-500/20 border-t-red-500 rounded-full animate-spin" />
                     ) : (
                       <>
-                        <span className="material-symbols-outlined text-lg opacity-60 group-hover:opacity-100 transition-opacity">delete</span>
+                        <Trash2 className="w-3.5 h-3.5" />
                         Remove Rating
                       </>
                     )}

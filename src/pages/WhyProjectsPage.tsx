@@ -62,7 +62,7 @@ export function WhyProjectsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <motion.div 
               whileHover={{ y: -5 }}
-              className="p-8 rounded-lg bg-zinc-900/50 border border-zinc-800 backdrop-blur-sm space-y-4 text-center md:text-left flex flex-col items-center md:items-start"
+              className="p-8 space-y-4 text-center md:text-left flex flex-col items-center md:items-start"
             >
               <div className="w-12 h-12 flex items-center justify-center">
                 <img src={devIcon} alt="Developers" className="w-8 h-8 object-contain" />
@@ -79,7 +79,7 @@ export function WhyProjectsPage() {
 
             <motion.div 
               whileHover={{ y: -5 }}
-              className="p-8 rounded-lg bg-zinc-900/50 border border-zinc-800 backdrop-blur-sm space-y-4 text-center md:text-left flex flex-col items-center md:items-start"
+              className="p-8 space-y-4 text-center md:text-left flex flex-col items-center md:items-start"
             >
               <div className="w-12 h-12 flex items-center justify-center">
                 <img src={builderIcon} alt="Builders" className="w-8 h-8 object-contain" />
@@ -98,7 +98,7 @@ export function WhyProjectsPage() {
           <div className="flex justify-center">
             <motion.div 
               whileHover={{ y: -5 }}
-              className="p-8 rounded-lg bg-zinc-900/50 border border-zinc-800 backdrop-blur-sm space-y-4 text-center md:text-left flex flex-col items-center md:items-start max-w-md w-full"
+              className="p-8 space-y-4 text-center md:text-left flex flex-col items-center md:items-start max-w-md w-full"
             >
               <div className="w-12 h-12 flex items-center justify-center">
                 <img src={otmIcon} alt="OTM" className="w-8 h-8 object-contain" />

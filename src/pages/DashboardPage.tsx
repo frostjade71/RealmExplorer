@@ -4,13 +4,13 @@ import { createPortal } from 'react-dom'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useUserServers, useServerAppeals, useUserProjects } from '../hooks/queries'
-import { useDeleteServerMutation, useSubmitAppealMutation, useDeleteProjectMutation } from '../hooks/mutations'
+import { useUserServers, useServerAppeals, useUserProjects, useSavedProjects, useSavedServers } from '../hooks/queries'
+import { useDeleteServerMutation, useSubmitAppealMutation, useDeleteProjectMutation, useToggleProjectSaveMutation, useToggleServerSaveMutation } from '../hooks/mutations'
 import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { ServerCard } from '../components/ServerCard'
 import { ProjectCard } from '../components/ProjectCard'
 import { SponsorServerCard } from '../components/SponsorServerCard'
-import { PlusCircle, Pencil, Trash2, Check, Palette, AlertCircle, Server as ServerIcon, Folder, Bookmark } from 'lucide-react'
+import { PlusCircle, Pencil, Trash2, Check, Palette, AlertCircle, Server as ServerIcon, Folder, Bookmark, BookmarkMinus } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -154,11 +154,41 @@ export function DashboardPage() {
   
   const { data: servers = [], isLoading: loadingServers, refetch } = useUserServers(user?.id)
   const { data: projects = [], isLoading: loadingProjects } = useUserProjects(user?.id)
+  const { data: savedProjects = [] } = useSavedProjects(user?.id)
+  const { data: savedServers = [] } = useSavedServers(user?.id)
   const limit = hasPremiumPerks ? 5 : 1
   const hasReachedLimit = servers.length >= limit
   const deleteServerMutation = useDeleteServerMutation()
   const deleteProjectMutation = useDeleteProjectMutation()
+  const toggleSaveMutation = useToggleProjectSaveMutation()
+  const toggleServerSaveMutation = useToggleServerSaveMutation()
   
+  const handleUnsave = (projectId: string) => {
+    if (!user) return
+    toggleSaveMutation.mutate({
+      projectId,
+      userId: user.id,
+      isSaving: false
+    }, {
+      onSuccess: () => {
+        toast('Project Unsaved', { icon: <BookmarkMinus className="w-4 h-4 text-zinc-400" /> })
+      }
+    })
+  }
+
+  const handleUnsaveServer = (serverId: string) => {
+    if (!user) return
+    toggleServerSaveMutation.mutate({
+      serverId,
+      userId: user.id,
+      isSaving: false
+    }, {
+      onSuccess: () => {
+        toast('Server Unsaved', { icon: <BookmarkMinus className="w-4 h-4 text-zinc-400" /> })
+      }
+    })
+  }
+
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleteName, setDeleteName] = useState('')
   const [deleteType, setDeleteType] = useState<'server' | 'project'>('server')
@@ -591,12 +621,61 @@ export function DashboardPage() {
       )}
 
       {activeTab === 'saved' && (
-        <FramerIn delay={0.4}>
-          <EmptyState 
-            title="No Saved Items" 
-            message="You haven't saved any servers or projects yet. Browse the directory and click the save icon to add items here." 
-          />
-        </FramerIn>
+        <>
+        {savedProjects.length === 0 && savedServers.length === 0 ? (
+          <FramerIn delay={0.4}>
+            <EmptyState 
+              title="No Saved Items" 
+              message="You haven't saved any servers or projects yet. Browse the directory and click the save icon to add items here." 
+            />
+          </FramerIn>
+        ) : (
+          <div className="space-y-4">
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.2 } }
+              }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 will-change-transform"
+            >
+              {[
+                ...savedServers.map((s: any) => ({ ...s, _isServer: true })),
+                ...savedProjects.map((p: any) => ({ ...p, _isProject: true }))
+              ].map((item: any) => (
+                <motion.div key={item.id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="relative">
+                  <ProjectCard 
+                    project={item} 
+                    showStatus={false}
+                    accentColor="orange"
+                    actions={
+                      <div className="flex items-center gap-2 w-full justify-end">
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            if (item._isServer) {
+                              handleUnsaveServer(item.id)
+                            } else {
+                              handleUnsave(item.id)
+                            }
+                          }}
+                          className="text-[10px] md:text-xs font-bold text-orange-400 hover:text-orange-300 px-3 py-1.5 md:py-2 bg-orange-500/10 rounded-md border border-orange-500/20 flex items-center justify-center gap-2 transition-colors hover:bg-orange-500/20"
+                          title={`Unsave ${item._isServer ? 'Server' : 'Project'}`}
+                        >
+                          <BookmarkMinus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                          Unsave
+                        </button>
+                      </div>
+                    }
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        )}
+        </>
       )}
 
       {/* Your Sponsors Section */}

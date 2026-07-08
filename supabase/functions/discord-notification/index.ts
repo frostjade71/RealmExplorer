@@ -124,16 +124,33 @@ Deno.serve(async (req: Request) => {
         }]
       };
     } else if (type === 'staff_project_review') {
-      const { projectName, iconUrl } = payload;
+      const { projectName, iconUrl, status = 'pending' } = payload;
       targetEndpoint = STAFF_WEBHOOK_URL;
       const adminPanelUrl = 'https://www.realmexplorer.xyz/admin/projects';
+
+      let alertMessage = `**${projectName}** needs reviewing !`;
+      let alertTitle = '📑 New Project Submission';
+
+      if (status === 'Review Icon') {
+        alertTitle = '🖼️ New Icon Review';
+        alertMessage = `**${projectName}** has updated their icon and needs reviewing !`;
+      } else if (status === 'Review Gallery') {
+        alertTitle = '📸 New Gallery Review';
+        alertMessage = `**${projectName}** has updated their gallery and needs reviewing !`;
+      } else if (status === 'Review Icon & Gallery') {
+        alertTitle = '🎨 New Assets Review';
+        alertMessage = `**${projectName}** has updated their icon and gallery and needs reviewing !`;
+      } else if (status === 'Review Text') {
+        alertTitle = '📝 Project Edit Review';
+        alertMessage = `**${projectName}** has updated their details and needs reviewing !`;
+      }
 
       discordPayload = {
         username: 'Realm Explorer | Staff Alert',
         content: STAFF_ROLE_ID ? `<@&${STAFF_ROLE_ID}>` : undefined,
         embeds: [{
-          title: '📑 New Project Submission',
-          description: `**${projectName}** needs reviewing !`,
+          title: alertTitle,
+          description: alertMessage,
           color: 0xffa500, // Orange
           thumbnail: iconUrl ? { url: iconUrl } : undefined,
           fields: [{

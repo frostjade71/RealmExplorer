@@ -57,12 +57,14 @@ export function ProjectSubmitPage() {
     license: 'MIT',
     custom_license_url: '',
     icon_url: '',
+    gallery_url: '',
     short_description: '',
   })
 
   const [projectFile, setProjectFile] = useState<File | null>(null)
   const [licenseFile, setLicenseFile] = useState<File | null>(null)
   const [projectIconBlob, setProjectIconBlob] = useState<Blob | null>(null)
+  const [projectGalleryBlob, setProjectGalleryBlob] = useState<Blob | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
 
@@ -78,6 +80,7 @@ export function ProjectSubmitPage() {
         license: existingProject.license || 'MIT',
         custom_license_url: existingProject.custom_license_url || '',
         icon_url: existingProject.icon_url || '',
+        gallery_url: (existingProject.gallery && existingProject.gallery.length > 0) ? existingProject.gallery[0] : '',
         short_description: existingProject.short_description || '',
       })
     }
@@ -155,12 +158,14 @@ export function ProjectSubmitPage() {
         projectFile !== null || 
         licenseFile !== null || 
         projectIconBlob !== null ||
+        projectGalleryBlob !== null ||
         formData.name !== existingProject?.name ||
         formData.description !== existingProject?.description ||
         formData.short_description !== existingProject?.short_description ||
         formData.type !== existingProject?.type ||
         formData.category !== existingProject?.category ||
         formData.license !== existingProject?.license ||
+        formData.gallery_url !== ((existingProject?.gallery && existingProject.gallery.length > 0) ? existingProject.gallery[0] : '') ||
         JSON.stringify([...formData.compatibility].sort()) !== JSON.stringify([...(existingProject?.compatibility || [])].sort()) ||
         JSON.stringify([...formData.platforms].sort()) !== JSON.stringify([...(existingProject?.platforms || [])].sort());
 
@@ -173,6 +178,7 @@ export function ProjectSubmitPage() {
       let finalFileUrl = existingProject?.file_url || null
       let finalLicenseUrl = existingProject?.custom_license_url || null
       let finalIconUrl = formData.icon_url
+      let finalGalleryUrl = formData.gallery_url
 
       if (projectIconBlob) {
         const filePath = `${user.id}/${Math.random().toString(36).substring(2)}-${Date.now()}.webp`
@@ -192,6 +198,24 @@ export function ProjectSubmitPage() {
         finalIconUrl = publicUrl
       }
 
+      if (projectGalleryBlob) {
+        const filePath = `${user.id}/${Math.random().toString(36).substring(2)}-${Date.now()}-gallery.webp`
+        const { error: uploadError } = await supabase.storage
+          .from('project-files')
+          .upload(filePath, projectGalleryBlob, {
+            contentType: 'image/webp',
+            upsert: true,
+            cacheControl: 'public, max-age=31536000, immutable'
+          })
+        if (uploadError) throw uploadError
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('project-files')
+          .getPublicUrl(filePath)
+          
+        finalGalleryUrl = publicUrl
+      }
+
       if (projectFile) {
         const fileExt = projectFile.name.split('.').pop()
         const path = `files/${crypto.randomUUID()}.${fileExt}`
@@ -202,6 +226,17 @@ export function ProjectSubmitPage() {
         const fileExt = licenseFile.name.split('.').pop()
         const path = `licenses/${crypto.randomUUID()}.${fileExt}`
         finalLicenseUrl = await uploadMutation.mutateAsync({ file: licenseFile, path })
+      }
+
+      let notificationStatus = 'pending'
+      if (existingProject) {
+        const iconChanged = finalIconUrl !== existingProject.icon_url
+        const galleryChanged = finalGalleryUrl !== ((existingProject.gallery && existingProject.gallery.length > 0) ? existingProject.gallery[0] : '')
+        
+        if (iconChanged && galleryChanged) notificationStatus = 'Review Icon & Gallery'
+        else if (iconChanged) notificationStatus = 'Review Icon'
+        else if (galleryChanged) notificationStatus = 'Review Gallery'
+        else notificationStatus = 'Review Text'
       }
 
       const projectData = {
@@ -217,17 +252,19 @@ export function ProjectSubmitPage() {
         license: formData.license,
         custom_license_url: finalLicenseUrl,
         icon_url: finalIconUrl || null,
+        gallery: finalGalleryUrl ? [finalGalleryUrl] : [],
         short_description: formData.short_description,
         file_url: finalFileUrl,
         status: (e.nativeEvent as SubmitEvent).submitter?.getAttribute('name') === 'submit_review' ? 'pending' : (existingProject?.status || 'draft')
-      }
+      } as any
 
       await submitMutation.mutateAsync(projectData)
       
       if (projectData.status === 'pending' && existingProject?.status !== 'pending') {
         await sendProjectReviewNotification({
           projectName: projectData.name,
-          iconUrl: projectData.icon_url
+          iconUrl: projectData.icon_url,
+          status: notificationStatus
         })
       }
 
@@ -419,6 +456,27 @@ export function ProjectSubmitPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 ></textarea>
               )}
+            </div>
+
+            <div className="space-y-2 col-span-2">
+              <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
+                <FileText className="w-3 h-3" /> Gallery
+              </label>
+              <div className="max-w-xs">
+                <ImageUpload
+                  label=""
+                  immediateUpload={false}
+                  onUpload={(url, file) => {
+                    setFormData({ ...formData, gallery_url: url })
+                    if (file) setProjectGalleryBlob(file)
+                    else setProjectGalleryBlob(null)
+                  }}
+                  value={formData.gallery_url}
+                  aspectRatio="video"
+                  bucket="project-files"
+                />
+              </div>
+              <p className="text-zinc-500 text-[10px] font-headline">Max 1 picture, PNG/JPG up to 5MB.</p>
             </div>
 
             <div className="space-y-2 col-span-2 md:col-span-1">

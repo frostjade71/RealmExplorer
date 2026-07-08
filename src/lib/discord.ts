@@ -60,6 +60,7 @@ export async function sendStaffReviewNotification(params: {
 export async function sendProjectReviewNotification(params: {
   projectName: string;
   iconUrl?: string | null;
+  status?: string;
 }) {
   try {
     const { error } = await supabase.functions.invoke('discord-notification', {
@@ -68,6 +69,7 @@ export async function sendProjectReviewNotification(params: {
         payload: {
           projectName: params.projectName,
           iconUrl: params.iconUrl,
+          status: params.status,
         }
       }
     });

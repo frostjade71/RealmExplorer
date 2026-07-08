@@ -4,6 +4,8 @@ import { X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import modsBg from '../assets/dashboard/iocnsdev.webp'
 import buildsBg from '../assets/dashboard/furniture.png'
+import javaIcon from '../assets/category/10421-grass.png'
+import bedrockIcon from '../assets/category/437888-bedrock.png'
 
 interface ProjectSelectionModalProps {
   isOpen: boolean
@@ -17,14 +19,14 @@ export function ProjectSelectionModal({ isOpen, onClose }: ProjectSelectionModal
       title: 'Java',
       desc: 'Submit your community Java projects and creations.',
       bg: modsBg,
-      icon: 'extension'
+      icon: javaIcon
     },
     {
       id: 'Bedrock',
       title: 'Bedrock',
       desc: 'Showcase your amazing Bedrock projects and maps.',
       bg: buildsBg,
-      icon: 'architecture'
+      icon: bedrockIcon
     }
   ]
 
@@ -82,9 +84,7 @@ export function ProjectSelectionModal({ isOpen, onClose }: ProjectSelectionModal
 
                   <div className="relative z-10 pointer-events-none">
                     <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-500 transition-all duration-300">
-                      <span className="material-symbols-outlined text-white text-lg">
-                        {project.icon}
-                      </span>
+                      <img src={project.icon} alt={project.title} className="w-5 h-5 object-contain" />
                     </div>
                     <h3 className="font-pixel text-[11px] mb-1 text-white">{project.title}</h3>
                     <p className="text-zinc-300 text-[10px] leading-relaxed line-clamp-2">{project.desc}</p>

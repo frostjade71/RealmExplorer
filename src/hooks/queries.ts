@@ -20,7 +20,8 @@ import type {
   Badge,
   ServerStaff,
   ServerAppeal,
-  Project
+  Project,
+  ProjectRating
 } from '../types'
 
 export function useServers(params?: {
@@ -304,6 +305,23 @@ export function useServerRatings(serverId: string | undefined) {
       
       if (error) throw error
       return data as unknown as (ServerRating & { profiles: Profile })[]
+    }
+  })
+}
+
+export function useProjectReviews(projectId: string | undefined) {
+  return useQuery({
+    queryKey: ['projectRatings', projectId],
+    enabled: !!projectId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_ratings' as any)
+        .select('*, profiles(*)')
+        .eq('project_id', projectId!)
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      return data as unknown as (ProjectRating & { profiles: Profile })[]
     }
   })
 }
@@ -935,6 +953,99 @@ export function useAdminProjects() {
         .order('created_at', { ascending: false })
       if (error) throw error
       return data as unknown as Project[]
+    }
+  })
+}
+
+export function useProjectSaves(projectId: string | undefined, userId: string | undefined) {
+  return useQuery({
+    queryKey: ['projectSaves', projectId, userId],
+    enabled: !!projectId,
+    queryFn: async () => {
+      let query = supabase.from('project_saves' as any).select('id', { count: 'exact' }).eq('project_id', projectId)
+      const { count: totalSaves } = await query
+      
+      let hasSaved = false
+      if (userId) {
+        const { data } = await supabase.from('project_saves' as any).select('id').eq('project_id', projectId).eq('user_id', userId).maybeSingle()
+        hasSaved = !!data
+      }
+      
+      return { totalSaves: totalSaves || 0, hasSaved }
+    }
+  })
+}
+
+export function useSavedProjects(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['savedProjects', userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_saves' as any)
+        .select('project_id')
+        .eq('user_id', userId!)
+      
+      if (error) throw error
+      
+      if (!data || data.length === 0) return []
+      
+      const projectIds = data.map((d: any) => d.project_id)
+      
+      const { data: projects, error: projectsError } = await supabase
+        .from('projects' as any)
+        .select('*')
+        .in('id', projectIds)
+      
+      if (projectsError) throw projectsError
+      return projects as unknown as Project[]
+    }
+  })
+}
+
+export function useServerSaves(serverId: string | undefined, userId: string | undefined) {
+  return useQuery({
+    queryKey: ['serverSaves', serverId, userId],
+    enabled: !!serverId,
+    queryFn: async () => {
+      let query = supabase.from('server_saves' as any).select('id', { count: 'exact' }).eq('server_id', serverId)
+      const { count: totalSaves } = await query
+      
+      let hasSaved = false
+      if (userId) {
+        const { data } = await supabase.from('server_saves' as any).select('id').eq('server_id', serverId).eq('user_id', userId).maybeSingle()
+        hasSaved = !!data
+      }
+      
+      return { totalSaves: totalSaves || 0, hasSaved }
+    }
+  })
+}
+
+export function useSavedServers(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['savedServers', userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('server_saves' as any)
+        .select('server_id')
+        .eq('user_id', userId!)
+      
+      if (error) throw error
+      
+      if (!data || data.length === 0) return []
+      
+      const serverIds = data.map((d: any) => d.server_id)
+      
+      const { data: servers, error: serversError } = await supabase
+        .from('servers')
+        .select('*')
+        .in('id', serverIds)
+      
+      if (serversError) throw serversError
+      
+      return servers as unknown as Server[]
     }
   })
 }

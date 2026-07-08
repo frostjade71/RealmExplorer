@@ -512,6 +512,61 @@ export function useDeleteRatingMutation() {
   })
 }
 
+export function useSubmitProjectReviewMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ 
+      userId, 
+      projectId, 
+      rating, 
+      comment 
+    }: { 
+      userId: string; 
+      projectId: string; 
+      rating: number; 
+      comment: string | null 
+    }) => {
+      const { error } = await supabase
+        .from('project_ratings' as any)
+        .upsert({ 
+          user_id: userId, 
+          project_id: projectId, 
+          rating, 
+          comment 
+        }, { onConflict: 'user_id,project_id' })
+      
+      if (error) throw error
+      return projectId
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project'] })
+      queryClient.invalidateQueries({ queryKey: ['projectRatings'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    }
+  })
+}
+
+export function useDeleteProjectRatingMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ userId, projectId }: { userId: string; projectId: string }) => {
+      const { error } = await supabase
+        .from('project_ratings' as any)
+        .delete()
+        .eq('user_id', userId)
+        .eq('project_id', projectId)
+      
+      if (error) throw error
+      return projectId
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project'] })
+      queryClient.invalidateQueries({ queryKey: ['projectRatings'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    }
+  })
+}
+
 export function useSendMessageMutation() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -1728,6 +1783,62 @@ export function useToggleProjectLikeMutation() {
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['projectLikes'] })
         queryClient.invalidateQueries({ queryKey: ['project'] })
+      }, 500)
+    }
+  })
+}
+
+export function useToggleProjectSaveMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ projectId, userId, isSaving }: { projectId: string, userId: string, isSaving: boolean }) => {
+      if (!isSaving) {
+        const { error } = await supabase
+          .from('project_saves' as any)
+          .delete()
+          .eq('project_id', projectId)
+          .eq('user_id', userId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('project_saves' as any)
+          .insert([{ project_id: projectId, user_id: userId }] as any)
+        if (error) throw error
+      }
+    },
+    onSuccess: () => {
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['projectSaves'] })
+        queryClient.invalidateQueries({ queryKey: ['project'] })
+        queryClient.invalidateQueries({ queryKey: ['savedProjects'] })
+      }, 500)
+    }
+  })
+}
+
+export function useToggleServerSaveMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ serverId, userId, isSaving }: { serverId: string, userId: string, isSaving: boolean }) => {
+      if (!isSaving) {
+        const { error } = await supabase
+          .from('server_saves' as any)
+          .delete()
+          .eq('server_id', serverId)
+          .eq('user_id', userId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('server_saves' as any)
+          .insert([{ server_id: serverId, user_id: userId }] as any)
+        if (error) throw error
+      }
+    },
+    onSuccess: () => {
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['serverSaves'] })
+        queryClient.invalidateQueries({ queryKey: ['server'] })
+        queryClient.invalidateQueries({ queryKey: ['savedServers'] })
       }, 500)
     }
   })

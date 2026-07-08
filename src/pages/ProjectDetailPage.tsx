@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useProject, useProjectLikes } from '../hooks/queries'
-import { useIncrementProjectDownloadMutation, useToggleProjectLikeMutation } from '../hooks/mutations'
+import { useProject, useProjectLikes, useProjectSaves, useProjectReviews } from '../hooks/queries'
+import { useIncrementProjectDownloadMutation, useToggleProjectLikeMutation, useToggleProjectSaveMutation, useSubmitProjectReviewMutation, useDeleteProjectRatingMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
-import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
-import { Download, Heart, Clock, Calendar, CheckCircle, Share2, Archive, Edit3, Upload, Bookmark, Flag, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Layers } from 'lucide-react'
+import { LoadingSpinner, EmptyState, TopLoadingBar } from '../components/FeedbackStates'
+import { RatingModal } from '../components/RatingModal'
+import { Download, Heart, Clock, Calendar, CheckCircle, Share2, Archive, Edit3, Upload, Bookmark, BookmarkMinus, Flag, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Layers, Star, Users } from 'lucide-react'
 import javaIcon from '../assets/category/10421-grass.png'
 import bedrockIcon from '../assets/category/437888-bedrock.png'
 import fabricIcon from '../assets/platform/482016-fabricapiminecraft.png'
@@ -17,6 +18,7 @@ import { motion } from 'framer-motion'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 import { RichText } from '../components/RichText'
+import { supabase } from '../lib/supabase'
 
 export function ProjectDetailPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -25,12 +27,23 @@ export function ProjectDetailPage() {
   const { user, signInWithDiscord } = useAuth()
   const { data: project, isLoading, error } = useProject(slug)
   const { data: projectLikes } = useProjectLikes(project?.id, user?.id)
+  const { data: projectSaves } = useProjectSaves(project?.id, user?.id)
   
   const isLiked = projectLikes?.hasLiked ?? false
+  const isSaved = projectSaves?.hasSaved ?? false
 
   const [shareCopied, setShareCopied] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'gallery' | 'reviews'>('overview')
   const [isLikingLocal, setIsLikingLocal] = useState(false)
+  const [isSavingLocal, setIsSavingLocal] = useState(false)
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  const { data: projectReviews = [] } = useProjectReviews(project?.id)
+  const submitReviewMutation = useSubmitProjectReviewMutation()
+  const deleteReviewMutation = useDeleteProjectRatingMutation()
+
+  const userReview = projectReviews?.find(r => r.user_id === user?.id)
 
   // Redirect UUID to slug if needed
   useEffect(() => {
@@ -58,6 +71,7 @@ export function ProjectDetailPage() {
 
   const incrementDownloadMutation = useIncrementProjectDownloadMutation()
   const toggleLikeMutation = useToggleProjectLikeMutation()
+  const toggleSaveMutation = useToggleProjectSaveMutation()
 
   const handleDownload = () => {
     if (project?.file_url) {
@@ -84,8 +98,40 @@ export function ProjectDetailPage() {
       userId: user.id,
       isLiking: !isLiked
     }, {
+      onSuccess: () => {
+        if (!isLiked) {
+          toast.success(`Thank you for Supporting ${project.name}`)
+        }
+      },
       onSettled: () => {
-        setTimeout(() => setIsLikingLocal(false), 500)
+        setTimeout(() => setIsLikingLocal(false), 1500)
+      }
+    })
+  }
+
+  const handleToggleSave = () => {
+    if (!project?.id) return
+    if (!user) {
+      toast.error('Please log in to save projects')
+      signInWithDiscord()
+      return
+    }
+    
+    setIsSavingLocal(true)
+    toggleSaveMutation.mutate({
+      projectId: project.id,
+      userId: user.id,
+      isSaving: !isSaved
+    }, {
+      onSuccess: () => {
+        if (!isSaved) {
+          toast.success('Project Saved')
+        } else {
+          toast('Project Unsaved', { icon: <BookmarkMinus className="w-4 h-4 text-zinc-400" /> })
+        }
+      },
+      onSettled: () => {
+        setTimeout(() => setIsSavingLocal(false), 1500)
       }
     })
   }
@@ -153,17 +199,9 @@ export function ProjectDetailPage() {
 
   return (
     <AnimatedPage className="min-h-screen bg-zinc-950 pb-20">
-      {/* Top Loading Bar for Like Mutation */}
-      {(toggleLikeMutation.isPending || isLikingLocal) && (
-        <div className="fixed top-0 left-0 right-0 h-1 bg-transparent z-50 overflow-hidden pointer-events-none">
-          <motion.div 
-            initial={{ x: '-100vw' }}
-            animate={{ x: '100vw' }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}
-            className="h-full w-1/3 bg-[#4EC44E]"
-          />
-        </div>
-      )}
+      {/* Top Loading Bars for Like/Save Mutations */}
+      <TopLoadingBar isVisible={toggleLikeMutation.isPending || isLikingLocal} colorClass="via-red-500" />
+      <TopLoadingBar isVisible={toggleSaveMutation.isPending || isSavingLocal} colorClass="via-blue-500" />
       
       <div className="max-w-5xl mx-auto w-full px-4 md:px-8 pt-8 md:pt-12">
         
@@ -230,10 +268,11 @@ export function ProjectDetailPage() {
                 </button>
 
                 <button 
-                  className="bg-zinc-900/80 hover:bg-zinc-800/80 border-b-[4px] border-zinc-950 active:border-b-0 active:border-t-[4px] active:border-t-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm text-zinc-400 hover:text-white px-4 py-2.5 md:px-5 md:py-3 rounded-lg transition-colors flex-shrink-0 flex items-center justify-center group"
+                  onClick={handleToggleSave}
+                  className={`bg-zinc-900/80 hover:bg-zinc-800/80 border-b-[4px] border-zinc-950 active:border-b-0 active:border-t-[4px] active:border-t-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm px-4 py-2.5 md:px-5 md:py-3 rounded-lg transition-colors flex-shrink-0 flex items-center justify-center group ${isSaved ? 'text-blue-500 hover:text-blue-400' : 'text-zinc-400 hover:text-white'}`}
                   title="Save"
                 >
-                  <Bookmark className="w-5 h-5" />
+                  <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
                 </button>
               </div>
             </div>
@@ -247,6 +286,10 @@ export function ProjectDetailPage() {
             <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-sm md:text-base" title="Likes">
               <Heart className="w-4 h-4 md:w-5 md:h-5 text-zinc-500" />
               <span className="font-bold text-white">{project.likes || 0}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-zinc-400 font-headline text-sm md:text-base" title="Saves">
+              <Bookmark className="w-4 h-4 md:w-5 md:h-5 text-zinc-500" />
+              <span className="font-bold text-white">{project.saves || 0}</span>
             </div>
             {project.platforms && project.platforms.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 text-zinc-400 font-headline text-sm md:text-base">
@@ -274,11 +317,16 @@ export function ProjectDetailPage() {
       {/* Navigation Tabs */}
       <div className="sticky top-16 bg-zinc-950/95 backdrop-blur-xl z-40 w-full">
         <div className="max-w-5xl mx-auto px-4 md:px-8">
-          <div className="flex items-center gap-6 md:gap-8 overflow-x-auto hide-scrollbar py-0">
+          <div className="flex items-center gap-6 md:gap-8 overflow-x-auto overflow-y-hidden no-scrollbar py-0">
             {['overview', 'gallery', 'reviews'].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab as any)}
+                onClick={() => {
+                  setActiveTab(tab as any)
+                  if (tab !== 'overview') {
+                    setTimeout(() => contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+                  }
+                }}
                 className={`relative py-3 font-headline font-bold text-xs md:text-sm uppercase tracking-widest whitespace-nowrap transition-colors ${
                   activeTab === tab ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'
                 }`}
@@ -293,7 +341,7 @@ export function ProjectDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto w-full px-4 md:px-8 pt-8">
+      <div ref={contentRef} className="max-w-5xl mx-auto w-full px-4 md:px-8 pt-8 scroll-mt-28">
         <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-4 pb-20">
           <FramerIn delay={0.3} className="md:col-span-2 w-full space-y-4 md:space-y-4 min-w-0">
             {activeTab === 'overview' && (
@@ -315,7 +363,6 @@ export function ProjectDetailPage() {
             {activeTab === 'gallery' && (
               <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-lg overflow-hidden">
                 <h2 className="font-pixel text-white text-base md:text-lg mb-4 md:mb-6 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[16px] text-zinc-400">photo_library</span>
                   Gallery
                 </h2>
                 {project.gallery && project.gallery.length > 0 ? (
@@ -335,12 +382,68 @@ export function ProjectDetailPage() {
             {activeTab === 'reviews' && (
               <div className="w-full bg-zinc-900/50 border border-zinc-800 p-5 md:p-8 rounded-lg">
                 <div className="flex items-center justify-between mb-6 md:mb-8">
-                  <h2 className="font-pixel text-white text-base md:text-lg">Ratings</h2>
-                  <div className="flex items-center gap-2 md:gap-4 text-[10px] md:text-sm font-headline text-zinc-500 uppercase tracking-widest">
-                    <span>0 Reviews</span>
+                  <h2 className="font-pixel text-white text-base md:text-lg flex items-center gap-2">
+                    Ratings
+                  </h2>
+                  <div className="flex items-center gap-2 md:gap-4">
+                    <button
+                      onClick={() => {
+                        if (!user) {
+                          toast.error('Please log in to leave a review')
+                          signInWithDiscord()
+                          return
+                        }
+                        setIsRatingModalOpen(true)
+                      }}
+                      className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-headline font-bold text-xs md:text-sm transition-colors flex items-center gap-2"
+                    >
+                      {userReview ? 'Edit Review' : 'Add Review'}
+                    </button>
                   </div>
                 </div>
-                <EmptyState title="Coming Soon" message="Project reviews will be available in a future update." />
+                
+                {projectReviews && projectReviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {projectReviews.map((review) => (
+                      <div key={review.id} className="bg-zinc-950 p-4 rounded-xl border border-zinc-800/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            {review.profiles?.discord_avatar ? (
+                              <img src={review.profiles.discord_avatar} alt="" className="w-8 h-8 rounded-full bg-zinc-800" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
+                                <Users className="w-4 h-4 text-zinc-500" />
+                              </div>
+                            )}
+                            <div>
+                              <div className="text-white text-sm font-bold flex items-center gap-2">
+                                {review.profiles?.discord_username || 'Anonymous'}
+                              </div>
+                              <div className="text-zinc-500 text-[10px] font-headline uppercase tracking-wider">
+                                {new Date(review.created_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star 
+                                key={star} 
+                                className={`w-3.5 h-3.5 ${star <= review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-zinc-700'}`} 
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {review.comment && (
+                          <p className="text-zinc-300 text-sm font-body mt-3 italic">
+                            "{review.comment}"
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState title="No Reviews" message="Be the first to review this project!" />
+                )}
               </div>
             )}
           </FramerIn>
@@ -413,10 +516,29 @@ export function ProjectDetailPage() {
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-1.5 text-zinc-400">
+                    <Star className="w-3.5 h-3.5" />
+                    <span className="text-xs md:text-sm">Rating</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Star className={`w-3 h-3 md:w-3.5 md:h-3.5 ${project.average_rating > 0 ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-600'}`} />
+                    <span className="text-white font-bold text-xs md:text-sm">
+                      {project.average_rating > 0 ? project.average_rating.toFixed(1) : '0.0'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-1.5 text-zinc-400">
                     <Download className="w-3.5 h-3.5" />
                     <span className="text-xs md:text-sm">Downloads</span>
                   </div>
                   <span className="text-white font-bold text-xs md:text-sm">{project.downloads || 0}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-1.5 text-zinc-400">
+                    <Bookmark className="w-3.5 h-3.5" />
+                    <span className="text-xs md:text-sm">Saves</span>
+                  </div>
+                  <span className="text-white font-bold text-xs md:text-sm">{project.saves || 0}</span>
                 </div>
                 
                 <div className="pt-3 mt-3 border-t border-zinc-800/50 space-y-2">
@@ -437,7 +559,7 @@ export function ProjectDetailPage() {
                       <p className="text-white text-xs md:text-sm leading-tight flex items-center gap-1.5">
                         {project.profiles.discord_username || 'Unknown User'}
                       </p>
-                      <p className="text-[10px] text-realm-green uppercase font-headline font-bold tracking-wider mt-0.5 transition-colors">Project Owner</p>
+                      <p className="text-[10px] text-realm-green uppercase font-headline font-bold tracking-wider mt-0.5 transition-colors">Creator</p>
                     </div>
                   </div>
                 )}
@@ -460,7 +582,7 @@ export function ProjectDetailPage() {
                 </button>
 
                 <button 
-                  onClick={() => toast('Report functionality coming soon!', { icon: '🚩' })}
+                  onClick={() => toast('Im too lazy maybe next time')}
                   className="w-full bg-zinc-900/80 border border-zinc-800 p-3 rounded-lg flex items-center justify-center gap-2 text-zinc-500 hover:text-red-400 hover:border-red-500/40 transition-colors group"
                 >
                   <Flag className="w-4 h-4" />
@@ -471,6 +593,55 @@ export function ProjectDetailPage() {
           </FramerIn>
         </div>
       </div>
+
+      <RatingModal
+        type="project"
+        isOpen={isRatingModalOpen}
+        onClose={() => setIsRatingModalOpen(false)}
+        initialRating={userReview?.rating || 0}
+        initialComment={userReview?.comment || ''}
+        isSubmitting={submitReviewMutation.isPending}
+        isRemoving={deleteReviewMutation.isPending}
+        onSubmit={(rating, comment) => {
+          if (!user || !project?.id) return
+          submitReviewMutation.mutate({
+            userId: user.id,
+            projectId: project.id,
+            rating,
+            comment
+          }, {
+            onSuccess: async () => {
+              toast.success(userReview ? 'Review updated' : 'Review submitted')
+              setIsRatingModalOpen(false)
+
+              if (project.owner_id) {
+                await supabase.from('notifications').insert({
+                  user_id: project.owner_id,
+                  type: 'rating',
+                  title: 'New Project Rating',
+                  message: `Your "${project.name}" has been rated`,
+                  related_id: project.id
+                } as any)
+              }
+            },
+            onError: (err) => {
+              toast.error('Failed to submit review', { description: err.message })
+            }
+          })
+        }}
+        onRemove={userReview ? () => {
+          if (!user || !project?.id) return
+          deleteReviewMutation.mutate({
+            userId: user.id,
+            projectId: project.id
+          }, {
+            onSuccess: () => {
+              toast.success('Review removed')
+              setIsRatingModalOpen(false)
+            }
+          })
+        } : undefined}
+      />
     </AnimatedPage>
   )
 }

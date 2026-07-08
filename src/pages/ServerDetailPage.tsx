@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useServer, useUserVoteStatus, useServerRatings, useEntityBadges, useServerStaff, useLiveServerStatus, useTopVoters, useRecentVoters, useServerRank, useServerPlayerHistory } from '../hooks/queries'
-import { useVoteMutation, useSubmitRatingMutation, useSubmitReportMutation, useDeleteRatingMutation } from '../hooks/mutations'
-import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
+import { useServer, useUserVoteStatus, useServerRatings, useEntityBadges, useServerStaff, useLiveServerStatus, useTopVoters, useRecentVoters, useServerRank, useServerPlayerHistory, useServerSaves } from '../hooks/queries'
+import { useVoteMutation, useSubmitRatingMutation, useSubmitReportMutation, useDeleteRatingMutation, useToggleServerSaveMutation } from '../hooks/mutations'
+import { LoadingSpinner, EmptyState, TopLoadingBar } from '../components/FeedbackStates'
 import { CategoryBadge } from '../components/CategoryBadge'
-import { Globe, Copy, CheckCircle, ArrowUpSquare, Star, ExternalLink, Calendar, Clock, Flag, Mail, ChevronLeft, ChevronRight, Activity, Users, Trophy, Gift, Info, RefreshCw, Share2, FileText, TrendingUp, Crown, Eye } from 'lucide-react'
+import { Globe, Copy, CheckCircle, ArrowUpSquare, Star, ExternalLink, Calendar, Clock, Flag, Mail, ChevronLeft, ChevronRight, Activity, Users, Trophy, Gift, Info, RefreshCw, Share2, FileText, TrendingUp, Crown, Eye, Bookmark, MoreVertical } from 'lucide-react'
 import { formatDistanceToNow, format, subDays } from 'date-fns'
 import { SiDiscord, SiTiktok, SiInstagram, SiYoutube, SiFacebook, SiTwitch } from 'react-icons/si'
 import { AnimatedPage } from '../components/AnimatedPage'
@@ -80,6 +80,12 @@ export function ServerDetailPage() {
   const { data: recentVoters = [] } = useRecentVoters(server?.id)
   const { data: currentRank } = useServerRank(server?.id)
   const { data: playerHistory = [] } = useServerPlayerHistory(server?.id)
+  const { data: serverSaves } = useServerSaves(server?.id, user?.id)
+
+  const isSaved = serverSaves?.hasSaved ?? false
+  const toggleSaveMutation = useToggleServerSaveMutation()
+  const [isSavingLocal, setIsSavingLocal] = useState(false)
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false)
 
   const voteMutation = useVoteMutation()
   const ratingMutation = useSubmitRatingMutation()
@@ -341,6 +347,27 @@ export function ServerDetailPage() {
     )
   }
 
+  const handleToggleSave = () => {
+    if (!server?.id) return
+    if (!user) {
+      toast.error('Please log in to save servers')
+      return
+    }
+    setIsSavingLocal(true)
+    toggleSaveMutation.mutate({
+      serverId: server.id,
+      userId: user.id,
+      isSaving: !isSaved
+    }, {
+      onSuccess: () => {
+        if (!isSaved) toast.success('Server Saved')
+        else toast('Server Unsaved', { icon: <Bookmark className="w-4 h-4 text-zinc-400" /> })
+      },
+      onSettled: () => {
+        setTimeout(() => setIsSavingLocal(false), 1500)
+      }
+    })
+  }
 
   const metaDescription = server?.description 
     ? server.description.substring(0, 160).replace(/[#*`]/g, '') + '...' 
@@ -355,6 +382,8 @@ export function ServerDetailPage() {
       url={`/server/${server?.slug || slug || ''}`}
       type="website"
     />
+
+    <TopLoadingBar isVisible={toggleSaveMutation.isPending || isSavingLocal} colorClass="via-[#4EC44E]" />
 
     {loading && <LoadingSpinner />}
     {!loading && !server && <EmptyState title="Not Found" message="This server or realm does not exist or was removed." />}
@@ -394,7 +423,7 @@ export function ServerDetailPage() {
       </FramerIn>
 
       {/* Header Info */}
-      <FramerIn delay={0.2} className={`bg-zinc-950 rounded-b-lg p-5 md:p-8 mb-4 md:mb-4 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative -mt-4 will-change-transform ${isPremium ? 'border-x-2 border-b-2 border-[#f2a929]' : 'border-x border-b border-zinc-800 shadow-xl'}`}>
+      <FramerIn delay={0.2} className={`bg-zinc-950 rounded-b-lg p-5 md:p-8 mb-4 md:mb-4 flex flex-col md:flex-row gap-4 md:gap-6 items-start relative z-30 -mt-4 will-change-transform ${isPremium ? 'border-x-2 border-b-2 border-[#f2a929]' : 'border-x border-b border-zinc-800 shadow-xl'}`}>
         <div className="relative -mt-10 md:-mt-12 z-10 flex-shrink-0">
           <div className={`w-20 h-20 md:w-24 md:h-24 bg-zinc-900 rounded-md overflow-hidden border-4 ${isPremium ? 'border-transparent' : 'border-zinc-950'} shadow-lg will-change-transform relative z-10`}>
             {server.icon_url ? (
@@ -642,24 +671,67 @@ export function ServerDetailPage() {
                         </motion.button>
                         <motion.button 
                           onClick={() => setViewMode('voting')}
-                          className="px-3 bg-zinc-900 border-y border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-none font-headline font-bold text-[9px] md:text-[10px] uppercase tracking-widest transition-colors flex-shrink-0 flex items-center gap-1.5"
+                          className="px-3 bg-zinc-900 border-y border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-none font-headline font-bold text-[9px] md:text-[10px] uppercase tracking-widest transition-colors flex-shrink-0 flex items-center gap-1.5 border-r"
                         >
                           <Eye className="w-3 h-3 md:w-3.5 md:h-3.5" />
                           View Votes
                         </motion.button>
-                        <motion.button 
-                          whileHover={isApproved ? { scale: 1.05 } : {}}
-                          whileTap={isApproved ? { scale: 0.95 } : {}}
-                          onClick={() => isApproved && setIsRatingModalOpen(true)}
-                          disabled={!isApproved}
-                          className={`px-3 md:px-4 rounded-r-md border transition-colors shadow-lg flex-shrink-0 flex items-center justify-center ${
-                            !isApproved ? 'bg-zinc-900 border-zinc-800 text-zinc-600 cursor-not-allowed opacity-50' : 
-                            'bg-zinc-900 border-zinc-800 text-yellow-400 hover:bg-zinc-800'
-                          }`}
-                          title={isApproved ? "Rate Server" : "Approval Pending"}
-                        >
-                          <Star className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isApproved ? 'fill-yellow-400' : ''}`} />
-                        </motion.button>
+
+                        <div className="relative flex-shrink-0 flex">
+                          <motion.button 
+                            onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+                            className="px-3 md:px-4 rounded-r-md border-y border-r transition-colors shadow-lg flex items-center justify-center bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-white"
+                          >
+                            <MoreVertical className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                          </motion.button>
+                          
+                          <AnimatePresence>
+                            {isOptionsOpen && (
+                              <>
+                                <div 
+                                  className="fixed inset-0 z-40"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setIsOptionsOpen(false)
+                                  }}
+                                />
+                                <motion.div 
+                                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                  className="absolute right-0 top-full mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl overflow-hidden z-50 py-1"
+                                >
+                                  <button 
+                                    onClick={() => {
+                                      setIsOptionsOpen(false)
+                                      if (isApproved) setIsRatingModalOpen(true)
+                                    }}
+                                    disabled={!isApproved}
+                                    className={`w-full px-4 py-2.5 flex items-center gap-3 text-sm font-headline text-left transition-colors group ${
+                                      !isApproved ? 'text-zinc-600 cursor-not-allowed opacity-50' : 
+                                      'text-zinc-300 hover:bg-zinc-800 hover:text-yellow-400'
+                                    }`}
+                                  >
+                                    <Star className={`w-4 h-4 ${isApproved ? 'group-hover:fill-yellow-400 transition-all' : ''}`} />
+                                    Rate Server
+                                  </button>
+                                  <button 
+                                    onClick={() => {
+                                      setIsOptionsOpen(false)
+                                      handleToggleSave()
+                                    }}
+                                    className={`w-full px-4 py-2.5 flex items-center gap-3 text-sm font-headline text-left transition-colors group ${
+                                      isSaved ? 'text-[#4EC44E] hover:bg-zinc-800' : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
+                                    }`}
+                                  >
+                                    <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+                                    {isSaved ? "Unsave Server" : "Save Server"}
+                                  </button>
+                                </motion.div>
+                              </>
+                            )}
+                          </AnimatePresence>
+                        </div>
                       </div>
                     </div>
                   )
@@ -867,6 +939,13 @@ export function ServerDetailPage() {
                   </span>
                   <span className="text-zinc-600 text-[9px] md:text-[10px] font-headline">({server.rating_count})</span>
                 </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-1.5 text-zinc-400">
+                  <Bookmark className="w-3.5 h-3.5" />
+                  <span className="text-xs md:text-sm">Saves</span>
+                </div>
+                <span className="text-white font-bold text-xs md:text-sm">{serverSaves?.totalSaves ?? server.saves ?? 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-1.5 text-zinc-400">

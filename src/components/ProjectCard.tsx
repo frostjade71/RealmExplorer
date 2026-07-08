@@ -1,19 +1,23 @@
 import { Link } from 'react-router-dom'
 import { motion, type Variants } from 'framer-motion'
 import { slugify } from '../lib/urlUtils'
-import { Download, Heart, Clock, CheckCircle, Archive, Edit3, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Layers } from 'lucide-react'
+import { Download, Heart, Clock, CheckCircle, Archive, Edit3, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Layers, ArrowUpSquare, Star } from 'lucide-react'
 import directoryHero from '../assets/hero/directoryprojets.jpg'
 import javaIcon from '../assets/category/10421-grass.png'
 import bedrockIcon from '../assets/category/437888-bedrock.png'
+import serverGif from '../assets/category/gif/6128-minecraft.gif'
+import realmGif from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
 
 export function ProjectCard({ 
   project, 
   showStatus = false,
   actions,
+  accentColor = 'blue',
 }: { 
   project: any, 
   showStatus?: boolean,
   actions?: React.ReactNode,
+  accentColor?: 'blue' | 'orange',
 }) {
   const statusInfo = {
     draft: { label: 'Draft', bg: 'bg-zinc-800 border-zinc-700', text: 'text-zinc-400', icon: <Edit3 className="w-3 h-3" /> },
@@ -52,18 +56,23 @@ export function ProjectCard({
     hover: { opacity: 1, y: 0, transition: { duration: 0.15 } }
   }
 
+  const isServer = project.type === 'server' || project.type === 'realm' || project.votes !== undefined;
+  const itemUrl = isServer 
+    ? `/server/${project.slug || slugify(project.name)}`
+    : `/projects/${project.slug || slugify(project.name)}`;
+
   return (
-    <Link to={`/projects/${project.slug || slugify(project.name)}`} className="block h-full group relative">
+    <Link to={itemUrl} className="block h-full group relative">
       <motion.div 
         variants={cardVariants}
         initial="initial"
         whileHover="hover"
         whileTap="tap"
-        className="bg-surface border border-outline-variant/30 hover:border-blue-500/30 rounded-lg flex flex-col h-full min-h-[350px] md:min-h-[380px] overflow-hidden relative cursor-pointer shadow-sm transition-colors duration-200 z-10"
+        className={`bg-surface border border-outline-variant/30 ${accentColor === 'orange' ? 'hover:border-orange-500/30' : 'hover:border-blue-500/30'} rounded-lg flex flex-col h-full min-h-[350px] md:min-h-[380px] overflow-hidden relative cursor-pointer shadow-sm transition-colors duration-200 z-10`}
       >
         <div className="relative h-24 md:h-28 w-full overflow-hidden bg-zinc-900/60 flex-shrink-0">
           <img 
-            src={directoryHero} 
+            src={project.banner_url || directoryHero} 
             alt={`${project.name} banner`} 
             loading="lazy"
             decoding="async"
@@ -73,17 +82,39 @@ export function ProjectCard({
           
           <div className="absolute top-2 right-2 z-20 flex items-center gap-2 bg-black/60 border border-white/10 px-2 py-1 rounded-md backdrop-blur-md shadow-md">
             <div className="flex items-center gap-1">
-              <Download className="w-3 h-3 text-zinc-400" />
-              <span className="text-[10px] md:text-xs font-bold text-white/90 leading-none">
-                {project.downloads || 0}
-              </span>
+              {project.votes !== undefined ? (
+                <>
+                  <ArrowUpSquare className="w-3 h-3 text-zinc-400" />
+                  <span className="text-[10px] md:text-xs font-bold text-white/90 leading-none">
+                    {project.votes || 0}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-3 h-3 text-zinc-400" />
+                  <span className="text-[10px] md:text-xs font-bold text-white/90 leading-none">
+                    {project.downloads || 0}
+                  </span>
+                </>
+              )}
             </div>
             <div className="w-[1px] h-3 bg-white/20 self-center" />
             <div className="flex items-center gap-1">
-              <Heart className="w-3 h-3 text-red-500/70" />
-              <span className="text-[10px] md:text-xs font-bold text-white/90 leading-none">
-                {project.likes || 0}
-              </span>
+              {project.average_rating !== undefined ? (
+                <>
+                  <Star className="w-3 h-3 text-yellow-400" />
+                  <span className="text-[10px] md:text-xs font-bold text-white/90 leading-none">
+                    {project.average_rating > 0 ? project.average_rating.toFixed(1) : '0.0'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Heart className="w-3 h-3 text-red-500/70" />
+                  <span className="text-[10px] md:text-xs font-bold text-white/90 leading-none">
+                    {project.likes || 0}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -91,7 +122,11 @@ export function ProjectCard({
         {/* Highlight Bar */}
         <motion.div 
           variants={highlightVariants}
-          className="absolute top-0 left-0 right-0 h-[3px] z-20 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+          className={`absolute top-0 left-0 right-0 h-[3px] z-20 ${
+            accentColor === 'orange' 
+              ? 'bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.4)]'
+              : 'bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]'
+          }`}
         />
 
         {/* Content Container */}
@@ -128,7 +163,11 @@ export function ProjectCard({
             <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
               <div className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] md:text-[9px] font-headline font-bold uppercase tracking-wider w-fit bg-zinc-800/50 text-zinc-400 border border-zinc-700/50">
                 <img 
-                  src={project.type === 'java' ? javaIcon : bedrockIcon} 
+                  src={
+                    project.type === 'server' ? serverGif :
+                    project.type === 'realm' ? realmGif :
+                    project.type === 'java' ? javaIcon : bedrockIcon
+                  } 
                   alt={project.type} 
                   className="w-3 h-3 object-contain rounded-sm" 
                 />

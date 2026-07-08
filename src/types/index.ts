@@ -59,6 +59,7 @@ export interface Server {
   updated_at: string
   yesterday_vote_rank?: number | null
   yesterday_rating_rank?: number | null
+  saves?: number
   profiles?: Profile
   server_votifier?: ServerVotifier | null
 }
@@ -286,9 +287,29 @@ export interface Project {
   license: string | null
   custom_license_url: string | null
   likes: number
+  saves: number
   downloads: number
+  average_rating: number
+  rating_count: number
   created_at: string
   updated_at: string
+  profiles?: Profile
+}
+
+export interface ProjectSave {
+  id: string
+  project_id: string
+  user_id: string
+  created_at: string
+}
+
+export interface ProjectRating {
+  id: string
+  user_id: string
+  project_id: string
+  rating: number
+  comment: string | null
+  created_at: string
   profiles?: Profile
 }
 
