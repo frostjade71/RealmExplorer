@@ -25,7 +25,7 @@ const CATEGORIES = {
   bedrock: ['Add-ons', 'Resource Pack', 'Behavior Pack', 'Builds']
 }
 
-const PLATFORMS = ['Fabric', 'NeoForge', 'Forge', 'Quilt', 'Vanilla']
+const PLATFORMS = ['Fabric', 'NeoForge', 'Forge', 'Quilt', 'Vanilla', 'Paper', 'Spigot', 'Purpur', 'Bucket']
 const VERSIONS = [
   '26.3-snapshot-3',
   '26.2',

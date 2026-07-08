@@ -14,6 +14,10 @@ import fabricIcon from '../assets/platform/482016-fabricapiminecraft.png'
 import forgeIcon from '../assets/platform/260039-neoforge.png'
 import quiltIcon from '../assets/platform/quiltaa.png'
 import vanillaIcon from '../assets/category/10421-grass.png'
+import paperIcon from '../assets/platform/papermc.svg'
+import spigotIcon from '../assets/platform/spigotlogo.png'
+import purpurIcon from '../assets/platform/purpur.webp'
+const bucketIcon = "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16l-1.5 14H5.5L4 7z'/%3E%3Cpath d='M6 7c0-2.5 3-4 6-4s6 1.5 6 4'/%3E%3C/svg%3E";
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
@@ -221,6 +225,10 @@ export function ProjectDetailPage() {
     if (lower.includes('forge')) return forgeIcon;
     if (lower === 'quilt') return quiltIcon;
     if (lower === 'vanilla') return vanillaIcon;
+    if (lower === 'paper') return paperIcon;
+    if (lower === 'spigot') return spigotIcon;
+    if (lower === 'purpur') return purpurIcon;
+    if (lower === 'bucket' || lower === 'bukkit') return bucketIcon;
     return null;
   }
 
