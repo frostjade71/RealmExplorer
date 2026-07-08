@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useProject, useProjectLikes, useProjectSaves, useProjectReviews } from '../hooks/queries'
 import { useIncrementProjectDownloadMutation, useToggleProjectLikeMutation, useToggleProjectSaveMutation, useSubmitProjectReviewMutation, useDeleteProjectRatingMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { LoadingSpinner, EmptyState, TopLoadingBar } from '../components/FeedbackStates'
 import { RatingModal } from '../components/RatingModal'
-import { Download, Heart, Clock, Calendar, CheckCircle, Share2, Archive, Edit3, Upload, Bookmark, BookmarkMinus, Flag, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Layers, Star, Users } from 'lucide-react'
+import { LicenseModal } from '../components/LicenseModal'
+import { Download, Heart, Clock, Calendar, CheckCircle, Share2, Archive, Edit3, Upload, Bookmark, BookmarkMinus, Flag, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Layers, Star, Users, Scale } from 'lucide-react'
 import javaIcon from '../assets/category/10421-grass.png'
 import bedrockIcon from '../assets/category/437888-bedrock.png'
 import fabricIcon from '../assets/platform/482016-fabricapiminecraft.png'
@@ -15,7 +16,7 @@ import vanillaIcon from '../assets/category/10421-grass.png'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
-import { format } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import { RichText } from '../components/RichText'
 import { supabase } from '../lib/supabase'
@@ -37,6 +38,7 @@ export function ProjectDetailPage() {
   const [isLikingLocal, setIsLikingLocal] = useState(false)
   const [isSavingLocal, setIsSavingLocal] = useState(false)
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
+  const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
 
   const { data: projectReviews = [] } = useProjectReviews(project?.id)
@@ -541,27 +543,48 @@ export function ProjectDetailPage() {
                   <span className="text-white font-bold text-xs md:text-sm">{project.saves || 0}</span>
                 </div>
                 
+                {project.license && project.license !== 'None' && (
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-1.5 text-zinc-400">
+                      <Scale className="w-3.5 h-3.5" />
+                      <span className="text-xs md:text-sm">License</span>
+                    </div>
+                    <button 
+                      onClick={() => setIsLicenseModalOpen(true)}
+                      className="text-blue-400 hover:text-blue-300 font-bold text-xs md:text-sm hover:underline"
+                    >
+                      {project.license === 'Custom License' ? 'Custom' : project.license}
+                    </button>
+                  </div>
+                )}
+                
                 <div className="pt-3 mt-3 border-t border-zinc-800/50 space-y-2">
                   <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-headline uppercase tracking-widest text-zinc-500">
                     <Calendar className="w-2.5 h-2.5" />
-                    <span>Published {format(new Date(project.created_at), 'MMM d, yyyy')}</span>
+                    <span>Published {formatDistanceToNow(new Date(project.created_at))} ago</span>
                   </div>
                   <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-headline uppercase tracking-widest text-zinc-500">
                     <Clock className="w-2.5 h-2.5" />
-                    <span>Updated {format(new Date(project.updated_at || project.created_at), 'MMM d, yyyy')}</span>
+                    <span>Updated {formatDistanceToNow(new Date(project.updated_at || project.created_at))} ago</span>
                   </div>
                 </div>
 
                 {project.profiles && (
-                  <div className="pt-4 mt-1 border-t border-zinc-800/50 flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group transition-all duration-300">
-                    <img src={project.profiles.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-zinc-700" alt="Owner" />
+                  <Link 
+                    to={`/profile/${project.profiles.discord_username || ''}`}
+                    className="pt-4 mt-1 border-t border-zinc-800/50 flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group transition-all duration-300"
+                  >
+                    <img src={project.profiles.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-zinc-700 object-cover" alt="Owner" />
                     <div className="flex-1">
                       <p className="text-white text-xs md:text-sm leading-tight flex items-center gap-1.5">
                         {project.profiles.discord_username || 'Unknown User'}
                       </p>
                       <p className="text-[10px] text-realm-green uppercase font-headline font-bold tracking-wider mt-0.5 transition-colors">Creator</p>
                     </div>
-                  </div>
+                    <span className="text-[8px] md:text-[9px] uppercase tracking-widest font-headline text-zinc-600 font-bold whitespace-nowrap opacity-40 group-hover:opacity-100 transition-opacity">
+                      view profile
+                    </span>
+                  </Link>
                 )}
               </div>
             </div>
@@ -641,6 +664,13 @@ export function ProjectDetailPage() {
             }
           })
         } : undefined}
+      />
+
+      <LicenseModal
+        isOpen={isLicenseModalOpen}
+        onClose={() => setIsLicenseModalOpen(false)}
+        licenseType={project.license === 'Custom License' ? 'Custom' : project.license || ''}
+        customUrl={project.custom_license_url}
       />
     </AnimatedPage>
   )

@@ -108,11 +108,17 @@ export function RatingModal({
               </div>
 
               <div className="space-y-2">
-                <label className="text-white/40 font-headline text-[10px] uppercase tracking-widest block font-bold">Your Message</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-white/40 font-headline text-[10px] uppercase tracking-widest block font-bold">Your Message</label>
+                  <span className={`text-[10px] font-headline font-bold uppercase tracking-widest ${comment.length >= 500 ? 'text-red-500' : 'text-white/40'}`}>
+                    {comment.length}/500
+                  </span>
+                </div>
                 <textarea
                   value={comment}
-                  onChange={(e) => setComment(e.target.value)}
+                  onChange={(e) => setComment(e.target.value.slice(0, 500))}
                   disabled={isSubmitting || isRemoving}
+                  maxLength={500}
                   placeholder={`Tell others what you think of this ${type}...`}
                   className="w-full h-32 bg-white/5 border border-white/10 rounded-xl p-4 text-white font-body text-sm focus:outline-none focus:ring-2 focus:ring-realm-green/50 placeholder:text-white/10 resize-none transition-all disabled:opacity-50"
                 />

@@ -146,7 +146,7 @@ function SponsorSettingsItem({ server, onRefetch }: { server: Server, onRefetch:
 
 export function DashboardPage() {
   const isMobile = useIsMobile()
-  const { user, profile, hasPremiumPerks } = useAuth()
+  const { user, profile, hasPremiumPerks, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const actionParam = searchParams.get('action')
@@ -158,6 +158,8 @@ export function DashboardPage() {
   const { data: savedServers = [] } = useSavedServers(user?.id)
   const limit = hasPremiumPerks ? 5 : 1
   const hasReachedLimit = servers.length >= limit
+  const projectLimit = isAdmin ? 5 : 1
+  const hasReachedProjectLimit = projects.length >= projectLimit
   const deleteServerMutation = useDeleteServerMutation()
   const deleteProjectMutation = useDeleteProjectMutation()
   const toggleSaveMutation = useToggleProjectSaveMutation()
@@ -417,13 +419,25 @@ export function DashboardPage() {
           </div>
           
           <div className="flex flex-wrap items-center gap-3 self-end sm:self-auto">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0 relative group/limit">
               <button 
-                onClick={() => setIsProjectModalOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm bg-blue-500 text-white hover:bg-blue-400"
+                onClick={() => {
+                  if (hasReachedProjectLimit) {
+                    toast.warning('Limit Reached', {
+                      description: `You have reached the maximum limit of ${projectLimit} projects.`
+                    })
+                  } else {
+                    setIsProjectModalOpen(true)
+                  }
+                }}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm ${
+                  hasReachedProjectLimit 
+                    ? 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600' 
+                    : 'bg-blue-500 text-white hover:bg-blue-400'
+                }`}
               >
                 <PlusCircle className="w-4 h-4 md:w-5 h-5" />
-                New Project
+                New Project ({projects.length}/{projectLimit})
               </button>
             </motion.div>
 
