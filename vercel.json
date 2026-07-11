@@ -22,7 +22,7 @@
           "value": "(?i).*(bot|discord|twitter|facebook|slack|telegram).*"
         }
       ],
-      "destination": "/api/og?type=server&slug=$slug"
+      "destination": "/api/og?type=server&slug=:slug"
     },
     {
       "source": "/projects/:slug",
@@ -33,7 +33,7 @@
           "value": "(?i).*(bot|discord|twitter|facebook|slack|telegram).*"
         }
       ],
-      "destination": "/api/og?type=projects&slug=$slug"
+      "destination": "/api/og?type=projects&slug=:slug"
     },
     { "source": "/appeal", "destination": "/appeal.html" },
     { "source": "/(.*)", "destination": "/index.html" }
