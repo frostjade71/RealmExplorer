@@ -42,11 +42,11 @@ export default async function handler(req: Request) {
 
   try {
     if (type === 'server') {
-       const { data, error } = await supabase.from('servers').select('name, short_description, description, icon_url').eq('slug', slug).single()
+       const { data, error } = await supabase.from('servers').select('name, description, icon_url').eq('slug', slug).single()
        if (error) throw error
        if (data) {
           title = `${data.name} | Realm Explorer`
-          description = truncate(data.short_description) || truncate(data.description) || description
+          description = truncate(data.description) || description
           image = data.icon_url || image
        }
     } else if (type === 'projects') {
@@ -59,7 +59,6 @@ export default async function handler(req: Request) {
        }
     }
   } catch (error: any) {
-    description = `Debug Error: ${error.message || String(error)}`
     console.error('Error fetching data for OG tags:', error)
   }
   
