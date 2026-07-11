@@ -21,7 +21,7 @@ export default async function handler(req: Request) {
   }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
-  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+  const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
   
   if (!supabaseUrl || !supabaseKey) {
      return new Response('Missing Supabase credentials in Vercel environment variables', { status: 500 })
@@ -42,21 +42,24 @@ export default async function handler(req: Request) {
 
   try {
     if (type === 'server') {
-       const { data } = await supabase.from('servers').select('name, short_description, description, icon_url').eq('slug', slug).single()
+       const { data, error } = await supabase.from('servers').select('name, short_description, description, icon_url').eq('slug', slug).single()
+       if (error) throw error
        if (data) {
           title = `${data.name} | Realm Explorer`
           description = truncate(data.short_description) || truncate(data.description) || description
           image = data.icon_url || image
        }
     } else if (type === 'projects') {
-       const { data } = await supabase.from('projects').select('name, short_description, description, icon_url').eq('slug', slug).single()
+       const { data, error } = await supabase.from('projects').select('name, short_description, description, icon_url').eq('slug', slug).single()
+       if (error) throw error
        if (data) {
           title = `${data.name} | Realm Explorer`
           description = truncate(data.short_description) || truncate(data.description) || description
           image = data.icon_url || image
        }
     }
-  } catch (error) {
+  } catch (error: any) {
+    description = `Debug Error: ${error.message || String(error)}`
     console.error('Error fetching data for OG tags:', error)
   }
   
