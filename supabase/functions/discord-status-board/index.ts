@@ -98,12 +98,30 @@ serve(async (req: Request) => {
     const payload = { embeds: [generateEmbed(stats)] };
 
     if (messageId) {
-      const res = await fetch(`${discordUrl}/${messageId}`, {
+      let res = await fetch(`${discordUrl}/${messageId}`, {
         method: "PATCH",
         headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}`, "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
+      if (res.status === 429) {
+        const data = await res.json();
+        const retryAfter = (data.retry_after || 5) * 1000;
+        console.log(`Rate limited! Retrying after ${retryAfter}ms...`);
+        await new Promise(r => setTimeout(r, retryAfter));
+        res = await fetch(`${discordUrl}/${messageId}`, {
+          method: "PATCH",
+          headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}`, "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
+
       if (res.status === 404) messageId = null;
+      else if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`Discord API Error [PATCH] ${res.status}:`, errorText);
+        return new Response(JSON.stringify({ error: `Discord API Error [PATCH] ${res.status}`, details: errorText }), { status: 500 });
+      }
     }
 
     if (!messageId) {

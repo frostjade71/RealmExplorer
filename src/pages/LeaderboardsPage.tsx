@@ -52,8 +52,9 @@ export function LeaderboardsPage() {
   const { data: topVoted = [], isLoading: loadingVotes } = useServers({ sortBy: 'votes', limit: 20 })
   const { data: topRated = [], isLoading: loadingRated } = useServers({ sortBy: 'rating', limit: 20 })
 
-  const podium = topVoted.slice(0, 3)
-  const votesList = topVoted // Show all in the list for better UX
+  const filteredTopVoted = topVoted.filter(s => (s.votes || 0) > 0)
+  const podium = filteredTopVoted.slice(0, 3)
+  const votesList = filteredTopVoted // Show all in the list for better UX
 
   const loading = loadingVotes || loadingRated
 

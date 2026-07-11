@@ -6,7 +6,8 @@ import {
   sendApprovalNotification, 
   sendStaffReviewNotification, 
   sendLogNotification, 
-  sendErrorNotification 
+  sendErrorNotification,
+  sendSubmissionLogNotification
 } from '../lib/discord'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -249,7 +250,15 @@ export function useUpdateServerStatusMutation() {
       )
 
       // 3a. Log to Discord if status changed but NOT approved or rejected
-      if (status !== 'approved' && status !== 'rejected' && server?.name && status !== server.status) {
+      if ((status === 'approved' || status === 'rejected') && server?.name && status !== server.status) {
+        await sendSubmissionLogNotification({
+          targetName: server.name,
+          isProject: false,
+          status: status === 'approved' ? 'approved' : 'denied',
+          adminName: adminName || 'A Staff Member',
+          previousStatus: server.status
+        })
+      } else if (status !== 'approved' && status !== 'rejected' && server?.name && status !== server.status) {
         await sendLogNotification({
           action: '📝 Server Status Updated',
           adminName: adminName,
@@ -1569,7 +1578,15 @@ export function useUpdateProjectStatusMutation() {
           id
         )
 
-        if (status !== 'approved' && status !== 'rejected' && project?.name && status !== project.status) {
+        if ((status === 'approved' || status === 'rejected') && project?.name && status !== project.status) {
+          await sendSubmissionLogNotification({
+            targetName: project.name,
+            isProject: true,
+            status: status === 'approved' ? 'approved' : 'denied',
+            adminName: adminName || 'A Staff Member',
+            previousStatus: project.status
+          })
+        } else if (status !== 'approved' && status !== 'rejected' && project?.name && status !== project.status) {
           await sendLogNotification({
             action: '📝 Project Status Updated',
             adminName: adminName,

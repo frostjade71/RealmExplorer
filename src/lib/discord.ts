@@ -80,6 +80,33 @@ export async function sendProjectReviewNotification(params: {
   }
 }
 
+export async function sendSubmissionLogNotification(params: {
+  targetName: string;
+  isProject: boolean;
+  status: 'approved' | 'denied';
+  adminName: string;
+  previousStatus?: string;
+}) {
+  try {
+    const { error } = await supabase.functions.invoke('discord-notification', {
+      body: {
+        type: 'submission_log',
+        payload: {
+          targetName: params.targetName,
+          isProject: params.isProject,
+          status: params.status,
+          adminName: params.adminName,
+          previousStatus: params.previousStatus,
+        }
+      }
+    });
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Failed to send Submission Log notification:', error);
+  }
+}
+
 export async function sendLogNotification(params: {
   action: string;
   adminName?: string | null;

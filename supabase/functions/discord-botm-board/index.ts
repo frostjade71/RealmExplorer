@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import nacl from "https://esm.sh/tweetnacl@1.0.3";
 
 const DISCORD_BOT_TOKEN = Deno.env.get("DISCORD_BOT_TOKEN");
-const DISCORD_ROTM_CHANNEL_ID = Deno.env.get("DISCORD_ROTM_CHANNEL_ID"); // Reusing the same channel env var
+const DISCORD_ROTM_CHANNEL_ID = Deno.env.get("DISCORD_ROTM_CHANNEL_ID");
 const DISCORD_PUBLIC_KEY = Deno.env.get("DISCORD_PUBLIC_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -34,7 +34,7 @@ function hexToUint8Array(hex: string) {
 serve(async (req: Request) => {
   const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
-  // 1. Handle Discord Interactions (Pings)
+  // 1. Handle Discord Interactions (Refresh Button)
   const signature = req.headers.get("X-Signature-Ed25519");
   if (signature) {
     const { valid, body } = await verifySignature(req);
@@ -43,24 +43,76 @@ serve(async (req: Request) => {
     if (body.type === 1) {
       return new Response(JSON.stringify({ type: 1 }), { headers: { "Content-Type": "application/json" } });
     }
+
+    if (body.type === 3 && body.data.custom_id === "refresh_botm") {
+      const roles = body.member?.roles || [];
+      if (!roles.includes(STAFF_ROLE_ID)) {
+        return new Response(
+          JSON.stringify({
+            type: 4,
+            data: {
+              content: "<:no:1440418582704947220> Only Staff's can manually refresh the BOTM standings.",
+              flags: 64
+            }
+          }),
+          { headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: configData } = await supabase.from("site_settings").select("value").eq("key", "otm_global_config").maybeSingle();
+      const isActive = configData?.value?.competition_status?.builder ?? true;
+
+      let recentWinner = null;
+      if (!isActive) {
+        try {
+          recentWinner = await fetchRecentWinner(supabase, "builder");
+        } catch (e) {
+          console.error("Error fetching recent winner:", e);
+        }
+      }
+
+      const standings = await fetchStandings(supabase);
+      const { data: settingsData } = await supabase.from("site_settings").select("value").eq("key", "discord_botm_message_id").single();
+      const messageId = settingsData?.value;
+
+      await fetch(`https://discord.com/api/v10/channels/${DISCORD_ROTM_CHANNEL_ID}/messages/${messageId}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          embeds: [generateEmbed(standings, isActive, recentWinner)],
+          components: [generateComponents(isActive)]
+        }),
+      });
+
+      return new Response(
+        JSON.stringify({
+          type: 4,
+          data: {
+            content: "<:check:1296934814414536779> BOTM Standings Updated!",
+            flags: 64
+          }
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
   }
 
   // 2. Handle Cron Job / Manual Update
   try {
     const { data: configData } = await supabase.from("site_settings").select("value").eq("key", "otm_global_config").maybeSingle();
-    const isActive = configData?.value?.competition_status?.server ?? true;
+    const isActive = configData?.value?.competition_status?.builder ?? true;
 
     let recentWinner = null;
     if (!isActive) {
       try {
-        recentWinner = await fetchRecentWinner(supabase, "server");
+        recentWinner = await fetchRecentWinner(supabase, "builder");
       } catch (e) {
         console.error("Error fetching recent winner:", e);
       }
     }
 
     const standings = await fetchStandings(supabase);
-    const { data: settingsData } = await supabase.from("site_settings").select("value").eq("key", "discord_sotm_message_id").single();
+    const { data: settingsData } = await supabase.from("site_settings").select("value").eq("key", "discord_botm_message_id").maybeSingle();
     let messageId = settingsData?.value;
     if (messageId === "INITIALIZING") messageId = null;
 
@@ -70,7 +122,7 @@ serve(async (req: Request) => {
     }
 
     const discordUrl = `https://discord.com/api/v10/channels/${DISCORD_ROTM_CHANNEL_ID}/messages`;
-    const payload = { 
+    const payload = {
       embeds: [generateEmbed(standings, isActive, recentWinner)],
       components: [generateComponents(isActive)]
     };
@@ -98,8 +150,6 @@ serve(async (req: Request) => {
       else if (!res.ok) {
         const errorText = await res.text();
         console.error(`Discord API Error [PATCH] ${res.status}:`, errorText);
-        console.error(`Payload was:`, JSON.stringify(payload));
-        await supabase.from("site_settings").upsert({ key: "discord_sotm_last_error", value: { status: res.status, error: errorText, payload: payload } });
         return new Response(JSON.stringify({ error: `Discord API Error [PATCH] ${res.status}`, details: errorText }), { status: 500 });
       }
     }
@@ -110,14 +160,15 @@ serve(async (req: Request) => {
         headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}`, "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error(`Discord API Error [POST] ${res.status}:`, errorText);
-        return new Response(JSON.stringify({ error: `Discord API Error [POST] ${res.status}`, details: errorText }), { status: 500 });
-      }
       const data = await res.json();
       if (data.id) {
-        await supabase.from("site_settings").update({ value: data.id }).eq("key", "discord_sotm_message_id");
+        // Upsert the message id setting
+        const { data: existingData } = await supabase.from("site_settings").select("id").eq("key", "discord_botm_message_id").maybeSingle();
+        if (existingData) {
+          await supabase.from("site_settings").update({ value: data.id }).eq("key", "discord_botm_message_id");
+        } else {
+          await supabase.from("site_settings").insert({ key: "discord_botm_message_id", value: data.id });
+        }
       }
     }
 
@@ -130,29 +181,29 @@ serve(async (req: Request) => {
 });
 
 async function fetchStandings(supabase: any) {
-  // Fetch Top 10 for 'server' category
+  // Fetch Top 10 for 'builder' category
   const { data, error } = await supabase
     .from("otm_votes")
     .select(`
-      server_id,
-      servers:server_id (
-        name,
-        slug,
-        icon_url
+      user_id,
+      profiles:user_id (
+        discord_username,
+        discord_avatar
       )
     `)
-    .eq("category", "server");
+    .eq("category", "builder");
 
   if (error) throw error;
 
+  // Manual aggregation because Supabase JS client group by is limited
   const counts: Record<string, { name: string, slug: string, votes: number, icon_url: string | null }> = {};
   data.forEach((vote: any) => {
-    const server = vote.servers;
-    if (!server) return;
-    if (!counts[vote.server_id]) {
-      counts[vote.server_id] = { name: server.name, slug: server.slug, votes: 0, icon_url: server.icon_url };
+    const profile = vote.profiles;
+    if (!profile) return;
+    if (!counts[vote.user_id]) {
+      counts[vote.user_id] = { name: profile.discord_username, slug: profile.discord_username, votes: 0, icon_url: profile.discord_avatar };
     }
-    counts[vote.server_id].votes++;
+    counts[vote.user_id].votes++;
   });
 
   return Object.values(counts)
@@ -161,33 +212,34 @@ async function fetchStandings(supabase: any) {
 }
 
 function generateEmbed(standings: any[], isActive = true, recentWinner: any = null) {
+  const BOTM_EMOJI = "<:1028_MCgoldenapple:1296936155270615124>";
+  const defaultColor = 16766720; // A gold/yellow color for the golden apple
+
   if (!isActive) {
-    const defaultColor = 5162062; // RE Green (#4EC44E)
     if (!recentWinner) {
       return {
-        title: "<:icon:1296934822362742937> SOTM is Closed",
+        title: `${BOTM_EMOJI} BOTM is Closed`,
         color: defaultColor,
         footer: { text: "New OTM Competition will start soon." }
       };
     }
 
-    const name = recentWinner.winner_name || recentWinner.servers?.name || "Unknown";
+    const name = recentWinner.winner_name || recentWinner.profiles?.discord_username || "Unknown";
     const month = recentWinner.month || "";
-    const imageUrl = recentWinner.winner_image_url || recentWinner.servers?.icon_url;
+    const imageUrl = recentWinner.winner_image_url || recentWinner.profiles?.discord_avatar;
     const descriptionText = recentWinner.description || "";
 
-    let embedDescription = `## <a:gold:1502502111408296067> Server of the Month Winner\n`;
+    let embedDescription = `## <a:gold:1502502111408296067> Builder of the Month Winner\n`;
     embedDescription += `└ **${name}** (${month})\n\n`;
     if (descriptionText) {
       embedDescription += `${descriptionText}\n\n`;
     }
 
     return {
-      title: "<:icon:1296934822362742937> SOTM is Closed",
+      title: `${BOTM_EMOJI} BOTM is Closed`,
       description: embedDescription.trim(),
       color: defaultColor,
       thumbnail: imageUrl ? { url: imageUrl } : undefined,
-      image: recentWinner.servers?.banner_url ? { url: recentWinner.servers.banner_url } : undefined,
       footer: { text: "New OTM Competition will start soon." }
     };
   }
@@ -198,9 +250,9 @@ function generateEmbed(standings: any[], isActive = true, recentWinner: any = nu
     "<a:bronze:1502502216337068203>", // 3rd Place Animated
     "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"
   ];
-  
-  let description = "Current standings for **Server of the Month**.\n\n";
-  
+
+  let description = "Current standings for **Builder of the Month**.\n\n";
+
   if (standings.length === 0) {
     description += "*No votes recorded yet for this month.*";
   } else {
@@ -216,9 +268,9 @@ function generateEmbed(standings: any[], isActive = true, recentWinner: any = nu
   }
 
   return {
-    title: "<:icon:1296934822362742937> SOTM Live Standings",
+    title: `${BOTM_EMOJI} BOTM Live Standings`,
     description: description,
-    color: 5162062, // RE Green (#4EC44E)
+    color: defaultColor,
     timestamp: new Date().toISOString(),
     thumbnail: standings[0]?.icon_url ? { url: standings[0].icon_url } : undefined,
     footer: { text: "Updates every 5 minutes • Realm Explorer Bot" }
@@ -233,9 +285,9 @@ function generateComponents(isActive = true) {
         type: 2,
         label: isActive ? "Vote Now" : "View",
         style: 5, // Link Style
-        url: "https://www.realmexplorer.xyz/sotm",
+        url: "https://www.realmexplorer.xyz/botm",
         emoji: isActive ? { name: "🗳️" } : undefined,
-      },
+      }
     ],
   };
 }
@@ -248,11 +300,10 @@ async function fetchRecentWinner(supabase: any, category: string) {
       winner_name,
       winner_image_url,
       description,
-      server_id,
-      servers:server_id (
-        name,
-        banner_url,
-        icon_url
+      user_id,
+      profiles:user_id (
+        discord_username,
+        discord_avatar
       )
     `)
     .eq("category", category)

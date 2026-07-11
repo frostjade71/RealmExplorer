@@ -36,7 +36,9 @@ export function OTMStandingsPage() {
   const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + CATEGORIES.length) % CATEGORIES.length)
 
   const sortedCompetitors = useMemo(() => {
-    return [...categoryCompetitors].sort((a, b) => (b.total_votes || 0) - (a.total_votes || 0))
+    return [...categoryCompetitors]
+      .filter(c => (c.total_votes || 0) > 0)
+      .sort((a, b) => (b.total_votes || 0) - (a.total_votes || 0))
   }, [categoryCompetitors])
 
   const filteredCompetitors = useMemo(() => {
@@ -124,7 +126,7 @@ export function OTMStandingsPage() {
                           <img src={secondPlaceIcon} className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="2nd Place" />
                           <img 
                             src={(podium[1].category === 'developer' || podium[1].category === 'builder' ? podium[1].profiles?.discord_avatar : podium[1].servers?.icon_url) || "/logoRE.png"} 
-                            className={`w-10 h-10 md:w-16 md:h-16 border-2 md:border-4 border-zinc-400 object-cover shadow-2xl group-hover:scale-110 transition-transform ${podium[1].category === 'developer' || podium[1].category === 'builder' ? 'rounded-full' : 'rounded-sm md:rounded-lg'}`}
+                            className={`w-10 h-10 md:w-16 md:h-16 border-2 md:border-4 border-zinc-400 object-cover shadow-2xl group-hover:scale-110 transition-transform rounded-sm md:rounded-lg`}
                             alt="2nd Place"
                           />
                         </div>
@@ -154,7 +156,7 @@ export function OTMStandingsPage() {
                           <img src={firstPlaceIcon} className="absolute -top-4 -left-4 md:-top-8 md:-left-8 w-8 h-8 md:w-16 md:h-16 z-30 object-contain drop-shadow-xl" alt="1st Place" />
                           <img 
                             src={(podium[0].category === 'developer' || podium[0].category === 'builder' ? podium[0].profiles?.discord_avatar : podium[0].servers?.icon_url) || "/logoRE.png"} 
-                            className={`w-14 h-14 md:w-24 md:h-24 border-2 md:border-4 border-yellow-500 object-cover shadow-[0_0_50px_rgba(234,179,8,0.3)] group-hover:scale-110 transition-transform ${podium[0].category === 'developer' || podium[0].category === 'builder' ? 'rounded-full' : 'rounded-md md:rounded-xl'}`}
+                            className={`w-14 h-14 md:w-24 md:h-24 border-2 md:border-4 border-yellow-500 object-cover shadow-[0_0_50px_rgba(234,179,8,0.3)] group-hover:scale-110 transition-transform rounded-md md:rounded-xl`}
                             alt="1st Place"
                           />
                           <Crown className="absolute -top-6 md:-top-10 left-1/2 -translate-x-1/2 w-5 h-5 md:w-8 md:h-8 text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
@@ -185,7 +187,7 @@ export function OTMStandingsPage() {
                           <img src={thirdPlaceIcon} className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="3rd Place" />
                           <img 
                             src={(podium[2].category === 'developer' || podium[2].category === 'builder' ? podium[2].profiles?.discord_avatar : podium[2].servers?.icon_url) || "/logoRE.png"} 
-                            className={`w-8 h-8 md:w-14 md:h-14 border-2 md:border-4 border-orange-700 object-cover shadow-2xl group-hover:scale-110 transition-transform ${podium[2].category === 'developer' || podium[2].category === 'builder' ? 'rounded-full' : 'rounded-sm md:rounded-lg'}`}
+                            className={`w-8 h-8 md:w-14 md:h-14 border-2 md:border-4 border-orange-700 object-cover shadow-2xl group-hover:scale-110 transition-transform rounded-sm md:rounded-lg`}
                             alt="3rd Place"
                           />
                         </div>
@@ -317,7 +319,7 @@ export function OTMStandingsPage() {
                              <span className="font-pixel text-zinc-700 text-[9px]">{rank}</span>}
                           </div>
                           
-                          <div className={`relative w-8 h-8 md:w-10 md:h-10 shrink-0 overflow-hidden border border-white/10 ${isPerson ? 'rounded-full' : 'rounded-lg'}`}>
+                          <div className={`relative w-8 h-8 md:w-10 md:h-10 shrink-0 overflow-hidden border border-white/10 rounded-lg`}>
                             <img src={displayImage || "/logoRE.png"} className="w-full h-full object-cover" alt={displayName || 'Competitor'} />
                           </div>
 

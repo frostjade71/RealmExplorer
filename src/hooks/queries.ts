@@ -375,20 +375,34 @@ export function useOTMCompetitors(category: OTMCategory, enabled: boolean = true
         })) as unknown as OTMCompetitor[]
       } else {
         // Developers/Builders
-        const { data, error } = await supabase
+        const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
-          .select('*, otm_votes(count)')
+          .select('*')
           .not('discord_username', 'is', null)
           .order('created_at', { ascending: false })
         
-        if (error) throw error
+        if (profilesError) throw profilesError
 
-        return (data as any[]).map(p => ({
+        const { data: votesData, error: votesError } = await supabase
+          .from('otm_votes')
+          .select('target_user_id')
+          .eq('category', category)
+        
+        if (votesError) throw votesError
+        
+        const voteCounts = (votesData || []).reduce((acc: any, vote: any) => {
+           if (vote.target_user_id) {
+             acc[vote.target_user_id] = (acc[vote.target_user_id] || 0) + 1
+           }
+           return acc
+        }, {})
+
+        return (profiles as any[]).map(p => ({
           id: p.id,
           category,
           server_id: null,
           user_id: p.id,
-          total_votes: p.otm_votes?.[0]?.count || 0,
+          total_votes: voteCounts[p.id] || 0,
           created_at: p.created_at,
           profiles: p as Profile
         })) as unknown as OTMCompetitor[]

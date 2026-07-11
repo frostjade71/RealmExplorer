@@ -301,6 +301,52 @@ Deno.serve(async (req: Request) => {
       fetchMethod = 'DELETE';
       useBotApi = true;
       discordPayload = null; // No payload for DELETE request
+    } else if (type === 'submission_log') {
+      const { targetName, isProject, status, adminName, previousStatus } = payload;
+      
+      targetEndpoint = STAFF_WEBHOOK_URL;
+
+      const isApproved = status === 'approved';
+      const targetType = isProject ? 'project' : 'server';
+      
+      let reviewType = 'submission';
+      let titlePrefix = 'Submission';
+
+      if (previousStatus === 'Review Icon') {
+        reviewType = 'icon review';
+        titlePrefix = 'Icon Review';
+      } else if (previousStatus === 'Review Cover') {
+        reviewType = 'cover review';
+        titlePrefix = 'Cover Review';
+      } else if (previousStatus === 'Review Icon & Cover') {
+        reviewType = 'assets (icon & cover) review';
+        titlePrefix = 'Assets Review';
+      } else if (previousStatus === 'Review Gallery') {
+        reviewType = 'gallery review';
+        titlePrefix = 'Gallery Review';
+      } else if (previousStatus === 'Review Icon & Gallery') {
+        reviewType = 'assets (icon & gallery) review';
+        titlePrefix = 'Assets Review';
+      } else if (previousStatus === 'Review Cover & Gallery') {
+        reviewType = 'assets (cover & gallery) review';
+        titlePrefix = 'Assets Review';
+      } else if (previousStatus === 'Review All Assets') {
+        reviewType = 'complete assets review';
+        titlePrefix = 'Complete Assets Review';
+      } else if (previousStatus === 'Review Text') {
+        reviewType = 'details review';
+        titlePrefix = 'Project Edit Review';
+      }
+      
+      discordPayload = {
+        username: 'Realm Explorer | Staff Alert',
+        embeds: [{
+          title: `${titlePrefix} ${isApproved ? 'Approved' : 'Denied'}`,
+          description: `The ${targetType} ${reviewType} for **${targetName}** has been **${status}** by **${adminName}**.`,
+          color: isApproved ? 0x00ff00 : 0xff0000,
+          timestamp: new Date().toISOString()
+        }]
+      };
     } else if (type === 'appeal_log') {
       const { discordUsername, discordId, status, adminName } = payload;
       
