@@ -15,24 +15,10 @@
   "rewrites": [
     {
       "source": "/server/:slug",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?i).*(bot|discord|twitter|facebook|slack|telegram).*"
-        }
-      ],
       "destination": "/api/og?type=server&slug=:slug"
     },
     {
       "source": "/projects/:slug",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?i).*(bot|discord|twitter|facebook|slack|telegram).*"
-        }
-      ],
       "destination": "/api/og?type=projects&slug=:slug"
     },
     { "source": "/appeal", "destination": "/appeal.html" },

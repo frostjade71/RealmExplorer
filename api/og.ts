@@ -10,7 +10,14 @@ export default async function handler(req: Request) {
   const slug = url.searchParams.get('slug')
   
   if (!slug || (type !== 'server' && type !== 'projects')) {
-     return fetch(new URL('/', req.url)) // fallback
+     return fetch(new URL('/index.html', req.url)) // fallback to SPA
+  }
+
+  const ua = req.headers.get('user-agent') || ''
+  const isBot = /bot|discord|twitter|facebook|slack|telegram|whatsapp|skype/i.test(ua)
+
+  if (!isBot) {
+    return fetch(new URL('/index.html', req.url))
   }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
