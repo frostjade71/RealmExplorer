@@ -6,14 +6,11 @@ export const config = {
 
 export default async function handler(req: Request) {
   const url = new URL(req.url)
-  const path = url.pathname
-  
-  const parts = path.split('/')
-  const type = parts[1]
-  const slug = parts[2]
+  const type = url.searchParams.get('type')
+  const slug = url.searchParams.get('slug')
   
   if (!slug || (type !== 'server' && type !== 'projects')) {
-     return fetch(new URL('/', req.url))
+     return fetch(new URL('/', req.url)) // fallback
   }
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
@@ -29,19 +26,26 @@ export default async function handler(req: Request) {
   let description = 'Discover the best Minecraft Servers and Realms. Vote for your favorites and find your next adventure.'
   let image = 'https://realmexplorer.xyz/meta-preview/RE-Banned_EAA0FDC.webp'
   
+  const truncate = (text: string | null, length: number = 100) => {
+    if (!text) return ''
+    const cleanText = text.replace(/[#*`_~\[\]]/g, '')
+    if (cleanText.length <= length) return cleanText
+    return cleanText.substring(0, length).trim() + '...'
+  }
+
   try {
     if (type === 'server') {
        const { data } = await supabase.from('servers').select('name, short_description, description, icon_url').eq('slug', slug).single()
        if (data) {
           title = `${data.name} | Realm Explorer`
-          description = data.short_description || data.description?.substring(0, 160) || description
+          description = truncate(data.short_description) || truncate(data.description) || description
           image = data.icon_url || image
        }
     } else if (type === 'projects') {
        const { data } = await supabase.from('projects').select('name, short_description, description, icon_url').eq('slug', slug).single()
        if (data) {
           title = `${data.name} | Realm Explorer`
-          description = data.short_description || data.description?.substring(0, 160) || description
+          description = truncate(data.short_description) || truncate(data.description) || description
           image = data.icon_url || image
        }
     }
