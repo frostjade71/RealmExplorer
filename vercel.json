@@ -12,5 +12,30 @@
       "permanent": true
     }
   ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/server/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|discord|twitter|facebook|slack|telegram).*"
+        }
+      ],
+      "destination": "/api/og"
+    },
+    {
+      "source": "/projects/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|discord|twitter|facebook|slack|telegram).*"
+        }
+      ],
+      "destination": "/api/og"
+    },
+    { "source": "/appeal", "destination": "/appeal.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
