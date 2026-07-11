@@ -1,3 +1,16 @@
 {
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "appeals.realmexplorer.xyz"
+        }
+      ],
+      "destination": "https://www.realmexplorer.xyz/appeal",
+      "permanent": true
+    }
+  ],
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

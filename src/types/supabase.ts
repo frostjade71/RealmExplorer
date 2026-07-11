@@ -305,6 +305,44 @@ export type Database = {
           },
         ]
       }
+      discord_ban_appeals: {
+        Row: {
+          appeal_reason: string
+          created_at: string | null
+          discord_id: string
+          discord_username: string
+          id: string
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          appeal_reason: string
+          created_at?: string | null
+          discord_id: string
+          discord_username: string
+          id?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          appeal_reason?: string
+          created_at?: string | null
+          discord_id?: string
+          discord_username?: string
+          id?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discord_ban_appeals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -473,8 +511,10 @@ export type Database = {
           month: string
           server_id: string | null
           user_id: string | null
+          winner_banner_url: string | null
           winner_image_url: string | null
           winner_name: string | null
+          winner_slug: string | null
         }
         Insert: {
           category: string
@@ -484,8 +524,10 @@ export type Database = {
           month: string
           server_id?: string | null
           user_id?: string | null
+          winner_banner_url?: string | null
           winner_image_url?: string | null
           winner_name?: string | null
+          winner_slug?: string | null
         }
         Update: {
           category?: string
@@ -495,8 +537,10 @@ export type Database = {
           month?: string
           server_id?: string | null
           user_id?: string | null
+          winner_banner_url?: string | null
           winner_image_url?: string | null
           winner_name?: string | null
+          winner_slug?: string | null
         }
         Relationships: [
           {
@@ -522,6 +566,50 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string | null
+          id: string
+          paypal_order_id: string | null
+          paypal_payer_id: string | null
+          status: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          paypal_order_id?: string | null
+          paypal_payer_id?: string | null
+          status: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          paypal_order_id?: string | null
+          paypal_payer_id?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           bio: string | null
@@ -533,6 +621,7 @@ export type Database = {
           id: string
           role: string
           social_links: Json | null
+          subscription_expires_at: string | null
           updated_at: string | null
         }
         Insert: {
@@ -545,6 +634,7 @@ export type Database = {
           id: string
           role?: string
           social_links?: Json | null
+          subscription_expires_at?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -557,6 +647,201 @@ export type Database = {
           id?: string
           role?: string
           social_links?: Json | null
+          subscription_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      project_likes: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_likes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          project_id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          project_id: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          project_id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_ratings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_saves: {
+        Row: {
+          created_at: string | null
+          id: string
+          project_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_saves_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          average_rating: number | null
+          category: string
+          compatibility: string[] | null
+          created_at: string | null
+          custom_license_url: string | null
+          description: string
+          downloads: number | null
+          file_url: string | null
+          gallery: string[] | null
+          has_been_approved: boolean | null
+          has_been_listed: boolean
+          icon_url: string | null
+          id: string
+          license: string | null
+          likes: number | null
+          name: string
+          owner_id: string
+          platforms: string[] | null
+          rating_count: number | null
+          saves: number | null
+          short_description: string | null
+          slug: string
+          social_links: Json | null
+          status: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          average_rating?: number | null
+          category: string
+          compatibility?: string[] | null
+          created_at?: string | null
+          custom_license_url?: string | null
+          description: string
+          downloads?: number | null
+          file_url?: string | null
+          gallery?: string[] | null
+          has_been_approved?: boolean | null
+          has_been_listed?: boolean
+          icon_url?: string | null
+          id?: string
+          license?: string | null
+          likes?: number | null
+          name: string
+          owner_id: string
+          platforms?: string[] | null
+          rating_count?: number | null
+          saves?: number | null
+          short_description?: string | null
+          slug: string
+          social_links?: Json | null
+          status?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          average_rating?: number | null
+          category?: string
+          compatibility?: string[] | null
+          created_at?: string | null
+          custom_license_url?: string | null
+          description?: string
+          downloads?: number | null
+          file_url?: string | null
+          gallery?: string[] | null
+          has_been_approved?: boolean | null
+          has_been_listed?: boolean
+          icon_url?: string | null
+          id?: string
+          license?: string | null
+          likes?: number | null
+          name?: string
+          owner_id?: string
+          platforms?: string[] | null
+          rating_count?: number | null
+          saves?: number | null
+          short_description?: string | null
+          slug?: string
+          social_links?: Json | null
+          status?: string | null
+          type?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -616,44 +901,51 @@ export type Database = {
           },
         ]
       }
-      server_votifier: {
+      server_appeals: {
         Row: {
-          server_id: string
-          ip: string
-          port: number
-          token: string
-          public_key: string | null
-          created_at: string
+          created_at: string | null
+          id: string
+          reason: string
+          server_id: string | null
+          status: string
+          user_id: string | null
         }
         Insert: {
-          server_id: string
-          ip: string
-          port: number
-          token: string
-          public_key?: string | null
-          created_at?: string
+          created_at?: string | null
+          id?: string
+          reason: string
+          server_id?: string | null
+          status?: string
+          user_id?: string | null
         }
         Update: {
-          server_id?: string
-          ip?: string
-          port?: number
-          token?: string
-          public_key?: string | null
-          created_at?: string
+          created_at?: string | null
+          id?: string
+          reason?: string
+          server_id?: string | null
+          status?: string
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "server_votifier_server_id_fkey"
+            foreignKeyName: "server_appeals_server_id_fkey"
             columns: ["server_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "public_servers"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "server_votifier_server_id_fkey"
+            foreignKeyName: "server_appeals_server_id_fkey"
             columns: ["server_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_appeals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -710,6 +1002,45 @@ export type Database = {
           },
         ]
       }
+      server_player_history: {
+        Row: {
+          created_at: string
+          id: string
+          max_players: number
+          record_date: string
+          server_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_players?: number
+          record_date?: string
+          server_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_players?: number
+          record_date?: string
+          server_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_player_history_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_player_history_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       server_ratings: {
         Row: {
           comment: string | null
@@ -759,27 +1090,164 @@ export type Database = {
           },
         ]
       }
+      server_saves: {
+        Row: {
+          created_at: string | null
+          id: string
+          server_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          server_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          server_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_saves_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_saves_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_saves_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      server_staff: {
+        Row: {
+          created_at: string
+          id: string
+          role_title: string
+          server_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role_title: string
+          server_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role_title?: string
+          server_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_staff_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_staff_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_staff_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      server_votifier: {
+        Row: {
+          created_at: string
+          ip: string
+          port: number
+          public_key: string | null
+          server_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          ip: string
+          port: number
+          public_key?: string | null
+          server_id: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          ip?: string
+          port?: number
+          public_key?: string | null
+          server_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "server_votifier_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: true
+            referencedRelation: "public_servers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "server_votifier_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: true
+            referencedRelation: "servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       servers: {
         Row: {
           average_rating: number | null
           banner_url: string | null
           bedrock_ip: string | null
+          bedrock_port: number | null
           category: string
           created_at: string | null
           description: string | null
           discord_url: string | null
           featured: boolean | null
           gallery: string[] | null
+          has_been_listed: boolean
           icon_url: string | null
           id: string
           ip_or_code: string | null
+          is_sponsored: boolean | null
           last_edited_at: string | null
           name: string
           owner_id: string | null
           port: number | null
           rating_count: number | null
+          saves: number | null
           slug: string
           social_links: Json | null
+          sponsor_border_color: string | null
+          sponsored_until: string | null
           status: string
           submitter_role: string | null
           tags: string[] | null
@@ -791,28 +1259,33 @@ export type Database = {
           weighted_rating: number | null
           yesterday_rating_rank: number | null
           yesterday_vote_rank: number | null
-          has_been_listed: boolean
         }
         Insert: {
           average_rating?: number | null
           banner_url?: string | null
           bedrock_ip?: string | null
+          bedrock_port?: number | null
           category: string
           created_at?: string | null
           description?: string | null
           discord_url?: string | null
           featured?: boolean | null
           gallery?: string[] | null
+          has_been_listed?: boolean
           icon_url?: string | null
           id?: string
           ip_or_code?: string | null
+          is_sponsored?: boolean | null
           last_edited_at?: string | null
           name: string
           owner_id?: string | null
           port?: number | null
           rating_count?: number | null
+          saves?: number | null
           slug: string
           social_links?: Json | null
+          sponsor_border_color?: string | null
+          sponsored_until?: string | null
           status?: string
           submitter_role?: string | null
           tags?: string[] | null
@@ -824,28 +1297,33 @@ export type Database = {
           weighted_rating?: number | null
           yesterday_rating_rank?: number | null
           yesterday_vote_rank?: number | null
-          has_been_listed?: boolean
         }
         Update: {
           average_rating?: number | null
           banner_url?: string | null
           bedrock_ip?: string | null
+          bedrock_port?: number | null
           category?: string
           created_at?: string | null
           description?: string | null
           discord_url?: string | null
           featured?: boolean | null
           gallery?: string[] | null
+          has_been_listed?: boolean
           icon_url?: string | null
           id?: string
           ip_or_code?: string | null
+          is_sponsored?: boolean | null
           last_edited_at?: string | null
           name?: string
           owner_id?: string | null
           port?: number | null
           rating_count?: number | null
+          saves?: number | null
           slug?: string
           social_links?: Json | null
+          sponsor_border_color?: string | null
+          sponsored_until?: string | null
           status?: string
           submitter_role?: string | null
           tags?: string[] | null
@@ -857,7 +1335,6 @@ export type Database = {
           weighted_rating?: number | null
           yesterday_rating_rank?: number | null
           yesterday_vote_rank?: number | null
-          has_been_listed?: boolean
         }
         Relationships: [
           {
@@ -868,6 +1345,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_incidents: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          resolved_at: string | null
+          severity: string
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
       }
       site_settings: {
         Row: {
@@ -926,18 +1433,21 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          minecraft_username: string | null
           server_id: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
+          minecraft_username?: string | null
           server_id?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
+          minecraft_username?: string | null
           server_id?: string | null
           user_id?: string | null
         }
@@ -965,6 +1475,47 @@ export type Database = {
           },
         ]
       }
+      vouchers: {
+        Row: {
+          code: string
+          created_at: string | null
+          duration_months: number | null
+          expires_at: string | null
+          id: string
+          is_used: boolean | null
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          duration_months?: number | null
+          expires_at?: string | null
+          id?: string
+          is_used?: boolean | null
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          duration_months?: number | null
+          expires_at?: string | null
+          id?: string
+          is_used?: boolean | null
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vouchers_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       public_servers: {
@@ -979,12 +1530,15 @@ export type Database = {
           gallery: string[] | null
           icon_url: string | null
           id: string | null
+          is_sponsored: boolean | null
           last_edited_at: string | null
           name: string | null
           owner_id: string | null
           rating_count: number | null
           slug: string | null
           social_links: Json | null
+          sponsor_border_color: string | null
+          sponsored_until: string | null
           status: string | null
           submitter_role: string | null
           tags: string[] | null
@@ -996,8 +1550,6 @@ export type Database = {
           weighted_rating: number | null
           yesterday_rating_rank: number | null
           yesterday_vote_rank: number | null
-          is_sponsored: boolean | null
-          sponsored_until: string | null
         }
         Insert: {
           average_rating?: number | null
@@ -1010,12 +1562,15 @@ export type Database = {
           gallery?: string[] | null
           icon_url?: string | null
           id?: string | null
+          is_sponsored?: boolean | null
           last_edited_at?: string | null
           name?: string | null
           owner_id?: string | null
           rating_count?: number | null
           slug?: string | null
           social_links?: Json | null
+          sponsor_border_color?: string | null
+          sponsored_until?: string | null
           status?: string | null
           submitter_role?: string | null
           tags?: string[] | null
@@ -1027,8 +1582,6 @@ export type Database = {
           weighted_rating?: number | null
           yesterday_rating_rank?: number | null
           yesterday_vote_rank?: number | null
-          is_sponsored?: boolean | null
-          sponsored_until?: string | null
         }
         Update: {
           average_rating?: number | null
@@ -1041,12 +1594,15 @@ export type Database = {
           gallery?: string[] | null
           icon_url?: string | null
           id?: string | null
+          is_sponsored?: boolean | null
           last_edited_at?: string | null
           name?: string | null
           owner_id?: string | null
           rating_count?: number | null
           slug?: string | null
           social_links?: Json | null
+          sponsor_border_color?: string | null
+          sponsored_until?: string | null
           status?: string | null
           submitter_role?: string | null
           tags?: string[] | null
@@ -1058,8 +1614,6 @@ export type Database = {
           weighted_rating?: number | null
           yesterday_rating_rank?: number | null
           yesterday_vote_rank?: number | null
-          is_sponsored?: boolean | null
-          sponsored_until?: string | null
         }
         Relationships: [
           {
@@ -1073,8 +1627,18 @@ export type Database = {
       }
     }
     Functions: {
+      check_expired_subscriptions: { Args: never; Returns: undefined }
       get_my_role: { Args: never; Returns: string }
       get_server_details: { Args: { server_slug: string }; Returns: Json }
+      get_server_rank: { Args: { server_uuid: string }; Returns: number }
+      get_server_voting_stats: {
+        Args: { server_uuid: string }
+        Returns: {
+          current_rank: number
+          votes_month: number
+          votes_today: number
+        }[]
+      }
       get_top_storage_consumers: {
         Args: never
         Returns: {
@@ -1085,8 +1649,25 @@ export type Database = {
           size_kb: number
         }[]
       }
+      get_top_uploaders: {
+        Args: never
+        Returns: {
+          upload_count: number
+          user_id: string
+          username: string
+        }[]
+      }
+      get_top_voters: {
+        Args: { server_uuid: string }
+        Returns: {
+          minecraft_username: string
+          vote_count: number
+        }[]
+      }
       reset_all_cooldowns: { Args: never; Returns: undefined }
+      reset_all_otm_votes: { Args: never; Returns: undefined }
       reset_otm_cooldowns: { Args: never; Returns: undefined }
+      revoke_subscription: { Args: { p_user_id: string }; Returns: undefined }
       update_yesterday_ranks: { Args: never; Returns: undefined }
     }
     Enums: {

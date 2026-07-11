@@ -164,7 +164,8 @@ async function fetchStandings(supabase: any) {
       server_id,
       servers:server_id (
         name,
-        slug
+        slug,
+        icon_url
       )
     `)
     .eq("category", "realm");
@@ -172,12 +173,12 @@ async function fetchStandings(supabase: any) {
   if (error) throw error;
 
   // Manual aggregation because Supabase JS client group by is limited
-  const counts: Record<string, { name: string, slug: string, votes: number }> = {};
+  const counts: Record<string, { name: string, slug: string, votes: number, icon_url: string | null }> = {};
   data.forEach((vote: any) => {
     const server = vote.servers;
     if (!server) return;
     if (!counts[vote.server_id]) {
-      counts[vote.server_id] = { name: server.name, slug: server.slug, votes: 0 };
+      counts[vote.server_id] = { name: server.name, slug: server.slug, votes: 0, icon_url: server.icon_url };
     }
     counts[vote.server_id].votes++;
   });
@@ -238,17 +239,17 @@ function generateEmbed(standings: any[], isActive = true, recentWinner: any = nu
       } else {
         description += `${emoji} **${entry.name}**\n`;
       }
-      description += `└ <:votes:1502056182783676577> \`${entry.votes} votes\`\n\n`;
+      description += `└ 🗳️ \`${entry.votes} votes\`\n\n`;
     });
   }
-
 
   return {
     title: "<:icon:1271214161833103451> ROTM Live Standings",
     description: description,
     color: 11032055, // Realm Purple (#a855f7)
     timestamp: new Date().toISOString(),
-    footer: { text: "Updates every 10 minutes • Realm Explorer Bot" }
+    thumbnail: standings[0]?.icon_url ? { url: standings[0].icon_url } : undefined,
+    footer: { text: "Updates every 5 minutes • Realm Explorer Bot" }
   };
 }
 

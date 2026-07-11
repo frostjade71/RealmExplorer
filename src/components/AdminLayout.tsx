@@ -2,6 +2,7 @@ import { useLocation, Link, Outlet } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { useAdminServers, useAdminProjects, useCategoryRequests, useReports, useServerAppeals } from '../hooks/queries'
+import { useBanAppeals } from '../hooks/appeals'
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import logo from '../assets/rerealm.webp'
@@ -18,6 +19,8 @@ export function AdminLayout() {
   }, [location.pathname])
   const { data: catRequests = [] } = useCategoryRequests()
   const { data: appeals = [] } = useServerAppeals('pending')
+  const { data: allBanAppeals = [] } = useBanAppeals()
+  const banAppeals = allBanAppeals.filter((a: any) => a.status === 'pending')
 
   const needsReviewCount = servers.filter(s => 
     ['pending', 'Review Icon', 'Review Cover', 'Review Icon & Cover', 'Review Gallery', 'Review Icon & Gallery', 'Review Cover & Gallery', 'Review All Assets'].includes(s.status)
@@ -48,6 +51,12 @@ export function AdminLayout() {
       label: 'Manage Reports', 
       icon: 'flag',
       indicatorCount: pendingReportsCount 
+    },
+    { 
+      to: '/admin/appeals', 
+      label: 'Ban Appeals', 
+      icon: 'gavel',
+      indicatorCount: banAppeals.length 
     },
     { to: '/admin/blog', label: 'Manage Blog', icon: 'article' },
     ...(isAdmin ? [

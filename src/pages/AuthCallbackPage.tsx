@@ -1,11 +1,15 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
+  const hasRun = useRef(false)
 
   useEffect(() => {
+    if (hasRun.current) return
+    hasRun.current = true
+
     const handleCallback = async () => {
       const { data: { session }, error } = await supabase.auth.getSession()
       if (error) {
@@ -16,7 +20,14 @@ export function AuthCallbackPage() {
           logAction('LOGIN', { method: 'oauth' }, session.user.id, null).catch(() => {})
         }).catch(() => {})
       }
-      const next = new URLSearchParams(window.location.search).get('next') || '/dashboard'
+      const storedNext = localStorage.getItem('authRedirectPath')
+      const queryNext = new URLSearchParams(window.location.search).get('next')
+      const next = storedNext || queryNext || '/dashboard'
+      
+      if (storedNext) {
+        localStorage.removeItem('authRedirectPath')
+      }
+      
       navigate(next, { replace: true })
     }
     

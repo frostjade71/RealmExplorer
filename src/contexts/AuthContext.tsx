@@ -110,9 +110,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // otherwise fallback to current origin (useful for local dev and preview deployments).
     const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin
     
-    const redirectTo = redirectToPath 
-      ? `${siteUrl}/auth/callback?next=${encodeURIComponent(redirectToPath)}`
-      : `${siteUrl}/auth/callback`
+    if (redirectToPath) {
+      localStorage.setItem('authRedirectPath', redirectToPath)
+    }
+
+    const redirectTo = `${siteUrl}/auth/callback`
 
     await supabase.auth.signInWithOAuth({
       provider: 'discord',

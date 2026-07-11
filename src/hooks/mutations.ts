@@ -778,7 +778,7 @@ export function useResetOTMVotesMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ adminId, adminName }: { adminId: string; adminName: string }) => {
-      const { error } = await supabase.from('otm_votes').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      const { error } = await supabase.rpc('reset_all_otm_votes')
       if (error) throw error
 
       await logAction('OTM_VOTES_RESET', {}, adminId, adminName)

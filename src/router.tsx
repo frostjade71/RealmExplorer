@@ -48,7 +48,9 @@ import {
   CopyrightPage,
   DocsPage,
   UpgradePage,
-  StatusPage
+  StatusPage,
+  AppealPage,
+  AdminAppealsPage
 } from './pages/Pages'
 
 export const router = createBrowserRouter([
@@ -138,6 +140,10 @@ export const router = createBrowserRouter([
       {
         path: '/upgrade',
         element: <UpgradePage />,
+      },
+      {
+        path: '/appeal',
+        element: <AppealPage />,
       },
       {
         path: '/profile/:username',
@@ -235,6 +241,10 @@ export const router = createBrowserRouter([
               {
                 path: 'category-requests',
                 element: <AdminCategoryRequestsPage />,
+              },
+              {
+                path: 'appeals',
+                element: <AdminAppealsPage />,
               },
               {
                 path: 'about',

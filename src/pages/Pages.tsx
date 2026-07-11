@@ -28,6 +28,8 @@ export { CopyrightPage } from './CopyrightPage'
 export { DocsPage } from './DocsPage'
 export { UpgradePage } from './UpgradePage'
 export { StatusPage } from './StatusPage'
+export { AppealPage } from './AppealPage'
+export { AdminAppealsPage } from './AdminAppealsPage'
 
 export function NotFoundPage() { return <div className="p-12 text-center text-white font-pixel">404 - Not Found</div> }
 
