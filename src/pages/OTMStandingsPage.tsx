@@ -27,7 +27,7 @@ export function OTMStandingsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   
   const currentCategory = CATEGORIES[currentIndex]
-  const isSystemComingSoon = currentCategory.id === 'developer' || currentCategory.id === 'builder'
+  const isSystemComingSoon = false
   
   const { data: categoryCompetitors = [], isLoading: loadingCompetitors } = useOTMCompetitors(currentCategory.id, !isSystemComingSoon)
   const { data: settings } = useOTMSettings()
