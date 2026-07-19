@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { useBlogPosts } from '../hooks/queries'
-import { LoadingSpinner } from '../components/FeedbackStates'
 import { format } from 'date-fns'
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
@@ -27,7 +26,7 @@ export function BlogPage() {
     return list
   }, [posts, featuredPost, activeCategory])
 
-  if (isLoading) return <LoadingSpinner />
+
 
   return (
     <AnimatedPage>
@@ -118,6 +117,8 @@ export function BlogPage() {
                       <img 
                         src={featuredPost.image_url} 
                         alt="" 
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                       />
                     ) : (
@@ -220,6 +221,8 @@ export function BlogPage() {
                           <img 
                             src={post.image_url} 
                             alt="" 
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500 scale-105 group-hover:scale-100"
                           />
                         ) : (
@@ -236,7 +239,11 @@ export function BlogPage() {
           </div>
         </div>
 
-        {filteredPosts.length === 0 && (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-2 border-realm-green/30 border-t-realm-green rounded-full animate-spin" />
+          </div>
+        ) : filteredPosts.length === 0 && (
           <FramerIn className="text-center py-20 bg-zinc-900/30 border border-dashed border-white/5 rounded-3xl">
             <p className="text-zinc-600 font-headline italic uppercase tracking-widest text-xs">No posts found in this category.</p>
           </FramerIn>

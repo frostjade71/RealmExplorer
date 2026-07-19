@@ -86,6 +86,8 @@ export function ServerCard({
             alt={`${server.name} banner`} 
             loading="lazy"
             decoding="async"
+            width={400}
+            height={112}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
@@ -97,6 +99,8 @@ export function ServerCard({
                   <img 
                     src={ratingIcon} 
                     alt="" 
+                    width={16}
+                    height={16}
                     className={`w-4 h-4 object-contain ${server.average_rating === 0 ? 'grayscale opacity-60' : ''}`} 
                   />
                   <span className="text-[10px] md:text-xs font-bold text-white/90 leading-none">
@@ -109,7 +113,7 @@ export function ServerCard({
               )}
               {!hideVotes && (
                 <div className="flex items-center gap-1">
-                  <img src={voteIcon} alt="" className="w-3.5 h-3.5 object-contain" />
+                  <img src={voteIcon} alt="" width={14} height={14} className="w-3.5 h-3.5 object-contain" />
                   <span className="text-[10px] md:text-xs font-bold text-white/90 leading-none">
                     {server.votes.toLocaleString()}
                   </span>
@@ -146,7 +150,7 @@ export function ServerCard({
             }`}
           >
             {server.icon_url ? (
-              <img src={server.icon_url} alt={server.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+              <img src={server.icon_url} alt={server.name} loading="lazy" decoding="async" width={64} height={64} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-zinc-600 font-pixel text-xs">
                 {server.name.substring(0, 2).toUpperCase()}

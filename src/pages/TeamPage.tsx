@@ -3,7 +3,6 @@ import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
 import { useTeamMembers, useUserProfile, useAdminUsers } from '../hooks/queries'
 import { TeamMemberCard } from '../components/TeamMemberCard'
-import { LoadingSpinner } from '../components/FeedbackStates'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import heroVideo from '../assets/hero/heroRE.mp4'
 import steveIcon from '../assets/about/87389-steve.png'
@@ -11,7 +10,7 @@ import ownerIcon from '../assets/about/16739-owner-gradient.png'
 
 export function TeamPage() {
   const isMobile = useIsMobile()
-  const { data: teamMembers = [], isLoading } = useTeamMembers()
+  const { data: teamMembers = [] } = useTeamMembers()
   const { data: visionProfile } = useUserProfile('ad2be47b-b12e-4fc5-ab5a-e8af75c76d36')
   const { data: devProfile } = useUserProfile('4642ada9-a0be-4ad6-bd7a-b5990ad952b2')
   const { data: allUsers = [] } = useAdminUsers()
@@ -26,7 +25,6 @@ export function TeamPage() {
     return !title.includes('owner') && !title.includes('executive')
   })
 
-  if (isLoading) return <LoadingSpinner />
 
   return (
     <AnimatedPage>

@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Navbar } from './Navbar'
 import { Footer } from './Footer'
@@ -5,6 +6,14 @@ import { AnimatePresence } from 'framer-motion'
 
 import { CookieBanner } from './CookieBanner'
 import { CommunityOneWidget } from './CommunityOneWidget'
+
+function RouteFallback() {
+  return (
+    <div className="flex-grow flex items-center justify-center min-h-[60vh]">
+      <div className="w-8 h-8 border-2 border-realm-green/30 border-t-realm-green rounded-full animate-spin" />
+    </div>
+  )
+}
 
 function scrollToTop() {
   const doScroll = () => {
@@ -27,9 +36,11 @@ export function Layout() {
     <div className="flex-1 flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow pt-16 flex flex-col">
-        <AnimatePresence mode="wait" onExitComplete={scrollToTop}>
-          <Outlet key={location.pathname} />
-        </AnimatePresence>
+        <Suspense fallback={<RouteFallback />}>
+          <AnimatePresence mode="wait" onExitComplete={scrollToTop}>
+            <Outlet key={location.pathname} />
+          </AnimatePresence>
+        </Suspense>
       </main>
       <Footer />
 

@@ -1,11 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useServers, useGlobalStats } from '../hooks/queries'
 import { ServerCard } from '../components/ServerCard'
-import { LoadingSpinner } from '../components/FeedbackStates'
+
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn, FramerInList } from '../components/FramerIn'
-import { motion, useSpring, useTransform } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { CategoryRequestModal } from '../components/CategoryRequestModal'
 import { useCreateCategoryRequestMutation } from '../hooks/mutations'
@@ -36,23 +36,20 @@ import skygenBg from '../assets/homepage/skygen.webp'
 import prisonBg from '../assets/homepage/prisons.jpg'
 
 function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toString() }: { 
-  value: number, 
+  value: number | undefined, 
   label: string, 
   suffix?: string,
   formatter?: (v: number) => string 
 }) {
-  const spring = useSpring(0, { bounce: 0, duration: 2000 })
-  const display = useTransform(spring, (current) => formatter(Math.round(current)) + suffix)
-
-  useEffect(() => {
-    spring.set(value)
-  }, [value, spring])
-
   return (
     <div className="flex flex-col items-center shrink-0">
-      <motion.span className="text-[#85fc7e] font-pixel text-base xs:text-xl md:text-2xl mb-1.5 md:mb-2 drop-shadow-md">
-        {display}
-      </motion.span>
+      <span className="text-[#85fc7e] font-pixel text-base xs:text-xl md:text-2xl mb-1.5 md:mb-2 drop-shadow-md min-h-[24px] md:min-h-[32px] flex items-center justify-center">
+        {value === undefined ? (
+          <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-[#85fc7e]/30 border-t-[#85fc7e] rounded-full animate-spin"></div>
+        ) : (
+          formatter(value) + suffix
+        )}
+      </span>
       <span className="text-white/40 font-headline text-[8px] md:text-[10px] tracking-widest uppercase font-bold text-center leading-tight">{label}</span>
     </div>
   )
@@ -62,8 +59,8 @@ import { MetaTags } from '../components/MetaTags'
 
 export function HomePage() {
   const isMobile = useIsMobile()
-  const { data: featured = [], isLoading: loadingFeatured } = useServers({ featured: true, limit: 4 })
-  const { data: stats, isLoading: loadingStats } = useGlobalStats()
+  const { data: featured = [] } = useServers({ featured: true, limit: 4 })
+  const { data: stats } = useGlobalStats()
   const { user, signInWithDiscord } = useAuth()
   const navigate = useNavigate()
   const createRequestMutation = useCreateCategoryRequestMutation()
@@ -89,9 +86,7 @@ export function HomePage() {
     }
   }
 
-  if (loadingFeatured || loadingStats) return <LoadingSpinner />
 
-  const safeStats = stats || { servers: 450, users: 12000 }
 
   const categories = [
     { id: 'smp', name: 'SMP', icon: smpIcon, bg: smpBg, desc: 'Survival Multiplayer experiences focused on community.' },
@@ -120,6 +115,7 @@ export function HomePage() {
           loop 
           muted 
           playsInline
+          preload="none"
           className="absolute inset-0 w-full h-full object-cover z-0 block will-change-[opacity,transform]"
         />
         {/* Dark Radial Gradient Overlay for focus and legibility */}
@@ -128,7 +124,7 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto relative z-20 flex flex-col items-center text-center will-change-transform">
           <FramerIn delay={0.2}>
             <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
-              <img src={mcGif} alt="Minecraft Icon" className="w-5 h-5 object-contain" />
+              <img src={mcGif} alt="Minecraft Icon" width={20} height={20} className="w-5 h-5 object-contain" />
               <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase">2.0 releasing in late-july!</span>
             </div>
           </FramerIn>
@@ -171,12 +167,11 @@ export function HomePage() {
           <FramerIn delay={1.0}>
             <div className="grid grid-cols-3 gap-2 md:gap-8 max-w-4xl w-full px-4 md:px-0 mt-4 md:mt-0">
               <StatItem 
-                value={safeStats.servers} 
+                value={stats?.servers} 
                 label="Servers" 
-                suffix="+"
               />
               <StatItem 
-                value={safeStats.users} 
+                value={stats?.users} 
                 label="Global Users" 
                 formatter={(v) => v.toLocaleString()}
               />
@@ -208,13 +203,13 @@ export function HomePage() {
               >
                 {/* Background Image with Overlay */}
                 <div className="absolute inset-0 z-0">
-                  <img src={c.bg} alt="" className="w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-all duration-500 group-hover:scale-110" />
+                  <img src={c.bg} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-all duration-500 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent"></div>
                 </div>
 
                 <div className="relative z-10">
                   <div className={`w-8 h-8 md:w-10 md:h-10 bg-white/10 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'} rounded-lg flex items-center justify-center mb-3 md:mb-4 group-hover:bg-realm-green transition-all duration-300`}>
-                    <img src={c.icon} alt={c.name} className="w-5 h-5 md:w-6 md:h-6 object-contain" />
+                    <img src={c.icon} alt={c.name} width={24} height={24} loading="lazy" decoding="async" className="w-5 h-5 md:w-6 md:h-6 object-contain" />
                   </div>
                   <h3 className="font-pixel text-sm md:text-base mb-1 text-white drop-shadow-md">{c.name}</h3>
                   <p className="text-zinc-300 text-[10px] md:text-[11px] leading-relaxed mb-3 md:mb-4 line-clamp-2 min-h-[2.5rem]">{c.desc}</p>
@@ -245,7 +240,7 @@ export function HomePage() {
           </FramerIn>
           <FramerIn delay={0.2} className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
             <a href="https://communityone.io/" target="_blank" rel="noreferrer" className="group flex flex-col items-center gap-3 saturate-50 opacity-70 hover:saturate-100 hover:opacity-100 transition-all duration-300 cursor-pointer">
-              <img src={communityOneLogo} alt="Community One" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
+              <img src={communityOneLogo} alt="Community One" width={80} height={80} loading="lazy" decoding="async" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
               <span className="font-headline text-xs md:text-sm text-zinc-400 group-hover:text-white transition-colors font-medium">Community One</span>
             </a>
           </FramerIn>
@@ -276,6 +271,8 @@ export function HomePage() {
           <img 
             src={ctaBg} 
             alt="CTA Background" 
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover opacity-40 z-0"
           />
           {/* Gradient Overlay for Legibility */}

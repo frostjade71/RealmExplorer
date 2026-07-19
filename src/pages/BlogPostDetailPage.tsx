@@ -109,7 +109,7 @@ export function BlogPostDetailPage() {
  
           {post.image_url && (
             <div className="max-w-2xl mx-auto aspect-video rounded-2xl overflow-hidden bg-white/[0.02] border border-white/10 shadow-3xl mb-12 relative flex items-center justify-center">
-              <img src={post.image_url} alt="" className="max-w-full max-h-full object-contain" />
+              <img src={post.image_url} alt="" fetchPriority="high" decoding="async" className="max-w-full max-h-full object-contain" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
             </div>
           )}
@@ -138,6 +138,8 @@ export function BlogPostDetailPage() {
                   <img 
                     src={src} 
                     alt={alt} 
+                    loading="lazy"
+                    decoding="async"
                     className="max-w-full h-auto rounded-2xl border border-white/10 my-8 shadow-2xl mx-auto" 
                   />
                 ),

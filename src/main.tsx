@@ -7,7 +7,15 @@ import { AuthProvider } from './contexts/AuthContext'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 if ('scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual'

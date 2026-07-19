@@ -101,7 +101,9 @@ export function Navbar() {
               <img 
                 className="w-full h-full object-contain" 
                 alt="RE logo" 
-                src="/logoRE.png" 
+                src="/logoRE.png"
+                width={56}
+                height={56}
               />
             </motion.div>
             <span className="text-xs font-pixel text-white hidden sm:block">Realm Explorer</span>
