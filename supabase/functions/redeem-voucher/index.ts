@@ -142,7 +142,7 @@ Deno.serve(async (req: Request) => {
           body: {
             discord_id: profile.discord_id,
             subject: 'Voucher Redeemed - Welcome to Explorer+!',
-            message: `You have successfully redeemed your ${monthsToAdd} month subscription for Explorer+, enjoy your benefits! You now have access to increased server limits, custom banners, priority shuffle, and more. Thank you for supporting Realm Explorer!`,
+            message: `You have successfully redeemed your ${monthsToAdd} month subscription for Explorer+, enjoy your benefits! You now have access to increased server limits, priority server shuffle, and more. Thank you for supporting Realm Explorer!`,
             type: 'welcome',
             admin_name: 'Realm Explorer Team'
           }
