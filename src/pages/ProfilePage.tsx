@@ -178,14 +178,15 @@ const getPlatformBorderColor = (platform: string) => {
             <div className={`absolute inset-0 border rounded-[20px] pointer-events-none ${isProfileExplorerPlus ? 'border-yellow-400/20' : 'border-white/10'}`} />
           </motion.div>
 
-          <FramerIn delay={0.3} className="flex-1 text-left pt-2 md:pt-12">
+          <FramerIn delay={0.3} className="flex-1 w-full text-left pt-2 md:pt-12">
             <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
-              <h1 className={`${(profile.discord_username?.length || 0) > 15 ? 'text-[8px]' : (profile.discord_username?.length || 0) > 10 ? 'text-[10px]' : (profile.discord_username?.length || 0) > 7 ? 'text-[13px]' : 'text-[15px]'} md:text-2xl font-pixel text-white leading-tight break-all`}>
+              <h1 className="text-base sm:text-lg md:text-2xl font-pixel text-white leading-tight break-all">
                 {profile.discord_username}
               </h1>
-              <RoleBadge role={profile.role} className="ml-0" />
-              {hasSponsoredServers && <SponsorBadge className="ml-0" />}
-
+              <div className="flex items-center gap-2">
+                <RoleBadge role={profile.role} className="ml-0" />
+                {hasSponsoredServers && <SponsorBadge className="ml-0" />}
+              </div>
             </div>
             
             <div className="flex flex-wrap items-center justify-start gap-3 text-zinc-500 font-headline text-[10px] italic">

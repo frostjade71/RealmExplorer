@@ -38,9 +38,32 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square', bu
     }
   }, [value])
 
+  const [isDragging, setIsDragging] = useState(false)
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) await processFile(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) await processFile(file)
+  }
+
+  const processFile = async (file: File) => {
     try {
-      const file = e.target.files?.[0]
       if (!file || !user) return
 
       // Enforce 5MB limit
@@ -154,9 +177,14 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square', bu
       </label>
       
       <div 
-        className={`relative group w-full rounded-lg border-2 border-dashed border-zinc-800 bg-zinc-950/50 hover:border-realm-green transition-all overflow-hidden ${
+        className={`relative group w-full rounded-lg border-2 border-dashed transition-all overflow-hidden ${
+          isDragging ? 'border-realm-green bg-realm-green/10' : 'border-zinc-800 bg-zinc-950/50 hover:border-realm-green'
+        } ${
           aspectRatio === 'square' ? 'aspect-square max-w-[200px]' : 'aspect-video'
         }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         <div 
           className="w-full h-full flex flex-col items-center justify-center relative cursor-pointer"
@@ -224,7 +252,7 @@ export function ImageUpload({ label, onUpload, value, aspectRatio = 'square', bu
               >
                 <ImageIcon className="w-8 h-8 text-zinc-600 mb-2 group-hover:text-realm-green transition-colors" />
                 <span className="text-xs text-zinc-500 font-headline text-center group-hover:text-zinc-300">
-                  Click to upload {aspectRatio === 'square' ? 'Icon' : 'Banner'}
+                  Click or Drop to upload {aspectRatio === 'square' ? 'Icon' : 'Banner'}
                 </span>
                 <span className="text-[10px] text-zinc-700 mt-1 uppercase font-headline">PNG, JPG up to 5MB</span>
               </motion.div>

@@ -43,8 +43,8 @@ export function EmptyState({ title = "No Results", message = "We couldn't find a
       <div className={`w-16 h-16 mb-6 flex items-center justify-center overflow-hidden ${!icon ? 'bg-zinc-900 rounded-xl opacity-50' : ''}`}>
         {icon || <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-600"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>}
       </div>
-      <h3 className="font-pixel text-lg text-white mb-2">{title}</h3>
-      <p className="text-zinc-500 font-headline text-sm max-w-sm mb-6">{message}</p>
+      <h3 className="font-pixel text-base md:text-lg text-white mb-2">{title}</h3>
+      <p className="text-zinc-500 font-headline text-xs md:text-sm max-w-sm mb-6">{message}</p>
       {action}
     </div>
   )

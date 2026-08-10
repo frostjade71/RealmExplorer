@@ -115,6 +115,11 @@ export function SubmitPage() {
   const [staffRoleInput, setStaffRoleInput] = useState('');
   const [isSearchingUsers, setIsSearchingUsers] = useState(false);
 
+  const [iconBlob, setIconBlob] = useState<Blob | null>(null);
+  const [bannerBlob, setBannerBlob] = useState<Blob | null>(null);
+  const [galleryBlobs, setGalleryBlobs] = useState<Record<number, Blob | null>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     if (id) {
       const fetchStaff = async () => {
@@ -271,6 +276,7 @@ export function SubmitPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!user) return;
     setError("");
 
@@ -303,28 +309,62 @@ export function SubmitPage() {
     const slug = slugify(formData.name);
 
     const checkAndSubmit = async () => {
-      // Check if slug is unique
-      let query = supabase.from("servers").select("id").eq("slug", slug);
+      setIsSubmitting(true);
+      try {
+        // Check if slug is unique
+        let query = supabase.from("servers").select("id").eq("slug", slug);
 
-      if (id) {
-        query = query.neq("id", id);
-      }
+        if (id) {
+          query = query.neq("id", id);
+        }
 
-      const { data: existing, error: checkError } = await query.maybeSingle();
+        const { data: existing, error: checkError } = await query.maybeSingle();
 
-      if (checkError) {
-        setError("Error checking name availability. Please try again.");
-        return;
-      }
+        if (checkError) {
+          setError("Error checking name availability. Please try again.");
+          setIsSubmitting(false);
+          return;
+        }
 
-      if (existing) {
-        setError(
-          "A server with this name already exists. Please choose a unique name.",
-        );
-        return;
-      }
+        if (existing) {
+          setError(
+            "A server with this name already exists. Please choose a unique name.",
+          );
+          setIsSubmitting(false);
+          return;
+        }
 
-      if (isEditing) {
+        let finalIconUrl = formData.icon_url;
+        let finalBannerUrl = formData.banner_url;
+        let finalGallery = [...formData.gallery];
+
+        if (iconBlob) {
+          const filePath = `${user.id}/${Math.random().toString(36).substring(2)}-${Date.now()}.webp`;
+          const { error: uploadError } = await supabase.storage.from('server-assets').upload(filePath, iconBlob, { contentType: 'image/webp', upsert: true, cacheControl: 'public, max-age=31536000, immutable' });
+          if (uploadError) throw uploadError;
+          const { data: { publicUrl } } = supabase.storage.from('server-assets').getPublicUrl(filePath);
+          finalIconUrl = publicUrl;
+        }
+
+        if (bannerBlob) {
+          const filePath = `${user.id}/${Math.random().toString(36).substring(2)}-${Date.now()}.webp`;
+          const { error: uploadError } = await supabase.storage.from('server-assets').upload(filePath, bannerBlob, { contentType: 'image/webp', upsert: true, cacheControl: 'public, max-age=31536000, immutable' });
+          if (uploadError) throw uploadError;
+          const { data: { publicUrl } } = supabase.storage.from('server-assets').getPublicUrl(filePath);
+          finalBannerUrl = publicUrl;
+        }
+
+        for (const [index, blob] of Object.entries(galleryBlobs)) {
+          if (blob) {
+            const filePath = `${user.id}/${Math.random().toString(36).substring(2)}-${Date.now()}-gallery.webp`;
+            const { error: uploadError } = await supabase.storage.from('server-assets').upload(filePath, blob, { contentType: 'image/webp', upsert: true, cacheControl: 'public, max-age=31536000, immutable' });
+            if (uploadError) throw uploadError;
+            const { data: { publicUrl } } = supabase.storage.from('server-assets').getPublicUrl(filePath);
+            finalGallery[Number(index)] = publicUrl;
+          }
+        }
+
+        if (isEditing) {
         const currentStatus = serverData?.server?.status || "approved";
         const iconChanged = formData.icon_url !== originalImageUrls.icon;
         const bannerChanged = formData.banner_url !== originalImageUrls.banner;
@@ -364,6 +404,8 @@ export function SubmitPage() {
         const { enable_votifier, votifier_ip, votifier_port, votifier_token, votifier_public_key, ...baseFormData } = formData;
         const submissionData = {
           ...baseFormData,
+          icon_url: finalIconUrl,
+          banner_url: finalBannerUrl,
           ip_or_code: formData.type === "realm" || showJavaIp ? formData.ip_or_code : "None",
           port: (formData.type === "realm" || showJavaIp) ? (formData.port === "" ? null : Number(formData.port)) : null,
           bedrock_ip: showBedrockIp ? formData.bedrock_ip : null,
@@ -371,7 +413,7 @@ export function SubmitPage() {
           slug,
           status,
           submitter_role: formData.submitter_role,
-          gallery: formData.gallery.filter(Boolean),
+          gallery: finalGallery.filter(Boolean),
           social_links: formData.social_links.map(
             ({ localId, ...link }: any) => link,
           ),
@@ -433,6 +475,8 @@ export function SubmitPage() {
         const { enable_votifier, votifier_ip, votifier_port, votifier_token, votifier_public_key, ...baseFormData } = formData;
         const submissionData = {
           ...baseFormData,
+          icon_url: finalIconUrl,
+          banner_url: finalBannerUrl,
           ip_or_code: formData.type === "realm" || showJavaIp ? formData.ip_or_code : "None",
           port: (formData.type === "realm" || showJavaIp) ? (formData.port === "" ? null : Number(formData.port)) : null,
           bedrock_ip: showBedrockIp ? formData.bedrock_ip : null,
@@ -440,7 +484,7 @@ export function SubmitPage() {
           slug,
           owner_id: user.id,
           status: "pending",
-          gallery: formData.gallery.filter(Boolean),
+          gallery: finalGallery.filter(Boolean),
           social_links: formData.social_links.map(
             ({ localId, ...link }: any) => link,
           ),
@@ -486,6 +530,11 @@ export function SubmitPage() {
             toast.error("Submission failed", { description: err.message });
           },
         });
+      }
+      } catch (err: any) {
+        setError(err.message);
+        toast.error("Submission failed", { description: err.message });
+        setIsSubmitting(false);
       }
     };
 
@@ -619,13 +668,23 @@ export function SubmitPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 pb-8 border-b border-zinc-800">
             <ImageUpload
               label="Server Icon"
-              onUpload={(url) => setFormData({ ...formData, icon_url: url })}
+              immediateUpload={false}
+              onUpload={(url, file) => {
+                setFormData({ ...formData, icon_url: url });
+                if (file) setIconBlob(file);
+                else setIconBlob(null);
+              }}
               value={formData.icon_url}
               aspectRatio="square"
             />
             <ImageUpload
               label="Cover Banner"
-              onUpload={(url) => setFormData({ ...formData, banner_url: url })}
+              immediateUpload={false}
+              onUpload={(url, file) => {
+                setFormData({ ...formData, banner_url: url });
+                if (file) setBannerBlob(file);
+                else setBannerBlob(null);
+              }}
               value={formData.banner_url}
               aspectRatio="video"
             />
@@ -1311,10 +1370,16 @@ export function SubmitPage() {
                   <div key={index} className="relative group/gallery">
                     <ImageUpload
                       label={`Image ${index + 1}`}
-                      onUpload={(newUrl) => {
+                      immediateUpload={false}
+                      onUpload={(newUrl, file) => {
                         const newGallery = [...formData.gallery];
                         newGallery[index] = newUrl;
                         setFormData({ ...formData, gallery: newGallery });
+                        
+                        const newBlobs = { ...galleryBlobs };
+                        if (file) newBlobs[index] = file;
+                        else newBlobs[index] = null;
+                        setGalleryBlobs(newBlobs);
                       }}
                       value={url}
                       aspectRatio="square"

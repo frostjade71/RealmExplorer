@@ -35,25 +35,46 @@ export function EditBannerModal({ isOpen, onClose, profile }: EditBannerModalPro
     setCroppedAreaPixels(croppedAreaPixels)
   }, [])
 
+  const [isDragging, setIsDragging] = useState(false)
+
+  const processFile = (selected: File) => {
+    if (selected.size > 5 * 1024 * 1024) {
+      toast.error('File too large', { description: 'Please select an image under 5MB.' })
+      return
+    }
+    if (!selected.type.startsWith('image/')) {
+      toast.error('Invalid file type', { description: 'Please select a PNG or JPG image.' })
+      return
+    }
+    
+    const reader = new FileReader()
+    reader.addEventListener('load', () => {
+      setImageSrc(reader.result as string)
+      setIsCropping(true)
+    })
+    reader.readAsDataURL(selected)
+  }
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0]
-    if (selected) {
-      if (selected.size > 5 * 1024 * 1024) {
-        toast.error('File too large', { description: 'Please select an image under 5MB.' })
-        return
-      }
-      if (!selected.type.startsWith('image/')) {
-        toast.error('Invalid file type', { description: 'Please select a PNG or JPG image.' })
-        return
-      }
-      
-      const reader = new FileReader()
-      reader.addEventListener('load', () => {
-        setImageSrc(reader.result as string)
-        setIsCropping(true)
-      })
-      reader.readAsDataURL(selected)
-    }
+    if (selected) processFile(selected)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const selected = e.dataTransfer.files?.[0]
+    if (selected) processFile(selected)
   }
 
   const handleCropCancel = () => {
@@ -248,8 +269,11 @@ export function EditBannerModal({ isOpen, onClose, profile }: EditBannerModalPro
                 </div>
 
                 <div 
-                  className={`relative group rounded-lg border-2 border-dashed border-zinc-800 bg-zinc-950/50 hover:border-realm-green transition-all overflow-hidden aspect-video flex flex-col items-center justify-center cursor-pointer ${isUploading ? 'pointer-events-none' : ''}`}
+                  className={`relative group rounded-lg border-2 border-dashed transition-all overflow-hidden aspect-video flex flex-col items-center justify-center cursor-pointer ${isUploading ? 'pointer-events-none' : ''} ${isDragging ? 'border-realm-green bg-realm-green/10' : 'border-zinc-800 bg-zinc-950/50 hover:border-realm-green'}`}
                   onClick={() => fileInputRef.current?.click()}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
                 >
                   {preview ? (
                     <div className="w-full h-full relative">
@@ -266,7 +290,7 @@ export function EditBannerModal({ isOpen, onClose, profile }: EditBannerModalPro
                   ) : (
                     <div className="flex flex-col items-center justify-center p-6 text-center">
                       <ImageIcon className="w-10 h-10 text-zinc-700 mb-3 group-hover:text-realm-green transition-colors" />
-                      <p className="text-xs font-bold text-zinc-400 font-headline uppercase tracking-wider group-hover:text-zinc-200 transition-colors">Click to upload image</p>
+                      <p className="text-xs font-bold text-zinc-400 font-headline uppercase tracking-wider group-hover:text-zinc-200 transition-colors">Click or Drop an Image</p>
                       <p className="text-[10px] text-zinc-600 mt-2 font-headline uppercase">PNG, JPG up to 5MB</p>
                     </div>
                   )}
