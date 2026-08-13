@@ -113,10 +113,6 @@ export function AdminServersPage() {
         adminName: profile.discord_username
       })
 
-      // 2. If it's a rejection, update the status
-      if (modalConfig.type === 'rejection') {
-        handleUpdateStatus(modalConfig.server.id, 'rejected')
-      }
 
       // 3. Show feedback based on DM delivery
       if (result?.dmSent) {

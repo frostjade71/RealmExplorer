@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Send, AlertTriangle, Mail } from 'lucide-react'
 
@@ -32,12 +32,16 @@ export function ContactOwnerModal({
     onSubmit(subject, message)
   }
 
-  // Pre-fill subject if it's a rejection
-  useState(() => {
-    if (type === 'rejection' && !subject) {
-      setSubject(title === 'Reject Project Listing' ? 'Project Listing Rejected' : 'Server Listing Rejected')
+  useEffect(() => {
+    if (isOpen) {
+      setMessage('')
+      if (type === 'rejection') {
+        setSubject(title === 'Reject Project Listing' ? 'Project Listing Rejected' : 'Server Listing Rejected')
+      } else {
+        setSubject('')
+      }
     }
-  })
+  }, [isOpen, type, title])
 
   return createPortal(
     <AnimatePresence>

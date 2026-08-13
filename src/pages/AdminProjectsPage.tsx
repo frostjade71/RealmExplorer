@@ -76,10 +76,6 @@ export function AdminProjectsPage() {
         adminName: profile.discord_username
       })
 
-      if (modalConfig.type === 'rejection') {
-        handleUpdateStatus(modalConfig.project.id, 'rejected')
-      }
-
       if (result?.dmSent) {
         toast.success(modalConfig.type === 'rejection' ? 'Project Rejected' : 'Message Sent', {
           description: `Discord DM delivered to ${modalConfig.project.name} owner.`
