@@ -59,14 +59,13 @@ export default async function handler(req: Request) {
   const offset = Math.max(parseInt(url.searchParams.get('offset') || '0', 10), 0)
 
   // ── Build query ───────────────────────────────────────────────────────
-  // Only expose safe, public fields — never owner_id, ip_or_code, etc.
+
   let query = supabase
-    .from('servers')
+    .from('public_servers')
     .select(
       'id, name, slug, description, type, category, icon_url, banner_url, tags, votes, average_rating, rating_count, featured, website_url, discord_url, created_at',
       { count: 'exact' }
     )
-    .eq('status', 'approved')
 
   if (type && ['server', 'realm'].includes(type)) {
     query = query.eq('type', type)
