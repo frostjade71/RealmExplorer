@@ -8,6 +8,18 @@ export default async function handler(req: Request) {
   const url = new URL(req.url)
   const type = url.searchParams.get('type')
   const slug = url.searchParams.get('slug')
+
+  if (type === 'api-docs') {
+    const ua = req.headers.get('user-agent') || ''
+    const isBot = /bot|discord|twitter|facebook|slack|telegram|whatsapp|skype/i.test(ua)
+    if (!isBot) return fetch(new URL('/index.html', req.url))
+    return ogResponse({
+      title: 'Public API (Beta) — Realm Explorer',
+      description: 'Integrate Realm Explorer\'s server directory into your website. Free, open, no API key required. Supports filtering, sorting, and pagination.',
+      image: 'https://realmexplorer.xyz/meta-preview/RE-Banned_EAA0FDC.webp',
+      url: 'https://realmexplorer.xyz/api-docs'
+    })
+  }
   
   if (!slug || (type !== 'server' && type !== 'projects')) {
      return fetch(new URL('/index.html', req.url)) // fallback to SPA
@@ -111,5 +123,35 @@ export default async function handler(req: Request) {
       'Content-Type': 'text/html', 
       'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400' 
     }
+  })
+}
+
+function ogResponse({ title, description, image, url }: { title: string; description: string; image: string; url: string }) {
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
+  const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>${esc(title)}</title>
+    <meta name="title" content="${esc(title)}" />
+    <meta name="description" content="${esc(description)}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="${esc(url)}" />
+    <meta property="og:title" content="${esc(title)}" />
+    <meta property="og:description" content="${esc(description)}" />
+    <meta property="og:image" content="${esc(image)}" />
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:url" content="${esc(url)}" />
+    <meta property="twitter:title" content="${esc(title)}" />
+    <meta property="twitter:description" content="${esc(description)}" />
+    <meta property="twitter:image" content="${esc(image)}" />
+  </head>
+  <body>
+    <h1>${esc(title)}</h1>
+    <p>${esc(description)}</p>
+  </body>
+</html>`
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html', 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400' }
   })
 }
