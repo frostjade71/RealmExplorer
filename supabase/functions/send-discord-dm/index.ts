@@ -140,6 +140,7 @@ Deno.serve(async (req: Request) => {
 
     const msgBody = await msgRes.text();
     if (!msgRes.ok) {
+      console.error(`Discord API Error (${msgRes.status}):`, msgBody);
       return new Response(
         JSON.stringify({ 
           error: `Failed to send DM (${msgRes.status})`, 

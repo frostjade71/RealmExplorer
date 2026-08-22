@@ -47,6 +47,7 @@ import {
   PrivacyPage,
   CopyrightPage,
   DocsPage,
+  ApiDocsPage,
   UpgradePage,
   StatusPage,
   AppealPage,
@@ -132,6 +133,10 @@ export const router = createBrowserRouter([
       {
         path: '/docs',
         element: <DocsPage />,
+      },
+      {
+        path: '/api-docs',
+        element: <ApiDocsPage />,
       },
       {
         path: '/status',

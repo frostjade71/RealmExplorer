@@ -84,6 +84,7 @@
       "destination": "/api/og?type=projects&slug=:slug"
     },
     { "source": "/appeal", "destination": "/appeal.html" },
+    { "source": "/api/servers", "destination": "/api/servers" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

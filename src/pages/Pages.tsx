@@ -34,6 +34,7 @@ export const TermsPage = lazy(() => import('./TermsPage').then(m => ({ default: 
 export const PrivacyPage = lazy(() => import('./PrivacyPage').then(m => ({ default: m.PrivacyPage })))
 export const CopyrightPage = lazy(() => import('./CopyrightPage').then(m => ({ default: m.CopyrightPage })))
 export const DocsPage = lazy(() => import('./DocsPage').then(m => ({ default: m.DocsPage })))
+export const ApiDocsPage = lazy(() => import('./ApiDocsPage').then(m => ({ default: m.ApiDocsPage })))
 export const UpgradePage = lazy(() => import('./UpgradePage').then(m => ({ default: m.UpgradePage })))
 export const StatusPage = lazy(() => import('./StatusPage').then(m => ({ default: m.StatusPage })))
 export const AppealPage = lazy(() => import('./AppealPage').then(m => ({ default: m.AppealPage })))
