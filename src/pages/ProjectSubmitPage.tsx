@@ -424,7 +424,7 @@ export function ProjectSubmitPage() {
             
             <FileUpload
               label={`Project File (${formData.type === 'java' ? '.zip, .jar, .schem' : '.zip, .mcaddon, .mcpack, .mcworld'})`}
-              accept={formData.type === 'java' ? '.zip,.jar,.schem,.litematic' : '.zip,.mcaddon,.mcpack,.mcworld'}
+              accept={formData.type === 'java' ? '.zip,.jar,.schem,.litematic,application/java-archive,application/zip' : '.zip,.mcaddon,.mcpack,.mcworld,application/octet-stream,application/zip'}
               maxSizeMB={30}
               immediateUpload={false}
               value={existingProject?.file_url || projectFile ? 'local-file' : ''}
@@ -743,7 +743,7 @@ export function ProjectSubmitPage() {
                   <input
                     type="file"
                     ref={changelogFileInputRef}
-                    accept={formData.type === 'java' ? '.zip,.jar,.schem,.litematic' : '.zip,.mcaddon,.mcpack,.mcworld'}
+                    accept={formData.type === 'java' ? '.zip,.jar,.schem,.litematic,application/java-archive,application/zip' : '.zip,.mcaddon,.mcpack,.mcworld,application/octet-stream,application/zip'}
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0]

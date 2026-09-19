@@ -89,7 +89,7 @@ Deno.serve(async (req: Request) => {
         targetEndpoint = target === 'public' ? WEBHOOK_URL : LOGS_WEBHOOK_URL;
       }
 
-      const serverUrl = isProject ? `https://www.realmexplorer.xyz/project/${slug}` : `https://www.realmexplorer.xyz/server/${slug}`;
+      const serverUrl = isProject ? `https://www.realmexplorer.xyz/projects/${slug}` : `https://www.realmexplorer.xyz/server/${slug}`;
       const title = approvalType === 'new_listing'
         ? (isProject ? '<:icon:1547071225417830500> New Project Published!' : '<:icon:1296934822362742937> New Server Published!')
         : 'Visual Assets Approved';
