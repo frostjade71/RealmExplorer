@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Github } from 'lucide-react'
-import { SiDiscord, SiKofi, SiInstagram } from 'react-icons/si'
+import { SiDiscord, SiInstagram } from 'react-icons/si'
 import logo from '../assets/rerealm.webp'
 
 export function Footer() {
@@ -14,15 +14,6 @@ export function Footer() {
             <p className="font-headline text-[10px] md:text-xs tracking-widest text-white/40 uppercase">Realm Explorer</p>
           </div>
           <div className="flex items-center gap-2 md:gap-3 my-1">
-            <a 
-              href="https://ko-fi.com/P5P11XJVKI" 
-              target="_blank" 
-              rel="noreferrer" 
-              className="text-white/40 hover:text-[#FF5E5B] transition-all hover:scale-110 p-1"
-              title="Support Frost on Ko-fi"
-            >
-              <SiKofi className="w-4 h-4 md:w-5 md:h-5" />
-            </a>
             <a 
               href="https://discord.com/invite/realmexplorer" 
               target="_blank" 
@@ -52,7 +43,7 @@ export function Footer() {
             </a>
           </div>
           <p className="font-body text-[10px] md:text-xs text-white/40">
-            v1.9.4 | © 2026 Realm Explorer
+            v2.0.0 | © 2026 Realm Explorer
           </p>
         </div>
         
@@ -62,20 +53,25 @@ export function Footer() {
             <h5 className="text-white font-pixel text-[9px] md:text-[10px] uppercase tracking-widest opacity-80">About</h5>
             <div className="flex flex-col gap-2">
               <Link to="/about" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">About Us</Link>
+              <Link 
+                to="/blog?category=Changelog#feed" 
+                onClick={() => {
+                  setTimeout(() => {
+                    document.getElementById('feed')?.scrollIntoView({ behavior: 'smooth' })
+                  }, 50)
+                }}
+                className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
+              >
+                Changelog
+              </Link>
               <a 
-                href="https://discord.com/channels/1258132272419311676/1491872395160584202" 
+                href="https://status.realmexplorer.xyz" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
               >
-                Changelog
-              </a>
-              <Link 
-                to="/status" 
-                className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
-              >
                 Status
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -85,12 +81,20 @@ export function Footer() {
             <div className="flex flex-col gap-2">
               <Link to="/docs" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Documentation</Link>
               <a 
-                href="https://discord.com/invite/realmexplorer" 
+                href="http://discord.gg/gacuuQJEgp" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
               >
                 Contact Support
+              </a>
+              <a 
+                href="https://github.com/frostjade71/RealmExplorer/issues" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
+              >
+                Report Issues
               </a>
             </div>
           </div>

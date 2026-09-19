@@ -59,9 +59,14 @@ serve(async (req) => {
 
         if (data.online) {
           const playersOnline = data.players?.online || 0
+          const playersMax = data.players?.max || 0
           const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
 
-          // 3. Upsert into server_player_history but ensure we only store the MAX
+          await supabaseClient
+            .from('servers')
+            .update({ online_players: playersOnline, max_players: playersMax })
+            .eq('id', server.id)
+
           const { data: existing } = await supabaseClient
             .from('server_player_history')
             .select('max_players')
@@ -89,10 +94,22 @@ serve(async (req) => {
             } else {
               updatedCount++
             }
+          } else {
+             updatedCount++
           }
+        } else {
+          await supabaseClient
+            .from('servers')
+            .update({ online_players: -1, max_players: -1 })
+            .eq('id', server.id)
+          updatedCount++
         }
       } catch (err) {
         console.error(`Error fetching stats for server ${server.id}:`, err)
+        await supabaseClient
+          .from('servers')
+          .update({ online_players: -1, max_players: -1 })
+          .eq('id', server.id)
         failedCount++
       }
     }

@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { Navbar } from './Navbar'
 import { Footer } from './Footer'
 import { AnimatePresence } from 'framer-motion'
+import { LoadingSpinner } from './FeedbackStates'
 
 import { CookieBanner } from './CookieBanner'
 import { CommunityOneWidget } from './CommunityOneWidget'
@@ -10,7 +11,7 @@ import { CommunityOneWidget } from './CommunityOneWidget'
 function RouteFallback() {
   return (
     <div className="flex-grow flex items-center justify-center min-h-[60vh]">
-      <div className="w-8 h-8 border-2 border-realm-green/30 border-t-realm-green rounded-full animate-spin" />
+      <LoadingSpinner />
     </div>
   )
 }

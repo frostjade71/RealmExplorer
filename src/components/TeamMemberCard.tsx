@@ -15,12 +15,14 @@ export function TeamMemberCard({ member, linkToProfile = false }: { member: Team
 
   if (!member.profiles) return null
 
-  const isOwner = member.role_title.toLowerCase().includes('owner')
+  const isCoOwner = member.role_title.toLowerCase().includes('co-owner')
+  const isStrictOwner = member.role_title.toLowerCase().includes('owner') && !isCoOwner
   const isExecutive = member.role_title.toLowerCase().includes('executive')
   const isAdmin = member.role_title.toLowerCase().includes('admin')
   const isReporter = member.role_title.toLowerCase().includes('reporter')
   
-  const frameColor = isOwner ? 'border-[#a855f7]' : 
+  const frameColor = isStrictOwner ? 'border-yellow-400' : 
+                    isCoOwner ? 'border-[#a855f7]' :
                     isExecutive ? 'border-[#f97316]' : 
                     isAdmin ? 'border-[#3b82f6]' : 
                     isReporter ? 'border-[#ec4899]' : 
@@ -30,15 +32,15 @@ export function TeamMemberCard({ member, linkToProfile = false }: { member: Team
     return (
       <Link 
         to={`/profile/${member.profiles.discord_username}`}
-        className="block w-[160px] md:w-full h-[220px]"
+        className="block w-[140px] md:w-full h-[190px] md:h-[220px]"
       >
-        <div className="relative w-full h-full bg-[#313233] border-4 border-[#101010] p-5 text-center shadow-[5px_5px_0_rgba(0,0,0,0.5)]">
+        <div className="relative w-full h-full bg-[#313233] border-4 border-[#101010] p-4 md:p-5 text-center shadow-[5px_5px_0_rgba(0,0,0,0.5)]">
           {/* Inner Highlight Border */}
           <div className="absolute inset-0 border-t-2 border-l-2 border-white/10 pointer-events-none" />
           <div className="absolute inset-0 border-b-2 border-r-2 border-black/40 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col h-full justify-center">
-            <div className={`relative w-24 h-24 mx-auto mb-4 border-4 bg-black/40 shadow-inner ${frameColor}`}>
+            <div className={`relative w-20 h-20 md:w-24 md:h-24 mx-auto mb-3 md:mb-4 border-4 bg-black/40 shadow-inner ${frameColor}`}>
               <img 
                 src={member.profiles.discord_avatar || ''} 
                 alt={member.profiles.discord_username || ''} 
@@ -46,11 +48,11 @@ export function TeamMemberCard({ member, linkToProfile = false }: { member: Team
               />
             </div>
 
-            <h3 className="text-sm font-pixel text-white mb-2 truncate drop-shadow-md">
+            <h3 className="text-xs md:text-sm font-pixel text-white mb-2 truncate drop-shadow-md">
               {member.profiles.discord_username}
             </h3>
             
-            <p className="inline-block px-2.5 py-0.5 bg-black/40 text-[9px] font-pixel text-white/40 uppercase tracking-[0.15em] border border-white/5 mx-auto">
+            <p className="inline-block px-2 md:px-2.5 py-0.5 bg-black/40 text-[7px] md:text-[9px] font-pixel text-white/40 uppercase tracking-[0.15em] border border-white/5 mx-auto">
               {member.role_title}
             </p>
           </div>
@@ -61,7 +63,7 @@ export function TeamMemberCard({ member, linkToProfile = false }: { member: Team
 
   return (
     <div 
-      className={`relative w-[160px] md:w-full h-[220px] [perspective:1200px] group ${isFlipped ? 'z-50' : 'z-0'} cursor-pointer`}
+      className={`relative w-[140px] md:w-full h-[190px] md:h-[220px] [perspective:1200px] group ${isFlipped ? 'z-50' : 'z-0'} cursor-pointer`}
       onClick={() => topServer && setIsFlipped(!isFlipped)}
       onMouseEnter={() => setIsFlipped(true)}
       onMouseLeave={() => setIsFlipped(false)}
@@ -75,13 +77,13 @@ export function TeamMemberCard({ member, linkToProfile = false }: { member: Team
         <div 
           className={`absolute inset-0 [backface-visibility:hidden] ${isFlipped && topServer ? 'pointer-events-none' : 'pointer-events-auto'}`}
         >
-          <div className={`relative w-full h-full bg-[#313233] border-4 border-[#101010] p-5 text-center shadow-[5px_5px_0_rgba(0,0,0,0.5)]`}>
+          <div className={`relative w-full h-full bg-[#313233] border-4 border-[#101010] p-4 md:p-5 text-center shadow-[5px_5px_0_rgba(0,0,0,0.5)]`}>
             {/* Inner Highlight Border */}
             <div className="absolute inset-0 border-t-2 border-l-2 border-white/10 pointer-events-none" />
             <div className="absolute inset-0 border-b-2 border-r-2 border-black/40 pointer-events-none" />
 
             <div className="relative z-10 flex flex-col h-full justify-center">
-              <div className={`relative w-24 h-24 mx-auto mb-4 border-4 bg-black/40 shadow-inner ${frameColor}`}>
+              <div className={`relative w-20 h-20 md:w-24 md:h-24 mx-auto mb-3 md:mb-4 border-4 bg-black/40 shadow-inner ${frameColor}`}>
                 <img 
                   src={member.profiles.discord_avatar || ''} 
                   alt={member.profiles.discord_username || ''} 
@@ -89,11 +91,11 @@ export function TeamMemberCard({ member, linkToProfile = false }: { member: Team
                 />
               </div>
 
-              <h3 className="text-sm font-pixel text-white mb-2 truncate drop-shadow-md">
+              <h3 className="text-xs md:text-sm font-pixel text-white mb-2 truncate drop-shadow-md">
                 {member.profiles.discord_username}
               </h3>
               
-              <p className="inline-block px-2.5 py-0.5 bg-black/40 text-[9px] font-pixel text-white/40 uppercase tracking-[0.15em] border border-white/5 mx-auto">
+              <p className="inline-block px-2 md:px-2.5 py-0.5 bg-black/40 text-[7px] md:text-[9px] font-pixel text-white/40 uppercase tracking-[0.15em] border border-white/5 mx-auto">
                 {member.role_title}
               </p>
             </div>

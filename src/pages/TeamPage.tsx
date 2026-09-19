@@ -4,21 +4,19 @@ import { motion } from 'framer-motion'
 import { useTeamMembers, useUserProfile, useAdminUsers } from '../hooks/queries'
 import { TeamMemberCard } from '../components/TeamMemberCard'
 import { useIsMobile } from '../hooks/useMediaQuery'
-import heroVideo from '../assets/hero/heroRE.mp4'
+import heroBg from '../assets/hero/Lush Caves1.jpg'
 import steveIcon from '../assets/about/87389-steve.png'
 import ownerIcon from '../assets/about/16739-owner-gradient.png'
 
 export function TeamPage() {
   const isMobile = useIsMobile()
-  const { data: teamMembers = [] } = useTeamMembers()
+  const { data: teamMembers = [], isLoading: loadingTeam } = useTeamMembers()
   const { data: visionProfile } = useUserProfile('ad2be47b-b12e-4fc5-ab5a-e8af75c76d36')
   const { data: devProfile } = useUserProfile('4642ada9-a0be-4ad6-bd7a-b5990ad952b2')
-  const { data: allUsers = [] } = useAdminUsers()
+  const { data: allUsers = [], isLoading: loadingUsers } = useAdminUsers()
 
-  const executivesAndOwners = teamMembers.filter(m => {
-    const title = m.role_title.toLowerCase()
-    return title.includes('owner') || title.includes('executive')
-  })
+  const owners = teamMembers.filter(m => m.role_title.toLowerCase().includes('owner'))
+  const executives = teamMembers.filter(m => m.role_title.toLowerCase().includes('executive') && !m.role_title.toLowerCase().includes('owner'))
 
   const adminsAndReporters = teamMembers.filter(m => {
     const title = m.role_title.toLowerCase()
@@ -30,31 +28,30 @@ export function TeamPage() {
     <AnimatedPage>
       {/* Hero Section */}
       <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
-        {/* Cinematic Background */}
-        <motion.video 
-          initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
-          animate={isMobile ? { opacity: 0.4 } : { scale: 1, opacity: 0.4 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          src={heroVideo} 
-          autoPlay 
-          loop 
-          muted 
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover z-0 block will-change-[opacity,transform]"
+        <motion.img 
+          initial={isMobile ? { opacity: 0.45 } : { scale: 1.05, opacity: 0 }}
+          animate={isMobile ? { opacity: 0.45 } : { scale: 1, opacity: 0.45 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          src={heroBg} 
+          alt="Hero Background"
+          fetchPriority="high"
+          loading="eager"
+          decoding="sync"
+          className="absolute inset-0 w-full h-full object-cover object-[38%_center] z-0 block will-change-[opacity,transform]"
         />
         {/* Overlays */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-zinc-950 z-10"></div>
         
         <div className="max-w-7xl mx-auto relative z-20 flex flex-col items-center text-center will-change-transform">
           <FramerIn delay={0.2}>
-            <div className={`inline-flex items-center gap-1.5 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-2.5 py-0.5 mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
-              <img src={steveIcon} alt="Steve Icon" className="w-4 h-4 object-contain" />
-              <span className="font-pixel text-[8px] tracking-widest uppercase">The People Behind</span>
+            <div className="inline-flex items-center gap-1.5 mb-8">
+              <img src={steveIcon} alt="Steve Icon" fetchPriority="high" loading="eager" className="w-4 h-4 object-contain drop-shadow-md" />
+              <span className="font-pixel text-white text-[8px] tracking-widest uppercase drop-shadow-md">The <span className="text-realm-green">People</span> Behind</span>
             </div>
           </FramerIn>
           
           <FramerIn delay={0.4}>
-            <h1 className="font-pixel text-white text-4xl md:text-6xl leading-tight mb-6 drop-shadow-2xl">
+            <h1 className="font-pixel text-white text-3xl md:text-6xl leading-tight mb-6 drop-shadow-2xl">
               Our <span className="text-[#4EC44E]">Team</span>
             </h1>
           </FramerIn>
@@ -63,10 +60,10 @@ export function TeamPage() {
       </header>
 
       {/* Meet the Executives & Owners */}
-      <section className="py-24 px-8 bg-zinc-950 relative">
+      <section className="py-24 px-8 bg-[#0A0A0A] relative">
         <div className="max-w-7xl mx-auto">
           <FramerIn className="text-center mb-20 flex flex-col items-center">
-            <h2 className="font-pixel text-white text-3xl mb-6 uppercase tracking-widest">
+            <h2 className="font-pixel text-white text-2xl md:text-3xl mb-6 uppercase tracking-widest">
               Meet the <span className="text-realm-green">Executives</span> & Owners
             </h2>
             <div className="h-1.5 w-24 bg-realm-green mx-auto mb-8 rounded-full shadow-[0_0_10px_rgba(133,252,126,0.5)]"></div>
@@ -75,21 +72,47 @@ export function TeamPage() {
             </p>
           </FramerIn>
 
-          <div className="flex flex-wrap justify-center gap-6 mb-8">
-            {executivesAndOwners.map((member, i) => (
-              <FramerIn key={member.id} delay={i * 0.1}>
-                <div className="w-[160px] md:w-[180px]">
-                  <TeamMemberCard member={member} />
-                </div>
-              </FramerIn>
-            ))}
+          <div className="flex flex-col gap-10 mb-8">
+            {loadingTeam ? (
+              <div className="flex flex-wrap justify-center gap-6">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="w-[140px] md:w-[180px] h-[180px] md:h-[220px] bg-white/5 rounded-2xl animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <>
+                {owners.length > 0 && (
+                  <div className="flex flex-wrap justify-center gap-6">
+                    {owners.map((member, i) => (
+                      <FramerIn key={member.id} delay={i * 0.1}>
+                        <div className="w-[140px] md:w-[180px]">
+                          <TeamMemberCard member={member} linkToProfile={true} />
+                        </div>
+                      </FramerIn>
+                    ))}
+                  </div>
+                )}
+                
+                {executives.length > 0 && (
+                  <div className="flex flex-wrap justify-center gap-6">
+                    {executives.map((member, i) => (
+                      <FramerIn key={member.id} delay={(owners.length + i) * 0.1}>
+                        <div className="w-[140px] md:w-[180px]">
+                          <TeamMemberCard member={member} linkToProfile={true} />
+                        </div>
+                      </FramerIn>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           <FramerIn className="flex justify-center mb-10">
             <img src={ownerIcon} alt="Owner Icon" className="w-10 h-10 object-contain" />
           </FramerIn>
 
-          {executivesAndOwners.length === 0 && (
+          {!loadingTeam && owners.length === 0 && executives.length === 0 && (
             <FramerIn className="text-center py-10 bg-zinc-900/30 border border-dashed border-white/5 rounded-2xl mb-8">
               <p className="text-zinc-600 font-headline italic">No executives or owners listed yet.</p>
             </FramerIn>
@@ -98,10 +121,10 @@ export function TeamPage() {
       </section>
 
       {/* The Admins & Reporters */}
-      <section className="py-20 px-8 bg-zinc-950/80 relative border-t border-white/5">
+      <section className="py-20 px-8 bg-[#0A0A0A] relative border-t border-white/5">
         <div className="max-w-7xl mx-auto">
           <FramerIn className="text-center mb-16 flex flex-col items-center">
-            <h2 className="font-pixel text-white text-2xl mb-6 uppercase tracking-widest">
+            <h2 className="font-pixel text-white text-xl md:text-2xl mb-6 uppercase tracking-widest">
               The <span className="text-realm-green">Admins</span> & Reporters
             </h2>
             <div className="h-1.5 w-24 bg-realm-green mx-auto mb-8 rounded-full shadow-[0_0_10px_rgba(133,252,126,0.5)]"></div>
@@ -111,16 +134,22 @@ export function TeamPage() {
           </FramerIn>
 
           <div className="flex flex-wrap justify-center gap-6 mb-8">
-            {adminsAndReporters.map((member, i) => (
-              <FramerIn key={member.id} delay={i * 0.1}>
-                <div className="w-[160px] md:w-[180px]">
-                  <TeamMemberCard member={member} linkToProfile={true} />
-                </div>
-              </FramerIn>
-            ))}
+            {loadingTeam ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="w-[140px] md:w-[180px] h-[180px] md:h-[220px] bg-white/5 rounded-2xl animate-pulse" />
+              ))
+            ) : (
+              adminsAndReporters.map((member, i) => (
+                <FramerIn key={member.id} delay={i * 0.1}>
+                  <div className="w-[140px] md:w-[180px]">
+                    <TeamMemberCard member={member} linkToProfile={true} />
+                  </div>
+                </FramerIn>
+              ))
+            )}
           </div>
 
-          {adminsAndReporters.length === 0 && (
+          {!loadingTeam && adminsAndReporters.length === 0 && (
             <FramerIn className="text-center py-10 bg-zinc-900/30 border border-dashed border-white/5 rounded-2xl">
               <p className="text-zinc-600 font-headline italic">No admins or reporters listed yet.</p>
             </FramerIn>
@@ -133,7 +162,7 @@ export function TeamPage() {
       </section>
 
       {/* Vision Statement Section */}
-      <section className="py-10 md:py-16 px-8 bg-black relative border-t-4 border-[#101010]">
+      <section className="py-10 md:py-16 px-8 bg-[#0A0A0A] relative border-t-4 border-[#101010]">
         <div className="absolute inset-0 opacity-5 pixel-grid pointer-events-none"></div>
         
         <div className="max-w-2xl mx-auto text-center relative z-10">
@@ -179,7 +208,7 @@ export function TeamPage() {
       </section>
 
       {/* The Developer Section */}
-      <section className="py-10 md:py-16 px-8 bg-black relative border-t border-white/5">
+      <section className="py-10 md:py-16 px-8 bg-[#0A0A0A] relative border-t border-white/5">
         <div className="absolute inset-0 opacity-5 pixel-grid pointer-events-none"></div>
         
         <div className="max-w-2xl mx-auto text-center relative z-10">
@@ -235,24 +264,36 @@ export function TeamPage() {
           </div>
 
           <div className="flex items-center">
-            <div className="flex -space-x-3 mr-4">
-              {allUsers.slice(0, 5).map((u, i) => (
-                <div 
-                  key={u.id} 
-                  className="w-10 h-10 rounded-full border-2 border-[#101010] overflow-hidden bg-zinc-900 group transition-transform hover:-translate-y-1 relative"
-                  style={{ zIndex: 10 - i }}
-                >
-                  <img 
-                    src={u.discord_avatar || ''} 
-                    alt="" 
-                    className="w-full h-full object-cover"
+            {loadingUsers ? (
+              <div className="flex -space-x-3 mr-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div 
+                    key={i} 
+                    className="w-10 h-10 rounded-full border-2 border-[#101010] bg-white/10 animate-pulse relative"
+                    style={{ zIndex: 10 - i }}
                   />
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex -space-x-3 mr-4">
+                {allUsers.slice(0, 5).map((u, i) => (
+                  <div 
+                    key={u.id} 
+                    className="w-10 h-10 rounded-full border-2 border-[#101010] overflow-hidden bg-zinc-900 group transition-transform hover:-translate-y-1 relative"
+                    style={{ zIndex: 10 - i }}
+                  >
+                    <img 
+                      src={u.discord_avatar || ''} 
+                      alt="" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
             
             <div className="flex flex-col">
-              <span className="font-pixel text-white text-sm leading-none mb-1">+{Math.max(0, allUsers.length - 5)}</span>
+              <span className="font-pixel text-white text-sm leading-none mb-1">+{loadingUsers ? '...' : Math.max(0, allUsers.length - 5)}</span>
               <span className="font-pixel text-[#85fc7e] text-[8px] uppercase tracking-widest opacity-60">Users Joined</span>
             </div>
           </div>

@@ -49,14 +49,22 @@ export default async function handler(req: Request) {
 
   const supabase = createClient(supabaseUrl, supabaseKey)
 
-  // ── Parse query parameters ────────────────────────────────────────────
   const url = new URL(req.url)
+  const allowedParams = ['type', 'category', 'featured', 'sort', 'limit', 'offset']
+  const providedParams = Array.from(url.searchParams.keys())
+  
+  const hasInvalidParams = providedParams.some(param => !allowedParams.includes(param))
+  if (hasInvalidParams) {
+    return json({ error: 'Bad Request. Invalid query parameters provided.' }, 400, corsHeaders)
+  }
+
+  // ── Parse query parameters ────────────────────────────────────────────
   const type = url.searchParams.get('type')        // 'server' | 'realm'
-  const category = url.searchParams.get('category') // 'factions' | 'kitpvp' | 'skyblock' | 'smp' | 'modded' | 'other'
+  const category = url.searchParams.get('category') // 'factions' | 'kitpvp' | 'skyblock' | 'smp' | 'modded' | 'skygen' | 'prison' | 'minigames' | 'other'
   const featured = url.searchParams.get('featured') // 'true'
   const sort = url.searchParams.get('sort') || 'votes' // 'votes' | 'newest' | 'name'
   const limit = clamp(parseInt(url.searchParams.get('limit') || '50', 10), 1, 100)
-  const offset = Math.max(parseInt(url.searchParams.get('offset') || '0', 10), 0)
+  const offset = clamp(parseInt(url.searchParams.get('offset') || '0', 10), 0, 1000)
 
   // ── Build query ───────────────────────────────────────────────────────
 
@@ -70,7 +78,7 @@ export default async function handler(req: Request) {
   if (type && ['server', 'realm'].includes(type)) {
     query = query.eq('type', type)
   }
-  if (category && ['factions', 'kitpvp', 'skyblock', 'smp', 'modded', 'other'].includes(category)) {
+  if (category && ['factions', 'kitpvp', 'skyblock', 'smp', 'modded', 'skygen', 'prison', 'minigames', 'other'].includes(category)) {
     query = query.eq('category', category)
   }
   if (featured === 'true') {

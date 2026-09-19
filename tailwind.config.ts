@@ -8,6 +8,10 @@ export default {
   ],
   theme: {
     extend: {
+      spacing: {
+        '112': '28rem',
+        '128': '32rem',
+      },
       colors: {
         'realm-green': '#4EC44E',
         'realm-dark': '#1A3D1A',

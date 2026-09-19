@@ -3,7 +3,7 @@ import { useServers } from '../hooks/queries'
 import { useEffect, useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import type { Server, ServerCategory, ServerType } from '../types'
-import { ServerCard } from '../components/ServerCard'
+import { DirectoryServerCard } from '../components/DirectoryServerCard'
 import { SponsorServerCard } from '../components/SponsorServerCard'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
@@ -12,25 +12,34 @@ import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, MoreHorizontal, Globe, Shuffle } from 'lucide-react'
+import { Search, X, MoreHorizontal, Globe, Shuffle, Pickaxe, Swords, Cloud, Target, Box, Lock, Gamepad2, Settings } from 'lucide-react'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { useAuth } from '../contexts/AuthContext'
 import directoryHero from '../assets/hero/directoryhero.jpg'
-
-// Type Icons
 import serverGif from '../assets/category/gif/6128-minecraft.gif'
 import realmGif from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
+import errorImage from '../assets/error/teto-but-re.webp'
 
-// Category Icons
-import factionsIcon from '../assets/category/7587-netherite-sword.png'
-import kitpvpIcon from '../assets/category/95615-mace.png'
-import skyblockIcon from '../assets/category/41601-minecraftoaktree.png'
-import moddedIcon from '../assets/category/437888-bedrock.png'
-import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
-import skygenIcon from '../assets/category/89458-iron-block.png'
-import prisonIcon from '../assets/category/7504_Iron_Bars.png'
 
 import { MetaTags } from '../components/MetaTags'
+
+const categories: { id: ServerCategory; label: string; icon: any }[] = [
+  { id: 'smp', label: 'SMP', icon: Pickaxe },
+  { id: 'factions', label: 'Factions', icon: Swords },
+  { id: 'skyblock', label: 'Skyblock', icon: Cloud },
+  { id: 'kitpvp', label: 'KitPVP', icon: Target },
+  { id: 'skygen', label: 'SkyGen', icon: Box },
+  { id: 'prison', label: 'Prison', icon: Lock },
+  { id: 'minigames', label: 'Mini Games', icon: Gamepad2 },
+  { id: 'modded', label: 'Modded', icon: Settings },
+  { id: 'other', label: 'Other', icon: MoreHorizontal },
+]
+
+const SERVER_TYPES = [
+  { id: null, label: 'All', icon: <Globe className="w-3.5 h-3.5 md:w-4 md:h-4 z-10" /> },
+  { id: 'realm' as const, label: 'Realms', icon: <img src={realmGif} alt="" width={16} height={16} className="w-3.5 h-3.5 md:w-4 md:h-4 object-contain rounded-sm z-10" /> },
+  { id: 'server' as const, label: 'Servers', icon: <img src={serverGif} alt="" width={16} height={16} className="w-3.5 h-3.5 md:w-4 md:h-4 object-contain rounded-sm z-10" /> }
+]
 
 export function DirectoryPage() {
   const isMobile = useIsMobile()
@@ -60,10 +69,12 @@ export function DirectoryPage() {
   const [page, setPage] = useState(1)
   const [localSearch, setLocalSearch] = useState(initialSearch)
 
+  const isOnline = searchParams.get('online') === 'true'
+
   // Reset page when filters change
   useEffect(() => {
     setPage(1)
-  }, [activeType, activeCategory, initialSearch])
+  }, [activeType, activeCategory, initialSearch, searchParams.get('sort'), isOnline])
 
   const [shuffleSeed, setShuffleSeed] = useState(0)
 
@@ -103,12 +114,17 @@ export function DirectoryPage() {
   const processedServers = useMemo(() => {
     if (!servers.length) return []
     
+    let filtered = servers;
+    if (isOnline && activeType === 'server') {
+      filtered = filtered.filter(s => s.online_players !== undefined && s.online_players !== null && s.online_players !== -1);
+    }
+
     // If "Latest" sort is active, we don't shuffle, we keep the DB order (created_at desc)
-    if (isLatest) return servers
+    if (isLatest) return filtered
 
     // Create a weighted score for each server to provide a "higher chance" 
     // for Explorer+ without strictly pinning them to the top.
-    return [...servers]
+    return [...filtered]
       .map(server => {
         const isPremium = server.profiles?.role === 'explorer+'
         // Premium servers get a random score boost.
@@ -119,22 +135,11 @@ export function DirectoryPage() {
       })
       .sort((a, b) => b.score - a.score)
       .map(item => item.server)
-  }, [servers, shuffleSeed, isLatest])
+  }, [servers, shuffleSeed, isLatest, isOnline, activeType])
 
   const paginatedServers = useMemo(() => {
     return processedServers.slice(0, PAGE_SIZE * page)
   }, [processedServers, PAGE_SIZE, page])
-
-  const categories: { id: ServerCategory; label: string; icon: string | any; isImage?: boolean }[] = [
-    { id: 'smp', label: 'SMP', icon: smpIcon, isImage: true },
-    { id: 'factions', label: 'Factions', icon: factionsIcon, isImage: true },
-    { id: 'skyblock', label: 'Skyblock', icon: skyblockIcon, isImage: true },
-    { id: 'kitpvp', label: 'KitPVP', icon: kitpvpIcon, isImage: true },
-    { id: 'skygen', label: 'SkyGen', icon: skygenIcon, isImage: true },
-    { id: 'prison', label: 'Prison', icon: prisonIcon, isImage: true },
-    { id: 'modded', label: 'Modded', icon: moddedIcon, isImage: true },
-    { id: 'other', label: 'Other', icon: MoreHorizontal, isImage: false },
-  ]
 
   const setType = (type: ServerType | null) => {
     if (type) searchParams.set('type', type)
@@ -182,6 +187,8 @@ export function DirectoryPage() {
           alt="Directory Background" 
           className="absolute inset-0 w-full h-full object-cover z-0 block"
           fetchPriority="high"
+          loading="eager"
+          decoding="sync"
         />
         {/* Dark Cinematic Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10 pointer-events-none"></div>
@@ -206,11 +213,7 @@ export function DirectoryPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className={`flex gap-1.5 md:gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}
           >
-            {[
-              { id: null, label: 'All', icon: <Globe className="w-3.5 h-3.5 md:w-4 h-4" /> },
-              { id: 'realm' as const, label: 'Realms', icon: <img src={realmGif} alt="" className="w-3.5 h-3.5 md:w-4 h-4 object-contain rounded-sm" /> },
-              { id: 'server' as const, label: 'Servers', icon: <img src={serverGif} alt="" className="w-3.5 h-3.5 md:w-4 h-4 object-contain rounded-sm" /> }
-            ].map((type) => (
+            {SERVER_TYPES.map((type) => (
               <button
                 key={String(type.id)}
                 onClick={() => setType(type.id)}
@@ -223,8 +226,10 @@ export function DirectoryPage() {
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                {type.icon}
-                <span className="relative">{type.label}</span>
+                <div className="relative z-10 flex items-center gap-1.5 md:gap-2">
+                  {type.icon}
+                  <span>{type.label}</span>
+                </div>
               </button>
             ))}
           </motion.div>
@@ -251,9 +256,9 @@ export function DirectoryPage() {
               <div className="h-[1px] flex-grow bg-gradient-to-r from-white/20 to-transparent" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
-              {sponsorServers.map(server => (
+              {sponsorServers.map((server, index) => (
                 <div key={server.id}>
-                  <SponsorServerCard server={server} />
+                  <SponsorServerCard server={server} priority={index < 4} />
                 </div>
               ))}
             </div>
@@ -292,7 +297,7 @@ export function DirectoryPage() {
         <div className="w-full flex flex-wrap gap-1.5 md:gap-2">
           <button
             onClick={() => setCategory(null)}
-            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${!activeCategory ? 'bg-realm-green text-[#002202] border-realm-green' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${!activeCategory ? 'bg-zinc-100 text-zinc-900 border-zinc-100' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
           >
             All Categories
           </button>
@@ -306,33 +311,45 @@ export function DirectoryPage() {
           >
             Latest
           </button>
+          {activeType === 'server' && (
+            <button
+              onClick={() => {
+                if (isOnline) searchParams.delete('online')
+                else searchParams.set('online', 'true')
+                setSearchParams(searchParams)
+              }}
+              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${isOnline ? 'bg-realm-green text-zinc-950 border-realm-green' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+            >
+              Online
+            </button>
+          )}
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setCategory(cat.id)}
-              className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-realm-green text-[#002202] border-realm-green' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+              className={`flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border ${activeCategory === cat.id ? 'bg-zinc-100 text-zinc-900 border-zinc-100' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
             >
-              {cat.isImage ? (
-                <img src={cat.icon} alt="" className="w-3.5 h-3.5 md:w-4 md:h-4 object-contain" />
-              ) : (
-                <cat.icon className="w-3 h-3 md:w-3.5 md:h-3.5" />
-              )}
+              <cat.icon className="w-3 h-3 md:w-3.5 md:h-3.5" />
               {cat.label}
             </button>
           ))}
         </div>
       </motion.div>
 
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence mode="wait">
         {loading ? (
           <motion.div 
             key="spinner"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="w-full py-12 md:py-20 flex justify-center"
+            className="w-full"
           >
-            <LoadingSpinner />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+                {Array.from({ length: 12 }).map((_, i) => (
+                    <div key={i} className="h-[280px] rounded-xl bg-white/5 animate-pulse border border-white/5" />
+                ))}
+            </div>
           </motion.div>
         ) : processedServers.length === 0 ? (
           <motion.div 
@@ -340,11 +357,12 @@ export function DirectoryPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full py-12 md:py-20"
+            className="w-full py-12 md:py-20 flex flex-col items-center"
           >
             <EmptyState 
               title={`No results found`} 
-              message="Try adjusting your filters or search terms to find what you're looking for." 
+              message="Try adjusting your filters or search terms to find what you're looking for."
+              icon={<img src={errorImage} alt="No Results" className="w-20 h-20 md:w-24 md:h-24 object-contain" />}
             />
           </motion.div>
         ) : (
@@ -363,7 +381,7 @@ export function DirectoryPage() {
             }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4"
           >
-            {paginatedServers.map(server => (
+            {paginatedServers.map((server, index) => (
               <motion.div
                 key={server.id}
                 variants={{
@@ -371,7 +389,7 @@ export function DirectoryPage() {
                   visible: { opacity: 1, y: 0 }
                 }}
               >
-                <ServerCard server={server} />
+                <DirectoryServerCard server={server} priority={index < 8} />
               </motion.div>
             ))}
           </motion.div>
@@ -385,7 +403,7 @@ export function DirectoryPage() {
             whileTap={{ scale: 0.98 }}
             onClick={() => setPage(p => p + 1)}
             disabled={isFetching}
-            className="flex items-center gap-2 px-6 md:px-8 py-2 md:py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-500 hover:text-realm-green hover:border-realm-green/30 hover:bg-zinc-800 transition-all font-headline font-bold text-[10px] md:text-xs shadow-xl group disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-[#4EC44E] hover:bg-[#5cd45c] text-zinc-950 px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] border-b-[4px] border-[#3da53d] active:border-b-0 active:border-t-[4px] active:border-t-transparent text-[12px] md:text-sm flex items-center gap-2.5 group disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isFetching ? (
               <>
@@ -394,8 +412,7 @@ export function DirectoryPage() {
               </>
             ) : (
               <>
-                <span>Load More Servers</span>
-                <span className="material-symbols-outlined text-[14px] md:text-[16px] group-hover:translate-y-1 transition-transform">expand_more</span>
+                Load More Servers
               </>
             )}
           </motion.button>

@@ -29,6 +29,16 @@ export function BlogLikeButton({ postId, variant = 'small' }: BlogLikeButtonProp
       postId,
       userId: user.id,
       hasLiked: !!likes?.hasLiked
+    }, {
+      onSuccess: () => {
+        if (!likes?.hasLiked) {
+          toast.success('You liked the blog!', {
+            description: 'Stay tuned for more updates :)'
+          })
+        } else {
+          toast.success('Heart removed.')
+        }
+      }
     })
   }
 

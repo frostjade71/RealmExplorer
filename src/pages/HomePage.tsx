@@ -1,19 +1,23 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useServers, useGlobalStats } from '../hooks/queries'
+import { useServers, useGlobalStats, useOTMWinners, useSiteSetting, useServersByIds } from '../hooks/queries'
 import { ServerCard } from '../components/ServerCard'
 
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn, FramerInList } from '../components/FramerIn'
-import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { motion, useMotionValue, useSpring } from 'framer-motion'
+import { useState, useMemo, lazy, Suspense } from 'react'
 import { useIsMobile } from '../hooks/useMediaQuery'
-import { CategoryRequestModal } from '../components/CategoryRequestModal'
+import { ArcFlowCarousel, fallbackServers } from '../components/ArcFlowCarousel'
+import type { Server } from '../types'
+import { slugify } from '../lib/urlUtils'
+
+const CategoryRequestModal = lazy(() => import('../components/CategoryRequestModal').then(m => ({ default: m.CategoryRequestModal })))
 import { useCreateCategoryRequestMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
 import { SiDiscord } from 'react-icons/si'
-import heroVideo from '../assets/hero/heroREv4.mp4'
-import ctaBg from '../assets/homepage/Minecraft Buddies.jpg'
+import heroBg from '../assets/hero/Lush Caves1.jpg'
+import ctaBg from '../assets/homepage/venture_mc.jpg'
 import mcGif from '../assets/category/gif/6128-minecraft.gif'
 import communityOneLogo from '../assets/affiliates/communityonelogo.png'
 
@@ -25,46 +29,200 @@ import moddedIcon from '../assets/category/437888-bedrock.png'
 import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
 import skygenIcon from '../assets/category/89458-iron-block.png'
 import prisonIcon from '../assets/category/7504_Iron_Bars.png'
+import minigamesIcon from '../assets/category/9231_trident.png'
 
 // Category Backgrounds
 import factionsBg from '../assets/homepage/factionsbg.jpg'
-import kitpvpBg from '../assets/homepage/kitpvpbg.jpg'
-import moddedBg from '../assets/homepage/modded.jpg'
+import kitpvpBg from '../assets/homepage/kitpvp_new.webp'
+import moddedBg from '../assets/homepage/modded_new.webp'
 import skyblockBg from '../assets/homepage/skyblockbg.jpg'
 import smpBg from '../assets/homepage/smpbg.jpg'
 import skygenBg from '../assets/homepage/skygen.webp'
 import prisonBg from '../assets/homepage/prisons.jpg'
+import minigamesBg from '../assets/homepage/minigamebg.webp'
 
-function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toString() }: { 
+function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toString(), align = 'center' }: { 
   value: number | undefined, 
   label: string, 
   suffix?: string,
-  formatter?: (v: number) => string 
+  formatter?: (v: number) => string,
+  align?: 'center' | 'left'
 }) {
   return (
-    <div className="flex flex-col items-center shrink-0">
-      <span className="text-[#85fc7e] font-pixel text-base xs:text-xl md:text-2xl mb-1.5 md:mb-2 drop-shadow-md min-h-[24px] md:min-h-[32px] flex items-center justify-center">
+    <div className={`flex flex-col ${align === 'left' ? 'items-start text-left' : 'items-center text-center'} shrink-0`}>
+      <span className="text-[#85fc7e] font-pixel text-base xs:text-xl md:text-2xl mb-1.5 md:mb-2 [text-shadow:0_2px_4px_rgba(0,0,0,0.85)] drop-shadow-md min-h-[24px] md:min-h-[32px] flex items-center">
         {value === undefined ? (
           <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-[#85fc7e]/30 border-t-[#85fc7e] rounded-full animate-spin"></div>
         ) : (
           formatter(value) + suffix
         )}
       </span>
-      <span className="text-white/40 font-headline text-[8px] md:text-[10px] tracking-widest uppercase font-bold text-center leading-tight">{label}</span>
+      <span className="text-white font-headline text-[8px] md:text-[10px] tracking-widest uppercase font-bold leading-tight [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">{label}</span>
     </div>
   )
 }
 
 import { MetaTags } from '../components/MetaTags'
 
+const categories = [
+  { id: 'smp', name: 'SMP', icon: smpIcon, bg: smpBg, desc: 'Survival Multiplayer experiences focused on community.' },
+  { id: 'factions', name: 'Factions', icon: factionsIcon, bg: factionsBg, desc: 'Build empires, forge alliances, and dominate the server.' },
+  { id: 'kitpvp', name: 'KitPvP', icon: kitpvpIcon, bg: kitpvpBg, desc: 'Fast-paced combat with specialized loadouts.' },
+  { id: 'skyblock', name: 'Skyblock', icon: skyblockIcon, bg: skyblockBg, desc: 'Start from nothing on a floating island.' },
+  { id: 'modded', name: 'Modded', icon: moddedIcon, bg: moddedBg, desc: 'Modded high-end servers for players to experience.' },
+  { id: 'skygen', name: 'SkyGen', icon: skygenIcon, bg: skygenBg, desc: 'Evolutionary sky-based generator survival.' },
+  { id: 'prison', name: 'Prison', icon: prisonIcon, bg: prisonBg, desc: 'Mine, rank up, and escape in a prison environment.' },
+  { id: 'minigames', name: 'Mini Games', icon: minigamesIcon, bg: minigamesBg, desc: 'Diverse collection of competitive and fun mini-games.' },
+]
+
 export function HomePage() {
   const isMobile = useIsMobile()
-  const { data: featured = [] } = useServers({ featured: true, limit: 4 })
+  const { data: featured = [], isLoading: isFeaturedLoading } = useServers({ featured: true, limit: 4 })
+  const { data: topVotedServers = [] } = useServers({ sortBy: 'votes', limit: 20 })
+  const { data: otmWinners = [] } = useOTMWinners()
+  const { data: allApprovedServers = [] } = useServers({ limit: 40 })
   const { data: stats } = useGlobalStats()
+  const { data: introSetting } = useSiteSetting('homepage_intro')
+  const introData = introSetting?.value as {word: string, color: string}[] | undefined
+  const { data: showcaseCardsSetting } = useSiteSetting('homepage_showcase_cards')
+  const showcaseCardIds = (showcaseCardsSetting?.value as string[]) || []
+  const { data: manualShowcaseServers = [] } = useServersByIds(showcaseCardIds.length > 0 ? showcaseCardIds : undefined)
+
   const { user, signInWithDiscord } = useAuth()
   const navigate = useNavigate()
   const createRequestMutation = useCreateCategoryRequestMutation()
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  const springConfig = { damping: 25, stiffness: 150 }
+  const springX = useSpring(mouseX, springConfig)
+  const springY = useSpring(mouseY, springConfig)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (isMobile) return
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect()
+    const x = (e.clientX - left) / width - 0.5
+    const y = (e.clientY - top) / height - 0.5
+    mouseX.set(-x * 25)
+    mouseY.set(-y * 25)
+  }
+
+  const handleMouseLeave = () => {
+    mouseX.set(0)
+    mouseY.set(0)
+  }
+
+  // 6 carousel cards composed of:
+  // - Top 3 main votes
+  // - Recent OTM (server/realm) winners
+  // - Remaining slots randomly picked from the top 20 main votes
+  const carouselServers = useMemo(() => {
+    if (showcaseCardIds.length > 0 && manualShowcaseServers.length > 0) {
+      const selectedManual = showcaseCardIds.map(id => manualShowcaseServers.find(s => s.id === id)).filter(Boolean) as Server[]
+      if (selectedManual.length > 0) {
+        return selectedManual
+      }
+    }
+
+    const selected: Server[] = []
+    const seenIds = new Set<string>()
+
+    // 1. Top 3 main votes
+    const validTopVoted = topVotedServers.filter(s => s && s.id)
+    for (const server of validTopVoted) {
+      if (selected.length >= 3) break
+      if (!seenIds.has(server.id)) {
+        seenIds.add(server.id)
+        selected.push(server)
+      }
+    }
+
+    // 2. Recent OTM (server/realm) winners
+    // OTM winners are ordered by created_at descending
+    const recentOTMServers: Server[] = []
+    for (const winner of otmWinners) {
+      if (winner.category === 'server' || winner.category === 'realm') {
+        const s: Server | null = winner.servers || (winner.winner_name ? {
+          id: winner.server_id || `otm-${winner.id}`,
+          name: winner.winner_name,
+          slug: winner.winner_slug || slugify(winner.winner_name),
+          banner_url: winner.winner_banner_url || null,
+          icon_url: winner.winner_image_url || null,
+          category: (winner.category === 'realm' ? 'smp' : 'smp') as Server['category'],
+          type: (winner.category === 'realm' ? 'realm' : 'server') as Server['type'],
+          status: 'approved',
+          votes: 0,
+          average_rating: 5,
+          rating_count: 1,
+          weighted_rating: 5,
+          tags: [],
+          gallery: [],
+          created_at: winner.created_at,
+          updated_at: winner.created_at,
+          last_edited_at: winner.created_at,
+          description: winner.description,
+          featured: true,
+          owner_id: null,
+          ip_or_code: null,
+          port: null,
+          bedrock_ip: null,
+          bedrock_port: null,
+          website_url: null,
+          discord_url: null,
+          social_links: null,
+          submitter_role: null,
+          verify_discord: null,
+        } : null)
+
+        if (s && s.id && !seenIds.has(s.id)) {
+          seenIds.add(s.id)
+          recentOTMServers.push(s)
+          // Include up to 2 recent server/realm winners
+          if (recentOTMServers.length >= 2) break
+        }
+      }
+    }
+
+    for (const s of recentOTMServers) {
+      if (selected.length >= 6) break
+      selected.push(s)
+    }
+
+    // 3. Fill remaining slots up to 6 from the top 20 main votes (stable order)
+    if (selected.length < 6) {
+      const top20Candidates = validTopVoted.filter(s => !seenIds.has(s.id))
+      for (const s of top20Candidates) {
+        if (selected.length >= 6) break
+        seenIds.add(s.id)
+        selected.push(s)
+      }
+    }
+
+    // 4. If we still have fewer than 6, fill remainder from approved servers or fallbackServers
+    if (selected.length < 6) {
+      const remainingApproved = allApprovedServers.filter(s => s && s.id && !seenIds.has(s.id))
+      for (const s of remainingApproved) {
+        if (selected.length >= 6) break
+        if (!seenIds.has(s.id)) {
+          seenIds.add(s.id)
+          selected.push(s)
+        }
+      }
+    }
+
+    if (selected.length < 6) {
+      for (const fb of fallbackServers) {
+        if (selected.length >= 6) break
+        if (!seenIds.has(fb.id)) {
+          seenIds.add(fb.id)
+          selected.push(fb)
+        }
+      }
+    }
+
+    return selected
+  }, [topVotedServers, otmWinners, allApprovedServers, showcaseCardIds, manualShowcaseServers])
 
   const handleRequestSubmit = async (subject: string, description: string) => {
     if (!user) return
@@ -86,65 +244,68 @@ export function HomePage() {
     }
   }
 
-
-
-  const categories = [
-    { id: 'smp', name: 'SMP', icon: smpIcon, bg: smpBg, desc: 'Survival Multiplayer experiences focused on community.' },
-    { id: 'factions', name: 'Factions', icon: factionsIcon, bg: factionsBg, desc: 'Build empires, forge alliances, and dominate the server.' },
-    { id: 'kitpvp', name: 'KitPvP', icon: kitpvpIcon, bg: kitpvpBg, desc: 'Fast-paced combat with specialized loadouts.' },
-    { id: 'skyblock', name: 'Skyblock', icon: skyblockIcon, bg: skyblockBg, desc: 'Start from nothing on a floating island.' },
-    { id: 'modded', name: 'Modded', icon: moddedIcon, bg: moddedBg, desc: 'Modded high-end servers for players to experience.' },
-    { id: 'skygen', name: 'SkyGen', icon: skygenIcon, bg: skygenBg, desc: 'Evolutionary sky-based generator survival.' },
-    { id: 'prison', name: 'Prison', icon: prisonIcon, bg: prisonBg, desc: 'Mine, rank up, and escape in a prison environment.' },
-  ]
-
   return (
     <AnimatedPage>
       <MetaTags 
         title="Find & Promote Minecraft Servers"
         description="Discover the best Minecraft Servers and Realms. Vote for your favorites, list your community, and find your next adventure on the most modern discovery platform."
       />
-      <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[50vh] md:min-h-[65vh] flex flex-col items-center justify-center bg-zinc-950">
-        {/* Cinematic Background */}
-        <motion.video 
-          initial={isMobile ? { opacity: 0.5 } : { scale: 1.1, opacity: 0 }}
-          animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          src={heroVideo} 
-          autoPlay 
-          loop 
-          muted 
-          playsInline
-          preload="none"
-          className="absolute inset-0 w-full h-full object-cover z-0 block will-change-[opacity,transform]"
+      <header 
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="pt-20 sm:pt-24 md:pt-28 pb-0 relative overflow-hidden flex flex-col items-center justify-start bg-zinc-950"
+      >
+        {/* Cinematic Background Image */}
+        <motion.img 
+          initial={isMobile ? { opacity: 0.45 } : { scale: 1.05, opacity: 0 }}
+          animate={isMobile ? { opacity: 0.45 } : { scale: 1.1, opacity: 0.45 }}
+          style={isMobile ? undefined : { x: springX, y: springY }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          src={heroBg} 
+          alt="Hero Background"
+          fetchPriority="high"
+          loading="eager"
+          decoding="sync"
+          className="absolute inset-0 w-full h-full object-cover object-[38%_center] z-0 block will-change-[opacity,transform]"
         />
         {/* Dark Radial Gradient Overlay for focus and legibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-green-950/90 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/60 to-green-950/90 z-10"></div>
         
-        <div className="max-w-7xl mx-auto relative z-20 flex flex-col items-center text-center will-change-transform">
-          <FramerIn delay={0.2}>
-            <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
-              <img src={mcGif} alt="Minecraft Icon" width={20} height={20} className="w-5 h-5 object-contain" />
-              <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase">Quite windy today isn't it?</span>
+        {/* Hero Text Content (Centered, Layered on Top) */}
+        <div className="max-w-4xl w-full mx-auto px-6 md:px-8 relative z-30 flex flex-col items-center text-center">
+          <FramerIn delay={0.1}>
+            <div className="inline-flex items-center gap-2 mb-6">
+              <img src={mcGif} alt="Minecraft Icon" width={20} height={20} fetchPriority="high" loading="eager" className="w-5 h-5 object-contain drop-shadow-md" />
+              <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                {introData ? (
+                  introData.map((w, i) => (
+                    <span key={i} style={{ color: w.color }} className="mr-1 last:mr-0">{w.word}</span>
+                  ))
+                ) : (
+                  <>
+                    <span className="text-[#85fc7e]">Ber</span> <span className="text-white">Months</span> <span className="text-white">yippie</span>
+                  </>
+                )}
+              </span>
             </div>
           </FramerIn>
           
-          <FramerIn delay={0.4}>
-            <h1 className="font-pixel text-white text-3xl md:text-5xl leading-tight mb-4 md:mb-6 drop-shadow-2xl">
-              Explore <br className="hidden md:block"/>
+          <FramerIn delay={0.2}>
+            <h1 className="font-pixel text-white text-3xl sm:text-4xl md:text-5xl leading-tight mb-4 md:mb-6 drop-shadow-2xl">
+              Explore <br />
               <span className="text-[#4EC44E]">Every</span> Realm
             </h1>
           </FramerIn>
           
-          <FramerIn delay={0.6}>
-            <p className="text-white/80 max-w-xl text-xs md:text-base mb-8 md:mb-10 font-body leading-relaxed drop-shadow-lg mx-auto px-4">
+          <FramerIn delay={0.3}>
+            <p className="text-zinc-300 max-w-xl text-xs sm:text-sm md:text-base mb-8 font-body leading-relaxed drop-shadow-lg mx-auto">
               Find, vote, and explore the best Minecraft servers and realms. Whether you're looking for a new world to join or want to grow your own server's community, Realm Explorer is your central hub for discovery.
             </p>
           </FramerIn>
           
-          <FramerIn delay={0.8}>
-            <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-10 md:mb-12">
-              <Link to="/servers" className="bg-[#4EC44E] hover:bg-[#5cd45c] text-zinc-950 px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-colors flex items-center gap-2.5 group shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] border-b-[4px] border-[#3da53d] active:border-b-0 active:border-t-[4px] active:border-t-transparent text-[12px] md:text-sm">
+          <FramerIn delay={0.4}>
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-8 sm:mb-10 w-full sm:w-auto">
+              <Link to="/servers" className="bg-[#4EC44E] hover:bg-[#5cd45c] text-zinc-950 px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg font-headline font-bold transition-colors flex items-center justify-center gap-2.5 group shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] border-b-[4px] border-[#3da53d] active:border-b-0 active:border-t-[4px] active:border-t-transparent text-xs sm:text-sm">
                 Browse Servers
                 <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform text-sm">arrow_forward</span>
               </Link>
@@ -156,7 +317,7 @@ export function HomePage() {
                     signInWithDiscord()
                   }
                 }}
-                className={`bg-zinc-900/80 hover:bg-zinc-800/80 border-b-[4px] border-zinc-950 active:border-b-0 active:border-t-[4px] active:border-t-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-colors text-[12px] md:text-sm flex items-center justify-center gap-2 group`}
+                className="bg-zinc-900/90 hover:bg-zinc-800/90 border-b-[4px] border-zinc-950 active:border-b-0 active:border-t-[4px] active:border-t-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg font-headline font-bold transition-colors text-xs sm:text-sm flex items-center justify-center gap-2 group"
               >
                 List your Server
                 <span className="material-symbols-outlined text-[16px] md:text-[18px] group-hover:scale-110 transition-transform">add_circle</span>
@@ -164,30 +325,44 @@ export function HomePage() {
             </div>
           </FramerIn>
           
-          <FramerIn delay={1.0}>
-            <div className="grid grid-cols-3 gap-2 md:gap-8 max-w-4xl w-full px-4 md:px-0 mt-4 md:mt-0">
+          <FramerIn delay={0.5} className="w-full">
+            <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-md mx-auto">
               <StatItem 
                 value={stats?.servers} 
                 label="Servers" 
+                align="center"
               />
               <StatItem 
                 value={stats?.users} 
                 label="Global Users" 
+                align="center"
                 formatter={(v) => v.toLocaleString()}
               />
-              <div className="flex flex-col items-center shrink-0">
-                <span className="text-[#85fc7e] font-pixel text-base xs:text-xl md:text-2xl mb-1.5 md:mb-2 drop-shadow-md">99%</span>
-                <span className="text-white/40 font-headline text-[8px] md:text-[10px] tracking-widest uppercase font-bold text-center leading-tight">Uptime Verified</span>
+              <div className="flex flex-col items-center text-center shrink-0">
+                <span className="text-[#85fc7e] font-pixel text-base xs:text-xl md:text-2xl mb-1.5 md:mb-2 [text-shadow:0_2px_4px_rgba(0,0,0,0.85)] drop-shadow-md min-h-[24px] md:min-h-[32px] flex items-center">99%</span>
+                <span className="text-white font-headline text-[8px] md:text-[10px] tracking-widest uppercase font-bold leading-tight [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">Uptime Verified</span>
               </div>
             </div>
           </FramerIn>
         </div>
+
+        {/* Carousel at bottom of hero - generous height preventing cutoffs, full width across screen */}
+        <div className="w-full relative z-30 mt-3 sm:mt-5">
+          <FramerIn delay={0.6} className="w-full">
+            <ArcFlowCarousel 
+              servers={carouselServers} 
+              autoRotateSpeed={0.035}
+              arcOffset={0.42}
+              className="w-full h-[480px] sm:h-[540px] md:h-[580px]"
+            />
+          </FramerIn>
+        </div>
         
-        {/* Content Fade into next section */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent z-20"></div>
+        {/* Content Fade seamlessly into Categories section */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/80 to-transparent z-30 pointer-events-none"></div>
       </header>
 
-      <section className="py-12 md:py-24 px-8 bg-surface-container-lowest">
+      <section className="pt-6 sm:pt-8 md:pt-12 pb-12 md:pb-24 px-8 bg-surface-container-lowest">
         <div className="max-w-7xl mx-auto">
           <FramerIn className="mb-14 md:mb-20">
             <h2 className="font-pixel text-on-surface text-xl md:text-2xl mb-4 text-white">Server Categories</h2>
@@ -213,8 +388,8 @@ export function HomePage() {
                   </div>
                   <h3 className="font-pixel text-sm md:text-base mb-1 text-white drop-shadow-md">{c.name}</h3>
                   <p className="text-zinc-300 text-[10px] md:text-[11px] leading-relaxed mb-3 md:mb-4 line-clamp-2 min-h-[2.5rem]">{c.desc}</p>
-                  <div className="text-[#85fc7e] font-headline text-[9px] md:text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 group/link group-hover:text-white transition-colors">
-                    Explore Realms
+                  <div className="text-[#5cad57] font-headline text-[9px] md:text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 group/link group-hover:text-white transition-colors">
+                    Explore
                     <span className="material-symbols-outlined text-[12px] md:text-[14px] group-hover/link:translate-x-1 transition-transform">arrow_forward</span>
                   </div>
                 </div>
@@ -247,7 +422,7 @@ export function HomePage() {
         </div>
       </section>
 
-      {featured.length > 0 && (
+      {(featured.length > 0 || isFeaturedLoading) && (
         <section className="py-12 md:py-24 px-8 bg-zinc-950">
           <div className="max-w-7xl mx-auto">
             <FramerIn className="text-center mb-14 md:mb-20">
@@ -255,11 +430,17 @@ export function HomePage() {
               <p className="text-zinc-400 font-headline text-xs md:text-sm">This month's featured servers and realms.</p>
             </FramerIn>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {featured.map((server, i) => (
-                <FramerIn key={server.id} delay={i * 0.1}>
-                  <ServerCard server={server} />
-                </FramerIn>
-              ))}
+              {isFeaturedLoading ? (
+                [1, 2, 3, 4].map((i) => (
+                  <div key={i} className="min-h-[350px] md:min-h-[380px]" />
+                ))
+              ) : (
+                featured.map((server, i) => (
+                  <FramerIn key={server.id} delay={i * 0.1}>
+                    <ServerCard server={server} />
+                  </FramerIn>
+                ))
+              )}
             </div>
           </div>
         </section>
@@ -305,12 +486,14 @@ export function HomePage() {
         </FramerIn>
       </section>
 
-      <CategoryRequestModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleRequestSubmit}
-        isSubmitting={createRequestMutation.isPending}
-      />
+      <Suspense fallback={null}>
+        <CategoryRequestModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleRequestSubmit}
+          isSubmitting={createRequestMutation.isPending}
+        />
+      </Suspense>
     </AnimatedPage>
   )
 }

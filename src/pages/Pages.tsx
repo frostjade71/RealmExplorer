@@ -1,5 +1,6 @@
 import { lazy } from 'react'
-
+import { Link } from 'react-router-dom'
+import errorImage from '../assets/error/teto-but-re.webp'
 import { HomePage } from './HomePage'
 import { ServerDetailPage } from './ServerDetailPage'
 import { DirectoryPage as ServersPage } from './DirectoryPage'
@@ -36,7 +37,6 @@ export const CopyrightPage = lazy(() => import('./CopyrightPage').then(m => ({ d
 export const DocsPage = lazy(() => import('./DocsPage').then(m => ({ default: m.DocsPage })))
 export const ApiDocsPage = lazy(() => import('./ApiDocsPage').then(m => ({ default: m.ApiDocsPage })))
 export const UpgradePage = lazy(() => import('./UpgradePage').then(m => ({ default: m.UpgradePage })))
-export const StatusPage = lazy(() => import('./StatusPage').then(m => ({ default: m.StatusPage })))
 export const AppealPage = lazy(() => import('./AppealPage').then(m => ({ default: m.AppealPage })))
 export const AdminAppealsPage = lazy(() => import('./AdminAppealsPage').then(m => ({ default: m.AdminAppealsPage })))
 export const AdminServersPage = lazy(() => import('./AdminServersPage').then(m => ({ default: m.AdminServersPage })))
@@ -58,4 +58,29 @@ export const SOTMPage = () => <LazyEventsPage category="server" />
 export const BOTMPage = () => <LazyEventsPage category="builder" />
 export const DOTMPage = () => <LazyEventsPage category="developer" />
 
-export function NotFoundPage() { return <div className="p-12 text-center text-white font-pixel">404 - Not Found</div> }
+export function NotFoundPage() { 
+  return (
+    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
+      <div className="text-center space-y-4 animate-in fade-in zoom-in duration-500 flex flex-col items-center">
+        <img src={errorImage} alt="Not Found" className="w-24 h-24 md:w-32 md:h-32 object-contain mb-2" />
+        <div className="space-y-2 px-4">
+          <h2 className="text-2xl md:text-3xl font-headline text-white font-bold tracking-tight">
+            <span className="text-realm-green mr-3">404</span>
+            Page Not Found
+          </h2>
+          <p className="text-xs md:text-sm text-on-surface-variant font-body max-w-sm mx-auto">
+            The page you are looking for could not be found
+          </p>
+        </div>
+        <div className="pt-4">
+          <Link 
+            to="/" 
+            className="inline-flex items-center justify-center px-4 py-2.5 font-headline text-sm font-semibold text-black bg-realm-green rounded hover:bg-primary-fixed transition-colors duration-200"
+          >
+            Return to Homepage
+          </Link>
+        </div>
+      </div>
+    </div>
+  ) 
+}

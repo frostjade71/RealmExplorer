@@ -49,7 +49,7 @@ const apiDocsSections: DocSection[] = [
     content: (
       <div className="space-y-6">
         <div className="mb-6">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-body font-bold text-white tracking-tight leading-tight">Public API <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 align-middle"><img src="/beta/93894-testergreen.png" alt="" className="w-4 h-4" /><span className="text-emerald-400 text-[10px] font-bold uppercase tracking-wider">Beta</span></span></h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-body font-bold text-white tracking-tight leading-tight">Public API <span className="inline-flex items-center gap-1 align-middle ml-2"><img src="/beta/93894-testergreen.png" alt="" className="w-4 h-4" /><span className="text-emerald-400 text-xs font-bold uppercase tracking-wider">Beta</span></span></h2>
           <p className="text-zinc-500 text-sm mt-2 font-mono">{API_BASE}/servers</p>
         </div>
         <p className="text-zinc-400 text-sm md:text-base leading-relaxed">
@@ -73,11 +73,11 @@ const apiDocsSections: DocSection[] = [
           </div>
         </div>
 
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 mt-6 flex gap-4">
-          <ShieldCheck className="text-blue-400 flex-shrink-0 mt-1" size={20} />
+        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-5 mt-6 flex gap-4">
+          <ShieldCheck className="text-white flex-shrink-0 mt-1" size={20} />
           <div>
-            <h4 className="text-blue-400 font-body font-bold tracking-tight mb-1 text-sm">Rate Limiting</h4>
-            <p className="text-blue-400/80 text-xs md:text-sm">Responses are cached at the edge for 5 minutes. Please don't poll more frequently than once per minute.</p>
+            <h4 className="text-white font-body font-bold tracking-tight mb-1 text-sm">Rate Limiting</h4>
+            <p className="text-zinc-400 text-xs md:text-sm">Responses are cached at the edge for 5 minutes. Please don't poll more frequently than once per minute.</p>
           </div>
         </div>
       </div>
@@ -138,7 +138,7 @@ fetch('${API_BASE}/servers?type=realm&sort=votes&limit=10')
         <div className="mt-8 space-y-4">
           {[
             { name: 'type', type: 'string', default: 'all', description: 'Filter by listing type.', values: 'server, realm' },
-            { name: 'category', type: 'string', default: 'all', description: 'Filter by server category.', values: 'factions, kitpvp, skyblock, smp, modded, other' },
+            { name: 'category', type: 'string', default: 'all', description: 'Filter by server category.', values: 'factions, kitpvp, skyblock, smp, modded, skygen, prison, minigames, other' },
             { name: 'featured', type: 'boolean', default: 'false', description: 'Only return featured servers.', values: 'true' },
             { name: 'sort', type: 'string', default: 'votes', description: 'Sort order for results.', values: 'votes, newest, name' },
             { name: 'limit', type: 'integer', default: '50', description: 'Number of results per page (max 100).', values: '1–100' },
@@ -235,7 +235,7 @@ fetch('${API_BASE}/servers?type=realm&sort=votes&limit=10')
                 ['slug', 'string', 'URL-friendly identifier'],
                 ['description', 'string', 'Server description (may contain markdown)'],
                 ['type', 'string', '"server" or "realm"'],
-                ['category', 'string', 'factions, kitpvp, skyblock, smp, modded, other'],
+                ['category', 'string', 'factions, kitpvp, skyblock, smp, modded, skygen, prison, minigames, other'],
                 ['icon_url', 'string?', 'URL to server icon image'],
                 ['banner_url', 'string?', 'URL to server banner image'],
                 ['tags', 'string[]', 'Array of tag strings'],
@@ -375,11 +375,11 @@ for server in data['data']:
           </li>
         </ul>
 
-        <div className="bg-realm-green/10 border border-realm-green/20 rounded-xl p-5 mt-8 flex gap-4">
-          <Zap className="text-realm-green flex-shrink-0 mt-1" size={20} />
+        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-5 mt-8 flex gap-4">
+          <Zap className="text-white flex-shrink-0 mt-1" size={20} />
           <div>
-            <h4 className="text-realm-green font-body font-bold tracking-tight mb-1 text-sm">Questions?</h4>
-            <p className="text-realm-green/80 text-xs md:text-sm">Join our <a href="https://discord.gg/G8CyUZjPRt" target="_blank" rel="noopener noreferrer" className="underline hover:text-realm-green transition-colors">Discord server</a> if you have questions or need help integrating the API.</p>
+            <h4 className="text-white font-body font-bold tracking-tight mb-1 text-sm">Questions?</h4>
+            <p className="text-zinc-400 text-xs md:text-sm">Join our <a href="https://discord.gg/G8CyUZjPRt" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors">Discord server</a> if you have questions or need help integrating the API.</p>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence, Reorder } from 'framer-motion'
 import { X, Plus, Trash2, Share2, Globe, Save, Mail, GripVertical } from 'lucide-react'
-import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch } from 'react-icons/si'
+import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch, SiGithub, SiX, SiPatreon, SiKofi } from 'react-icons/si'
 import { CustomSelect } from './CustomSelect'
 import type { SocialLink, SocialPlatform } from '../types'
 import { useUpdateProfileMutation } from '../hooks/mutations'
@@ -40,11 +40,15 @@ export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: E
   const socialOptions = [
     { key: 'website', label: 'Website', icon: <Globe className="w-3.5 h-3.5" /> },
     { key: 'discord', label: 'Discord', icon: <SiDiscord className="w-3.5 h-3.5" /> },
+    { key: 'github', label: 'GitHub', icon: <SiGithub className="w-3.5 h-3.5" /> },
+    { key: 'x', label: 'X (Twitter)', icon: <SiX className="w-3.5 h-3.5" /> },
     { key: 'instagram', label: 'Instagram', icon: <SiInstagram className="w-3.5 h-3.5" /> },
     { key: 'youtube', label: 'YouTube', icon: <SiYoutube className="w-3.5 h-3.5" /> },
     { key: 'tiktok', label: 'TikTok', icon: <SiTiktok className="w-3.5 h-3.5" /> },
-    { key: 'facebook', label: 'Facebook', icon: <SiFacebook className="w-3.5 h-3.5" /> },
     { key: 'twitch', label: 'Twitch', icon: <SiTwitch className="w-3.5 h-3.5" /> },
+    { key: 'facebook', label: 'Facebook', icon: <SiFacebook className="w-3.5 h-3.5" /> },
+    { key: 'patreon', label: 'Patreon', icon: <SiPatreon className="w-3.5 h-3.5" /> },
+    { key: 'kofi', label: 'Ko-fi', icon: <SiKofi className="w-3.5 h-3.5" /> },
     { key: 'email', label: 'Email', icon: <Mail className="w-3.5 h-3.5" /> },
   ]
 
@@ -163,66 +167,66 @@ export function EditProfileModal({ isOpen, onClose, profileId, initialLinks }: E
                   </button>
                 </div>
 
-                <Reorder.Group 
-                  axis="y" 
-                  values={links} 
-                  onReorder={setLinks}
-                  className="space-y-3 min-h-[120px] pb-32 px-1"
-                >
-                  {links.map((link) => (
-                    <Reorder.Item 
-                      key={link.localId}
-                      value={link}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex gap-2 items-center group"
+                {links.length > 0 ? (
+                  <Reorder.Group 
+                    axis="y" 
+                    values={links} 
+                    onReorder={setLinks}
+                    className="space-y-3 pb-32 px-1"
+                  >
+                    {links.map((link) => (
+                      <Reorder.Item 
+                        key={link.localId}
+                        value={link}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex gap-2 items-center group"
+                      >
+                        <div className="cursor-grab active:cursor-grabbing p-1 text-zinc-700 hover:text-zinc-400 transition-colors shrink-0">
+                          <GripVertical className="w-4 h-4" />
+                        </div>
+
+                        <div className="flex-1 flex gap-2 items-center bg-zinc-950 border border-zinc-800 p-2 rounded-lg min-w-0 transition-all duration-300">
+                          <CustomSelect
+                            value={link.platform}
+                            onChange={(val) => handleUpdateLink(link.localId, 'platform', val as SocialPlatform)}
+                            options={socialOptions}
+                            className="w-auto flex-shrink-0"
+                            hideLabel={true}
+                          />
+                          <div className="h-4 w-px bg-zinc-800 mx-1 flex-shrink-0" />
+                          <input
+                            type={link.platform === 'email' ? 'text' : 'url'}
+                            required
+                            placeholder={link.platform === 'email' ? 'your@email.com' : 'https://...'}
+                            className="flex-1 min-w-0 bg-transparent border-none text-sm text-white outline-none font-headline focus:ring-0"
+                            value={link.url}
+                            onChange={(e) => handleUpdateLink(link.localId, 'url', e.target.value)}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLink(link.localId)}
+                          className="p-2 text-zinc-600 hover:text-red-400 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100 flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </Reorder.Item>
+                    ))}
+                  </Reorder.Group>
+                ) : (
+                  <div className="py-12 text-center border-2 border-dashed border-zinc-800 rounded-lg bg-zinc-950/50">
+                    <Share2 className="w-8 h-8 text-zinc-800 mx-auto mb-3" />
+                    <p className="text-zinc-600 text-[10px] font-headline uppercase tracking-widest">No links added yet</p>
+                    <button
+                      type="button"
+                      onClick={handleAddLink}
+                      className="mt-4 text-xs font-bold text-realm-green hover:underline font-headline"
                     >
-                      <div className="cursor-grab active:cursor-grabbing p-1 text-zinc-700 hover:text-zinc-400 transition-colors shrink-0">
-                        <GripVertical className="w-4 h-4" />
-                      </div>
-
-                      <div className="flex-1 flex gap-2 items-center bg-zinc-950 border border-zinc-800 p-2 rounded-lg min-w-0 transition-all duration-300">
-                        <CustomSelect
-                          value={link.platform}
-                          onChange={(val) => handleUpdateLink(link.localId, 'platform', val as SocialPlatform)}
-                          options={socialOptions}
-                          className="w-auto md:w-36 flex-shrink-0"
-                          hideLabelMobile={true}
-                        />
-                        <div className="h-4 w-px bg-zinc-800 mx-1 flex-shrink-0" />
-                        <input
-                          type={link.platform === 'email' ? 'text' : 'url'}
-                          required
-                          placeholder={link.platform === 'email' ? 'your@email.com' : 'https://...'}
-                          className="flex-1 min-w-0 bg-transparent border-none text-sm text-white outline-none font-headline focus:ring-0"
-                          value={link.url}
-                          onChange={(e) => handleUpdateLink(link.localId, 'url', e.target.value)}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveLink(link.localId)}
-                        className="p-2 text-zinc-600 hover:text-red-400 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100 flex-shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </Reorder.Item>
-                  ))}
-                </Reorder.Group>
-
-                  {links.length === 0 && (
-                    <div className="py-12 text-center border-2 border-dashed border-zinc-800 rounded-lg bg-zinc-950/50">
-                      <Share2 className="w-8 h-8 text-zinc-800 mx-auto mb-3" />
-                      <p className="text-zinc-600 text-[10px] font-headline uppercase tracking-widest">No links added yet</p>
-                      <button
-                        type="button"
-                        onClick={handleAddLink}
-                        className="mt-4 text-xs font-bold text-realm-green hover:underline font-headline"
-                      >
-                        Add your first link
-                      </button>
-                    </div>
-                  )}
+                      Add your first link
+                    </button>
+                  </div>
+                )}
                 </div>
               </form>
 

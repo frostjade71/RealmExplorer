@@ -43,7 +43,7 @@ export function AnimatedPage({ children, className = '' }: AnimatedPageProps) {
       initial="initial"
       animate="animate"
       exit="exit"
-      className={`flex-grow flex flex-col ${className} will-change-[transform,opacity]`}
+      className={`flex-grow flex flex-col ${className}`}
     >
       {children}
     </motion.div>

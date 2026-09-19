@@ -4,7 +4,6 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useMemo } from 'react'
-import { Search, X, History, User, Info, Calendar, Trash2, ThumbsUp, Sparkles } from 'lucide-react'
 import { useClearAuditLogsMutation, useClearVoteLogsMutation, useClearOTMLogsMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { ConfirmationModal } from '../components/ConfirmationModal'
@@ -134,7 +133,7 @@ export function AdminAuditLogsPage() {
       <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
-            <History className="text-realm-green w-4 h-4" />
+            <span className="material-symbols-outlined text-white/40 text-base">history</span>
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold">System Integrity</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">Logs & Activity</h1>
@@ -149,14 +148,14 @@ export function AdminAuditLogsPage() {
                 disabled={currentCount === 0}
                 className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all font-headline text-[10px] uppercase font-bold tracking-widest disabled:opacity-50 disabled:cursor-not-allowed group"
               >
-                <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                <span className="material-symbols-outlined text-sm group-hover:scale-110 transition-transform">delete</span>
                 Clear {activeTab === 'audit' ? 'Audit' : activeTab === 'otm' ? 'OTM' : 'Vote'}
               </button>
             </FramerIn>
           )}
 
           <FramerIn delay={0.15}>
-            <div className="bg-zinc-900 border border-white/10 px-6 py-3 sm:py-4 rounded-lg">
+            <div className="bg-white/[0.02] backdrop-blur-xl border border-white/10 px-6 py-3 sm:py-4 rounded-xl">
               <div className="text-left lg:text-right">
                 <div className="text-white font-pixel text-lg leading-none mb-1">{currentCount}</div>
                 <div className="text-[9px] sm:text-[10px] font-headline text-white/40 uppercase font-bold tracking-widest leading-none">Stored Events</div>
@@ -166,14 +165,14 @@ export function AdminAuditLogsPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/5 p-1 rounded-lg max-w-full lg:w-fit border border-white/10">
+      <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/[0.02] backdrop-blur-xl p-1 rounded-xl max-w-full lg:w-fit border border-white/10">
         <button
           onClick={() => { setActiveTab('audit'); setSearchQuery(''); }}
           className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-all font-headline text-[10px] uppercase font-bold tracking-[0.1em] ${
             activeTab === 'audit' ? 'bg-realm-green text-zinc-950 shadow-md' : 'text-white/40 hover:text-white hover:bg-white/5'
           }`}
         >
-          <History className="w-3.5 h-3.5" />
+          <span className="material-symbols-outlined text-sm">history</span>
           Audit Logs
         </button>
         <button
@@ -182,7 +181,7 @@ export function AdminAuditLogsPage() {
             activeTab === 'otm' ? 'bg-realm-green text-zinc-950 shadow-md' : 'text-white/40 hover:text-white hover:bg-white/5'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5" />
+          <span className="material-symbols-outlined text-sm">auto_awesome</span>
           OTM Vote Logs
         </button>
         <button
@@ -191,7 +190,7 @@ export function AdminAuditLogsPage() {
             activeTab === 'vote' ? 'bg-realm-green text-zinc-950 shadow-md' : 'text-white/40 hover:text-white hover:bg-white/5'
           }`}
         >
-          <ThumbsUp className="w-3.5 h-3.5" />
+          <span className="material-symbols-outlined text-sm">thumb_up</span>
           Vote Logs
         </button>
         <button
@@ -200,7 +199,7 @@ export function AdminAuditLogsPage() {
             activeTab === 'payment' ? 'bg-amber-400 text-zinc-950 shadow-md' : 'text-white/40 hover:text-white hover:bg-white/5'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5" />
+          <span className="material-symbols-outlined text-sm">auto_awesome</span>
           Payment Logs
         </button>
       </div>
@@ -217,26 +216,26 @@ export function AdminAuditLogsPage() {
       />
 
       <FramerIn delay={0.2} className="mb-6 relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-base text-white/20">search</span>
         <input 
           type="text"
           placeholder={activeTab === 'audit' ? "Filter logs by username, action, or details..." : "Search by voter, Discord ID, or server..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-3 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
+          className="w-full bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
         />
         {searchQuery && (
           <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
-            <X className="w-3.5 h-3.5" />
+            <span className="material-symbols-outlined text-sm">close</span>
           </button>
         )}
       </FramerIn>
 
-      <FramerIn delay={0.25} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden">
+      <FramerIn delay={0.25} className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left font-headline text-sm border-collapse">
             <thead>
-              <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
+              <tr className="bg-white/[0.02] border-b border-white/10 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
                 <th className="px-6 py-5">Timestamp</th>
                 <th className="px-6 py-5">
                   {activeTab === 'audit' ? 'Staff Member' : activeTab === 'payment' ? 'Customer' : 'Voter'}
@@ -262,7 +261,7 @@ export function AdminAuditLogsPage() {
                     <motion.tr key={pay.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center gap-2 text-white/40">
-                          <Calendar className="w-3 h-3" />
+                          <span className="material-symbols-outlined text-xs">calendar_today</span>
                           <span className="text-[11px] font-mono">
                             {new Date(pay.created_at).toLocaleString('en-US', {
                               month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -275,7 +274,7 @@ export function AdminAuditLogsPage() {
                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center border transition-colors ${
                              pay.type === 'voucher' ? 'bg-purple-500/10 border-purple-500/20 group-hover:border-purple-500/30' : 'bg-amber-400/10 border-amber-400/20 group-hover:border-amber-400/30'
                            }`}>
-                              <User className={`w-3 h-3 transition-colors ${pay.type === 'voucher' ? 'text-purple-400/60' : 'text-amber-400/60'}`} />
+                              <span className={`material-symbols-outlined text-xs transition-colors ${pay.type === 'voucher' ? 'text-purple-400/60' : 'text-amber-400/60'}`}>person</span>
                            </div>
                            <span className={`font-bold text-white transition-colors ${pay.type === 'voucher' ? 'group-hover:text-purple-400' : 'group-hover:text-amber-400'}`}>
                             {pay.display_username}
@@ -298,9 +297,12 @@ export function AdminAuditLogsPage() {
                             {pay.display_amount}
                           </span>
                           {pay.currency && pay.type === 'paypal' && <span className="text-white/20 text-[10px]">{pay.currency}</span>}
-                          <span className={`ml-2 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-tighter ${
-                            pay.status === 'completed' ? 'bg-realm-green/10 text-realm-green' : 'bg-red-500/10 text-red-500'
+                          <span className={`ml-2 inline-flex items-center gap-1 text-[10px] font-headline font-bold uppercase tracking-wider ${
+                            pay.status === 'completed' ? 'text-realm-green' : 'text-red-400'
                           }`}>
+                            <span className="material-symbols-outlined text-[13px]">
+                              {pay.status === 'completed' ? 'check' : 'close'}
+                            </span>
                             {pay.status}
                           </span>
                         </div>
@@ -312,7 +314,7 @@ export function AdminAuditLogsPage() {
                     <motion.tr key={log.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center gap-2 text-white/40">
-                          <Calendar className="w-3 h-3" />
+                          <span className="material-symbols-outlined text-xs">calendar_today</span>
                           <span className="text-[11px] font-mono">
                             {new Date(log.created_at).toLocaleString('en-US', {
                               month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -322,10 +324,10 @@ export function AdminAuditLogsPage() {
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                           <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-realm-green/30 transition-colors">
-                              <User className="w-3 h-3 text-white/20 group-hover:text-realm-green/60 transition-colors" />
+                           <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-white/20 transition-colors">
+                              <span className="material-symbols-outlined text-xs text-white/20 group-hover:text-white/60 transition-colors">person</span>
                            </div>
-                           <span className="font-bold text-white group-hover:text-realm-green transition-colors">
+                           <span className="font-bold text-white/70 group-hover:text-white transition-colors">
                             {log.discord_username || 'System'}
                            </span>
                         </div>
@@ -365,7 +367,7 @@ export function AdminAuditLogsPage() {
                     <motion.tr key={vote.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center gap-2 text-white/40">
-                          <Calendar className="w-3 h-3" />
+                          <span className="material-symbols-outlined text-xs">calendar_today</span>
                           <span className="text-[11px] font-mono">
                             {new Date(vote.created_at).toLocaleString('en-US', {
                               month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -376,9 +378,9 @@ export function AdminAuditLogsPage() {
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                            <div className="w-6 h-6 rounded-lg bg-realm-green/10 flex items-center justify-center border border-realm-green/20 group-hover:bg-realm-green/20 transition-colors">
-                              <User className="w-3 h-3 text-realm-green/60" />
+                              <span className="material-symbols-outlined text-xs text-realm-green/60">person</span>
                            </div>
-                           <span className="font-bold text-white">
+                           <span className="font-bold text-white/70 group-hover:text-white transition-colors">
                             {vote.profiles?.discord_username || 'Anonymous'}
                            </span>
                         </div>
@@ -398,7 +400,7 @@ export function AdminAuditLogsPage() {
                   <tr>
                     <td colSpan={4} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center gap-2 text-white/20 italic font-headline">
-                        <Info className="w-8 h-8 opacity-20" />
+                        <span className="material-symbols-outlined text-4xl opacity-20">info</span>
                         <span>No {activeTab} logs found matching your criteria.</span>
                       </div>
                     </td>

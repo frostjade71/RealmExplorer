@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion'
-import { Star, ThumbsUp, Medal, Crown } from 'lucide-react'
+import { Star, ThumbsUp, Medal } from 'lucide-react'
 import { useServers } from '../hooks/queries'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { Link } from 'react-router-dom'
-import { LoadingSpinner } from '../components/FeedbackStates'
+
 import heroVideo from '../assets/hero/heroRE.mp4'
 // logo imported from public/logoRE.png as /logoRE.png
 import { slugify } from '../lib/urlUtils'
@@ -58,14 +58,6 @@ export function LeaderboardsPage() {
 
   const loading = loadingVotes || loadingRated
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <LoadingSpinner />
-      </div>
-    )
-  }
-
   return (
     <AnimatedPage>
       {/* Hero Section */}
@@ -85,9 +77,11 @@ export function LeaderboardsPage() {
         
         <div className="max-w-7xl mx-auto w-full relative z-20 flex flex-col items-center will-change-transform">
             <FramerIn>
-                <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
-                     <img src={medalGif} alt="Medalla Icon" className="w-5 h-5 object-contain" />
-                    <span className="font-pixel text-[9px] tracking-widest uppercase">Top Servers</span>
+                <div className="inline-flex items-center gap-2 mb-6">
+                     <img src={medalGif} alt="Medalla Icon" fetchPriority="high" loading="eager" className="w-5 h-5 object-contain drop-shadow-md" />
+                    <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                        <span className="text-yellow-500">Top</span> <span className="text-white">Servers</span>
+                    </span>
                 </div>
             </FramerIn>
 
@@ -98,15 +92,36 @@ export function LeaderboardsPage() {
             </FramerIn>
 
             {/* Podium */}
-            <div className="flex items-end justify-center mt-6 w-full max-w-4xl px-2 md:px-0">
-                {/* 2nd Place */}
+            <div className="flex items-end justify-center mt-6 w-full max-w-4xl px-2 md:px-0 min-h-[160px] md:min-h-[220px]">
+                {loading ? (
+                    <>
+                        {/* 2nd Place Skeleton */}
+                        <div className="order-1 w-1/3 md:w-1/3 flex flex-col items-center opacity-50">
+                            <div className="w-10 h-10 md:w-16 md:h-16 rounded-sm md:rounded-lg bg-white/10 animate-pulse mb-2 md:mb-4" />
+                            <div className="h-14 md:h-20 w-full bg-white/5 rounded-t-sm md:rounded-t-md animate-pulse border-t-2 border-zinc-400/10" />
+                        </div>
+                        {/* 1st Place Skeleton */}
+                        <div className="order-2 w-[40%] md:w-2/5 z-20 flex flex-col items-center -mb-2 md:-mb-4 opacity-50">
+                            <div className="w-14 h-14 md:w-24 md:h-24 rounded-md md:rounded-xl bg-white/10 animate-pulse mb-3 md:mb-6" />
+                            <div className="h-20 md:h-28 w-full bg-white/5 rounded-t-md md:rounded-t-lg animate-pulse border-t-2 border-yellow-500/10" />
+                        </div>
+                        {/* 3rd Place Skeleton */}
+                        <div className="order-3 w-1/3 md:w-1/3 flex flex-col items-center opacity-50">
+                            <div className="w-8 h-8 md:w-14 md:h-14 rounded-sm md:rounded-lg bg-white/10 animate-pulse mb-2 md:mb-4" />
+                            <div className="h-10 md:h-14 w-full bg-white/5 rounded-t-sm md:rounded-t-md animate-pulse border-t-2 border-orange-700/10" />
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        {/* 2nd Place */}
                 {podium[1] && (
                     <FramerIn delay={0.4} className="order-1 w-1/3 md:w-1/3 group">
                         <Link to={`/server/${podium[1].slug || slugify(podium[1].name)}`} className="flex flex-col items-center">
                             <div className="relative mb-2 md:mb-4">
-                                <img src={secondPlaceIcon} className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="2nd Place Icon" />
+                                <img src={secondPlaceIcon} fetchPriority="high" loading="eager" className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="2nd Place Icon" />
                                 <img 
                                     src={podium[1].icon_url || "/logoRE.png"} 
+                                    fetchPriority="high" loading="eager"
                                     className="w-10 h-10 md:w-16 md:h-16 rounded-sm md:rounded-lg border-2 md:border-4 border-zinc-400 object-cover shadow-2xl group-hover:scale-110 transition-transform"
                                     alt="2nd Place"
                                 />
@@ -128,13 +143,14 @@ export function LeaderboardsPage() {
                     <FramerIn delay={0.6} className="order-2 w-[40%] md:w-2/5 z-20 group -mb-2 md:-mb-4">
                         <Link to={`/server/${podium[0].slug || slugify(podium[0].name)}`} className="flex flex-col items-center">
                             <div className="relative mb-3 md:mb-6">
-                                <img src={firstPlaceIcon} className="absolute -top-4 -left-4 md:-top-8 md:-left-8 w-8 h-8 md:w-16 md:h-16 z-30 object-contain drop-shadow-xl" alt="1st Place Icon" />
+                                <img src={firstPlaceIcon} fetchPriority="high" loading="eager" className="absolute -top-4 -left-4 md:-top-8 md:-left-8 w-8 h-8 md:w-16 md:h-16 z-30 object-contain drop-shadow-xl" alt="1st Place Icon" />
                                 <img 
                                     src={podium[0].icon_url || "/logoRE.png"} 
+                                    fetchPriority="high" loading="eager"
                                     className="w-14 h-14 md:w-24 md:h-24 rounded-md md:rounded-xl border-2 md:border-4 border-yellow-500 object-cover shadow-[0_0_50px_rgba(234,179,8,0.3)] group-hover:scale-110 transition-transform"
                                     alt="1st Place"
                                 />
-                                <Crown className="absolute -top-6 md:-top-10 left-1/2 -translate-x-1/2 w-5 h-5 md:w-8 md:h-8 text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
+                                <Medal className="absolute -bottom-1.5 -right-1.5 md:-bottom-3 md:-right-3 w-4 h-4 md:w-8 md:h-8 text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
                             </div>
                             <div className={`h-20 md:h-28 w-full bg-gradient-to-b from-yellow-500/30 to-yellow-500/5 ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'} border-t-2 border-yellow-500/40 rounded-t-md md:rounded-t-lg flex flex-col items-center justify-center p-2 md:p-4`}>
                                 <span className="text-white font-pixel text-[8px] md:text-xs text-center line-clamp-1 mb-1 md:mb-1.5">{podium[0].name}</span>
@@ -152,9 +168,10 @@ export function LeaderboardsPage() {
                     <FramerIn delay={0.5} className="order-3 w-1/3 md:w-1/3 group">
                         <Link to={`/server/${podium[2].slug || slugify(podium[2].name)}`} className="flex flex-col items-center">
                             <div className="relative mb-2 md:mb-4">
-                                <img src={thirdPlaceIcon} className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="3rd Place Icon" />
+                                <img src={thirdPlaceIcon} fetchPriority="high" loading="eager" className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="3rd Place Icon" />
                                 <img 
                                     src={podium[2].icon_url || "/logoRE.png"} 
+                                    fetchPriority="high" loading="eager"
                                     className="w-8 h-8 md:w-14 md:h-14 rounded-sm md:rounded-lg border-2 md:border-4 border-orange-700 object-cover shadow-2xl group-hover:scale-110 transition-transform"
                                     alt="3rd Place"
                                 />
@@ -169,6 +186,8 @@ export function LeaderboardsPage() {
                             </div>
                         </Link>
                     </FramerIn>
+                )}
+                    </>
                 )}
             </div>
         </div>
@@ -197,14 +216,14 @@ export function LeaderboardsPage() {
                             className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-md md:rounded-lg bg-zinc-900/40 border border-white/5 hover:bg-zinc-900/60 transition-all group ${idx < 3 ? 'hover:border-realm-green' : 'hover:border-realm-green/20'}`}
                         >
                             <div className="w-6 md:w-8 flex justify-center">
-                                {idx === 0 ? <Crown className="w-3 md:w-4 h-3 md:h-4 text-realm-green" /> : 
+                                {idx === 0 ? <Medal className="w-3 md:w-4 h-3 md:h-4 text-realm-green" /> : 
                                  idx === 1 ? <Medal className="w-3 md:w-4 h-3 md:h-4 text-zinc-400" /> :
                                  idx === 2 ? <Medal className="w-3 md:w-4 h-3 md:h-4 text-orange-700" /> :
                                  <span className="font-pixel text-zinc-700 text-[8px] md:text-[10px]">{idx + 1}</span>}
                             </div>
-                            <img src={server.icon_url || "/logoRE.png"} className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover border border-white/10" alt={server.name} />
+                            <img src={server.icon_url || "/logoRE.png"} loading="lazy" decoding="async" className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover border border-white/10" alt={server.name} />
                             <div className="flex-1 min-w-0">
-                                <h3 className="text-white font-pixel text-[9px] md:text-[11px] group-hover:text-realm-green transition-colors truncate">{server.name}</h3>
+                                <h3 className="text-white font-pixel text-[9px] md:text-[11px] transition-colors truncate">{server.name}</h3>
                                 <p className="text-zinc-500 font-headline text-[7px] md:text-[9px] uppercase tracking-widest mt-0.5">{server.type}</p>
                             </div>
                             <div className="text-right flex items-center gap-2 md:gap-3">
@@ -216,7 +235,11 @@ export function LeaderboardsPage() {
                             </div>
                         </Link>
                     ))}
-                    {votesList.length === 0 && (
+                    {loading ? (
+                        Array.from({ length: 10 }).map((_, i) => (
+                            <div key={i} className="h-[60px] md:h-[72px] rounded-md md:rounded-lg bg-white/5 animate-pulse border border-white/5" />
+                        ))
+                    ) : votesList.length === 0 && (
                         <div className="p-12 text-center border border-dashed border-white/5 rounded-xl text-zinc-600 font-pixel text-xs">
                             No additional ranked servers.
                         </div>
@@ -244,14 +267,14 @@ export function LeaderboardsPage() {
                             className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-md md:rounded-lg bg-zinc-900/40 border border-white/5 hover:bg-zinc-900/60 transition-all group ${idx < 3 ? 'hover:border-yellow-500' : 'hover:border-yellow-500/20'}`}
                         >
                             <div className="w-6 md:w-8 flex justify-center">
-                                {idx === 0 ? <Crown className="w-3 md:w-4 h-3 md:h-4 text-yellow-500" /> : 
+                                {idx === 0 ? <Medal className="w-3 md:w-4 h-3 md:h-4 text-yellow-500" /> : 
                                  idx === 1 ? <Medal className="w-3 md:w-4 h-3 md:h-4 text-zinc-400" /> :
                                  idx === 2 ? <Medal className="w-3 md:w-4 h-3 md:h-4 text-orange-700" /> :
                                  <span className="font-pixel text-zinc-700 text-[8px] md:text-[10px]">{idx + 1}</span>}
                             </div>
-                            <img src={server.icon_url || "/logoRE.png"} className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover border border-white/10" alt={server.name} />
+                            <img src={server.icon_url || "/logoRE.png"} loading="lazy" decoding="async" className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover border border-white/10" alt={server.name} />
                             <div className="flex-1 min-w-0">
-                                <h3 className="text-white font-pixel text-[9px] md:text-[11px] group-hover:text-yellow-500 transition-colors truncate">{server.name}</h3>
+                                <h3 className="text-white font-pixel text-[9px] md:text-[11px] transition-colors truncate">{server.name}</h3>
                                 <p className="text-zinc-500 font-headline text-[7px] md:text-[9px] uppercase tracking-widest mt-0.5">{server.type}</p>
                             </div>
                             <div className="text-right flex items-center gap-2 md:gap-3">
@@ -266,7 +289,11 @@ export function LeaderboardsPage() {
                             </div>
                         </Link>
                     ))}
-                    {topRated.length === 0 && (
+                    {loading ? (
+                        Array.from({ length: 10 }).map((_, i) => (
+                            <div key={i} className="h-[60px] md:h-[72px] rounded-md md:rounded-lg bg-white/5 animate-pulse border border-white/5" />
+                        ))
+                    ) : topRated.length === 0 && (
                         <div className="p-12 text-center border border-dashed border-white/5 rounded-xl text-zinc-600 font-pixel text-xs">
                             No rated servers available.
                         </div>

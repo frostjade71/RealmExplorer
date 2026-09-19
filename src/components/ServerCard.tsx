@@ -62,7 +62,7 @@ export function ServerCard({
   return (
     <Link to={`/server/${server.slug || slugify(server.name)}`} className="block h-full group relative">
       {isPremium && (
-        <div className="absolute inset-0 z-0 rounded-lg overflow-hidden pointer-events-none p-[1.5px]">
+        <div className="absolute inset-0 z-0 rounded-xl overflow-hidden pointer-events-none p-[1.5px]">
           <div
             className="absolute inset-[-200%] bg-[conic-gradient(from_0deg,transparent_0deg,transparent_150deg,#FACC15_180deg,transparent_210deg,transparent_360deg)] opacity-60 animate-spin-slow"
           />
@@ -73,7 +73,7 @@ export function ServerCard({
         initial="initial"
         whileHover="hover"
         whileTap="tap"
-        className={`bg-surface border rounded-lg flex flex-col h-full min-h-[350px] md:min-h-[380px] overflow-hidden relative cursor-pointer shadow-sm transition-colors duration-200 z-10 ${
+        className={`bg-surface border rounded-xl flex flex-col h-full min-h-[350px] md:min-h-[380px] overflow-hidden relative cursor-pointer shadow-sm transition-colors duration-200 z-10 ${
           isPremium 
             ? 'border-yellow-400/30' 
             : 'border-outline-variant/30 hover:border-realm-green/30'
@@ -145,7 +145,7 @@ export function ServerCard({
         {/* Content Container */}
         <div className="relative p-4 md:p-5 pt-0 flex flex-col flex-grow z-10">
           <div 
-            className={`w-14 h-14 md:w-16 md:h-16 -mt-7 md:-mt-8 mb-3 bg-zinc-900 rounded-lg overflow-hidden flex-shrink-0 border-2 shadow-md z-20 ${
+            className={`w-14 h-14 md:w-16 md:h-16 -mt-7 md:-mt-8 mb-3 bg-zinc-900 rounded-xl overflow-hidden flex-shrink-0 border-2 shadow-md z-20 ${
               isPremium ? 'border-[#f2a929]' : 'border-zinc-800'
             }`}
           >

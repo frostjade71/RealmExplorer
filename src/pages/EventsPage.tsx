@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, Fragment } from 'react'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion'
 import { useOTMWinners, useOTMCompetitors, useUserOTMVotes, useOTMSettings } from '../hooks/queries'
 import { useOTMVoteMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
@@ -35,6 +35,26 @@ export function EventsPage({ category }: EventsPageProps) {
   const { user, profile } = useAuth()
   const [now, setNow] = useState(Date.now())
   
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  const springConfig = { damping: 25, stiffness: 150 }
+  const springX = useSpring(mouseX, springConfig)
+  const springY = useSpring(mouseY, springConfig)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (isMobile) return
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect()
+    const x = (e.clientX - left) / width - 0.5
+    const y = (e.clientY - top) / height - 0.5
+    mouseX.set(-x * 25)
+    mouseY.set(-y * 25)
+  }
+
+  const handleMouseLeave = () => {
+    mouseX.set(0)
+    mouseY.set(0)
+  }
+  
   // Reset pagination/search when category changes
   useEffect(() => {
     setSearchQuery('')
@@ -46,7 +66,7 @@ export function EventsPage({ category }: EventsPageProps) {
     return () => clearInterval(timer)
   }, [])
 
-  const { data: winners } = useOTMWinners()
+  const { data: winners, isLoading: loadingWinners } = useOTMWinners()
   const { data: settings } = useOTMSettings()
   
   const currentCategoryData = CATEGORIES_DATA[category]
@@ -163,7 +183,11 @@ export function EventsPage({ category }: EventsPageProps) {
     <>
     <AnimatedPage>
       {/* Hero Section - OTM Cinematic Carousel */}
-      <header className="relative pt-32 pb-20 px-8 overflow-hidden min-h-[60vh] flex flex-col items-center justify-center">
+      <header 
+        className="relative pt-32 pb-20 px-8 overflow-hidden min-h-[60vh] flex flex-col items-center justify-center"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
         {/* Cinematic Background */}
         <div className="absolute inset-0 z-0 flex flex-col lg:flex-row">
           {heroBackgrounds.map((bg, idx) => (
@@ -171,8 +195,9 @@ export function EventsPage({ category }: EventsPageProps) {
               <AnimatePresence>
                 {bg.type === 'video' ? (
                   <motion.video 
-                    initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
-                    animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
+                    initial={isMobile ? { opacity: 0 } : { scale: 1.05, opacity: 0 }}
+                    animate={isMobile ? { opacity: 0.5 } : { scale: 1.1, opacity: 0.5 }}
+                    style={isMobile ? undefined : { x: springX, y: springY }}
                     exit={{ opacity: 0 }}
                     transition={isMobile ? { duration: 0.8, ease: "easeOut" } : { duration: 1.2, ease: "easeOut" }}
                     src={bg.url} 
@@ -185,7 +210,8 @@ export function EventsPage({ category }: EventsPageProps) {
                 ) : (
                   <motion.div
                     initial={isMobile ? { opacity: 0 } : { scale: 1.05, opacity: 0 }}
-                    animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
+                    animate={isMobile ? { opacity: 0.5 } : { scale: 1.1, opacity: 0.5 }}
+                    style={isMobile ? undefined : { x: springX, y: springY }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.8, ease: "easeInOut" }}
                     className="absolute inset-0 will-change-[opacity,transform]"
@@ -194,6 +220,8 @@ export function EventsPage({ category }: EventsPageProps) {
                       src={bg.url}
                       alt="Winner Cover"
                       loading="eager"
+                      fetchPriority="high"
+                      decoding="sync"
                       className="w-full h-full object-cover"
                     />
                   </motion.div>
@@ -227,9 +255,9 @@ export function EventsPage({ category }: EventsPageProps) {
                 transition={{ delay: 0.1 }}
               >
                 {/* Minecraft-style Badge */}
-                <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-4 py-1.5 mb-8 text-realm-green shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-none' : 'backdrop-blur-md'}`}>
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span className="font-pixel text-[10px] tracking-widest uppercase">
+                <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-4 py-1.5 mb-8 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-none' : 'backdrop-blur-md'}`}>
+                  <Calendar className="w-3.5 h-3.5 text-realm-green" />
+                  <span className="font-pixel text-[10px] tracking-widest uppercase text-white">
                     {activeWinners[0]?.month || defaultMonth}
                   </span>
                 </div>
@@ -249,7 +277,9 @@ export function EventsPage({ category }: EventsPageProps) {
                 </h1>
               </motion.div>
 
-              {activeWinners.length > 0 ? (
+              {loadingWinners ? (
+                <div className="h-24 w-full max-w-lg mx-auto bg-white/5 rounded-2xl animate-pulse"></div>
+              ) : activeWinners.length > 0 ? (
                 <motion.div 
                   initial={{ opacity: 0, y: isMobile ? 5 : 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -288,6 +318,8 @@ export function EventsPage({ category }: EventsPageProps) {
                                 <img 
                                   src={winner.winner_image_url || winner.servers?.icon_url || "/logoRE.png"} 
                                   alt="Winner" 
+                                  loading="eager"
+                                  fetchPriority="high"
                                   className="w-16 h-16 rounded-xl object-cover border-2 border-yellow-400 shadow-2xl shadow-yellow-400/20 group-hover:border-white transition-colors"
                                 />
                                 <div className="text-center md:text-left">
@@ -450,6 +482,8 @@ export function EventsPage({ category }: EventsPageProps) {
                                 <img 
                                   src={displayImage || (isPerson ? "/logoRE.png" : 'https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&q=80&w=800')} 
                                   alt={displayName || 'Competitor'}
+                                  loading="lazy"
+                                  decoding="async"
                                   className="w-full h-full object-cover p-1 group-hover:scale-110 transition-transform duration-500"
                                 />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

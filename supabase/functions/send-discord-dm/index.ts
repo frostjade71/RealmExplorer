@@ -84,47 +84,35 @@ Deno.serve(async (req: Request) => {
         : isWelcome 
           ? 'Welcome to Explorer+' 
           : '📧 Staff Message — Realm Explorer',
-      description: isRejection
-        ? `Your ${is_project ? 'project' : 'server'} **${server_name}** requires attention from our team.`
-        : isWelcome
-          ? `# Welcome to Explorer+! \nWe are thrilled to have you as part of our **Explorer+ Family**. Your support helps us keep Realm Explorer growing and thriving!\n\n## 🚀 Your Premium Perks are Active:\n- **Submit up to 5 Servers/Realms**: Expand your reach across the entire community.\n- **Custom Profile Banner**: Personalize your identity with a unique background.\n- **Extended Gallery**: Show off your worlds with up to 5 images per listing.\n- **Priority Exploration**: Your listings now have a higher chance to appear at the top!\n- **Golden Profile**: Stand out with premium golden borders on your profile and listings.\n- **Social Links**: Connect deeper with up to 6 social links.\n\n> **Need Help?**\n> If you have any questions or need help setting up your new features, feel free to reach out to our staff in the Discord server.`
-          : `A staff member has reached out regarding your ${is_project ? 'project' : 'server'} **${server_name}**.`,
       color: isRejection ? 0xe74c3c : isWelcome ? 0xf1c40f : 0x4EC44E,
-      fields: [
-        { name: 'Subject', value: subject, inline: false },
-      ],
       timestamp: new Date().toISOString(),
     };
 
-    // Only add message as field if it's NOT a welcome message (welcome uses description for big text)
-    if (!isWelcome) {
-      embed.fields.push({ name: 'Message', value: message, inline: false });
-    }
+    if (isWelcome) {
+      embed.description = `# Welcome to Explorer+! \nWe are thrilled to have you as part of our **Explorer+ Family**. Your support helps us keep Realm Explorer growing and thriving!\n\n## 🚀 Your Premium Perks are Active:\n- **Submit up to 5 Servers/Realms**: Expand your reach across the entire community.\n- **Custom Profile Banner**: Personalize your identity with a unique background.\n- **Extended Gallery**: Show off your worlds with up to 5 images per listing.\n- **Priority Exploration**: Your listings now have a higher chance to appear at the top!\n- **Golden Profile**: Stand out with premium golden borders on your profile and listings.\n- **Social Links**: Connect deeper with up to 6 social links.\n\n> **Need Help?**\n> If you have any questions or need help setting up your new features, feel free to reach out to our staff in the Discord server.`;
+      embed.fields = [
+        { name: 'From', value: 'Realm Explorer Team', inline: true },
+        { name: 'Your Profile', value: `[View Profile](https://www.realmexplorer.xyz/dashboard)`, inline: true }
+      ];
+      embed.footer = { text: 'Thank you for supporting Realm Explorer! You now have access to all premium features.' };
+    } else {
+      const mailHeader = `**From:** ${admin_name || 'Realm Explorer Staff'}\n**To:** ${server_name} Owner\n**Subject:** ${subject}\n**Regarding:** [${server_name}](${serverUrl})\n───────────────────────────────`;
+      
+      const introText = isRejection
+        ? `Your ${is_project ? 'project' : 'server'} requires attention from our team.\n\n`
+        : ``;
 
-    if (admin_name || isWelcome) {
-      embed.fields.push({ 
-        name: 'From', 
-        value: admin_name || (isWelcome ? 'Realm Explorer Team' : 'Realm Explorer Staff'), 
-        inline: true 
-      });
-    }
-
-    if (server_slug) {
-      embed.fields.push({ name: 'Server Page', value: `[View Listing](${serverUrl})`, inline: true });
-    } else if (isWelcome) {
-      embed.fields.push({ name: 'Your Profile', value: `[View Profile](https://www.realmexplorer.xyz/dashboard)`, inline: true });
+      embed.description = `${mailHeader}\n\n${introText}${message}\n\n───────────────────────────────\n*If you have any questions, feel free to reach out to our support team.*`;
+      
+      if (isRejection) {
+        embed.footer = { text: 'Your listing has been temporarily removed. Please address the issue and resubmit.' };
+      } else {
+        embed.footer = { text: 'Please review and take action if needed. Visit realmexplorer.xyz for details.' };
+      }
     }
 
     if (icon_url) {
       embed.thumbnail = { url: icon_url };
-    }
-
-    if (isRejection) {
-      embed.footer = { text: 'Your listing has been temporarily removed. Please address the issue and resubmit.' };
-    } else if (isWelcome) {
-      embed.footer = { text: 'Thank you for supporting Realm Explorer! You now have access to all premium features.' };
-    } else {
-      embed.footer = { text: 'Please review and take action if needed. Visit realmexplorer.xyz for details.' };
     }
 
     // Step 3: Send the DM

@@ -37,7 +37,7 @@ export function FramerIn({ children, delay = 0, className = '', viewOnce = true 
       viewport={{ once: viewOnce, margin: isMobile ? "-20px" : "-100px" }}
       variants={variants}
       transition={{ delay }}
-      className={`${className} will-change-[transform,opacity]`}
+      className={className}
     >
       {children}
     </motion.div>
@@ -85,10 +85,10 @@ export function FramerInList({ children, staggerDelay = 0.1, className = '' }: F
       whileInView="visible"
       viewport={{ once: true, margin: isMobile ? "-20px" : "-50px" }}
       variants={containerVariants}
-      className={`${className} will-change-[opacity]`}
+      className={className}
     >
       {React.Children.map(children, (child, index) => (
-        <motion.div key={index} variants={itemVariants} className="will-change-[transform,opacity]">
+        <motion.div key={index} variants={itemVariants}>
           {child}
         </motion.div>
       ))}

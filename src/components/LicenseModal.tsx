@@ -10,6 +10,8 @@ interface LicenseModalProps {
   onClose: () => void
   licenseType: string
   customUrl?: string | null
+  projectIcon?: string | null
+  projectName?: string
 }
 
 const STANDARD_LICENSES: Record<string, string> = {
@@ -92,7 +94,22 @@ Unless required by applicable law or agreed to in writing, software distributed 
 The author retains all rights to this project. No permission is granted to use, modify, or distribute this software without explicit permission from the author.`
 }
 
-export function LicenseModal({ isOpen, onClose, licenseType, customUrl }: LicenseModalProps) {
+const renderTextWithLinks = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a key={i} href={part} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
+export function LicenseModal({ isOpen, onClose, licenseType, customUrl, projectIcon, projectName }: LicenseModalProps) {
   const [content, setContent] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -134,11 +151,19 @@ export function LicenseModal({ isOpen, onClose, licenseType, customUrl }: Licens
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative bg-zinc-950 border border-white/10 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col"
+            className="relative bg-zinc-950 border border-white/10 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden max-h-[60vh] md:max-h-[85vh] flex flex-col"
           >
             <div className="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
               <h2 className="font-pixel text-white text-base md:text-lg uppercase tracking-wider flex items-center gap-3">
-                <Scale className="w-5 h-5 text-realm-green" />
+                {projectIcon ? (
+                  <img src={projectIcon} alt="Project Icon" className="w-6 h-6 md:w-8 md:h-8 rounded object-cover" />
+                ) : projectName ? (
+                  <div className="w-6 h-6 md:w-8 md:h-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-400 font-pixel text-[10px] md:text-xs">
+                    {projectName.substring(0, 2).toUpperCase()}
+                  </div>
+                ) : (
+                  <Scale className="w-5 h-5 text-realm-green" />
+                )}
                 {licenseType} License
               </h2>
               <button 
@@ -163,7 +188,7 @@ export function LicenseModal({ isOpen, onClose, licenseType, customUrl }: Licens
                   </a>
                 </div>
               ) : (
-                content
+                renderTextWithLinks(content)
               )}
             </div>
             

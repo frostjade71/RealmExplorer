@@ -102,14 +102,10 @@ export function ContactOwnerModal({
                 </div>
               </div>
 
-              <div className={`flex items-start gap-3 p-4 rounded-xl ${
-                type === 'rejection' 
-                  ? 'bg-red-500/10 border border-red-500/20 text-red-400' 
-                  : 'bg-blue-500/10 border border-blue-500/20 text-blue-400'
-              }`}>
-                <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
-                <p className="text-xs font-headline leading-relaxed">
-                  <span className="font-bold uppercase tracking-wider block mb-0.5 text-[10px]">
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
+                <AlertTriangle className={`w-5 h-5 shrink-0 mt-0.5 ${type === 'rejection' ? 'text-red-500' : 'text-blue-500'}`} />
+                <p className="text-xs font-headline leading-relaxed text-white/60">
+                  <span className="font-bold uppercase tracking-wider block mb-0.5 text-[10px] text-white">
                     {type === 'rejection' ? 'Rejection Notice' : 'Direct Message'}
                   </span>
                   {type === 'rejection' 
@@ -140,8 +136,8 @@ export function ContactOwnerModal({
                     !subject.trim() || !message.trim() || isSubmitting
                       ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-white/5'
                       : type === 'rejection'
-                        ? 'bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20'
-                        : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e] shadow-lg shadow-green-500/20'
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'
                   }`}
                 >
                   {isSubmitting ? (

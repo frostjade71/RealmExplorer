@@ -1,5 +1,5 @@
 export type UserRole = 'explorer' | 'explorer+' | 'moderator' | 'admin'
-export type ServerCategory = 'factions' | 'kitpvp' | 'skyblock' | 'smp' | 'modded' | 'skygen' | 'prison' | 'other'
+export type ServerCategory = 'factions' | 'kitpvp' | 'skyblock' | 'smp' | 'modded' | 'skygen' | 'prison' | 'minigames' | 'other'
 export type ServerType = 'server' | 'realm'
 export type ServerStatus = 'pending' | 'approved' | 'rejected' | 'emailed' | 'archived' | 'Review Icon' | 'Review Cover' | 'Review Icon & Cover' | 'Review Gallery' | 'Review Icon & Gallery' | 'Review Cover & Gallery' | 'Review All Assets'
 
@@ -13,11 +13,12 @@ export interface Profile {
   social_links: SocialLink[] | null
   bio: string | null
   subscription_expires_at: string | null
+  likes: number
   created_at: string
   updated_at: string
 }
 
-export type SocialPlatform = 'website' | 'instagram' | 'youtube' | 'tiktok' | 'facebook' | 'twitch' | 'email' | 'discord'
+export type SocialPlatform = 'website' | 'instagram' | 'youtube' | 'tiktok' | 'facebook' | 'twitch' | 'email' | 'discord' | 'github' | 'x' | 'patreon' | 'kofi'
 
 export interface SocialLink {
   platform: SocialPlatform
@@ -60,6 +61,8 @@ export interface Server {
   yesterday_vote_rank?: number | null
   yesterday_rating_rank?: number | null
   saves?: number
+  online_players?: number | null
+  max_players?: number | null
   profiles?: Profile
   server_votifier?: ServerVotifier | null
 }
@@ -205,7 +208,8 @@ export interface OTMConfig {
 export interface Report {
   id: string
   reporter_id: string
-  server_id: string
+  server_id?: string | null
+  project_id?: string | null
   subject: string
   message: string
   status: 'pending' | 'reviewing' | 'resolved' | 'rejected'
@@ -213,6 +217,10 @@ export interface Report {
   updated_at: string
   profiles?: Profile
   servers?: {
+    name: string
+    slug: string
+  }
+  projects?: {
     name: string
     slug: string
   }
@@ -228,6 +236,7 @@ export interface BlogPost {
   status: 'draft' | 'published'
   is_featured: boolean
   category: 'Server Spotlight' | 'Event/News' | 'Changelog'
+  views?: number
   created_at: string
   updated_at: string
   profiles?: Profile
@@ -292,6 +301,7 @@ export interface Project {
   average_rating: number
   rating_count: number
   social_links: SocialLink[] | null
+  changelogs?: ProjectChangelog[]
   created_at: string
   updated_at: string
   profiles?: Profile
@@ -302,6 +312,13 @@ export interface ProjectSave {
   project_id: string
   user_id: string
   created_at: string
+}
+
+export interface ProjectChangelog {
+  title: string
+  description: string
+  created_at: string
+  approved_at?: string
 }
 
 export interface ProjectRating {

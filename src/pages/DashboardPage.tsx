@@ -1,22 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { toast } from 'sonner'
 import { createPortal } from 'react-dom'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useUserServers, useServerAppeals, useUserProjects, useSavedProjects, useSavedServers } from '../hooks/queries'
-import { useDeleteServerMutation, useSubmitAppealMutation, useDeleteProjectMutation, useToggleProjectSaveMutation, useToggleServerSaveMutation } from '../hooks/mutations'
-import { LoadingSpinner, EmptyState } from '../components/FeedbackStates'
-import { ServerCard } from '../components/ServerCard'
+import { useUserServers, useUserProjects, useSavedProjects, useSavedServers } from '../hooks/queries'
+import { useDeleteServerMutation, useDeleteProjectMutation, useToggleProjectSaveMutation, useToggleServerSaveMutation } from '../hooks/mutations'
+import { EmptyState, LoadingSpinner } from '../components/FeedbackStates'
+import { DirectoryServerCard } from '../components/DirectoryServerCard'
 import { ProjectCard } from '../components/ProjectCard'
 import { SponsorServerCard } from '../components/SponsorServerCard'
-import { PlusCircle, Pencil, Trash2, Check, Palette, AlertCircle, Server as ServerIcon, Folder, Bookmark, BookmarkMinus } from 'lucide-react'
+import { PlusCircle, Pencil, Trash2, Check, Palette, Server as ServerIcon, Folder, Bookmark, BookmarkMinus } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence } from 'framer-motion'
-import { RoleSelectionModal } from '../components/RoleSelectionModal'
-import { ProjectSelectionModal } from '../components/ProjectSelectionModal'
-import { AppealModal } from '../components/AppealModal'
+const RoleSelectionModal = lazy(() => import('../components/RoleSelectionModal').then(m => ({ default: m.RoleSelectionModal })))
+const ProjectSelectionModal = lazy(() => import('../components/ProjectSelectionModal').then(m => ({ default: m.ProjectSelectionModal })))
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js'
 import diamondIcon from '../assets/category/16469-diamond.png'
 import snowBlocksBg from '../assets/sponsors/Key art Snow Blocks cr,Ilya Vdovyuk.jpg'
@@ -212,30 +211,6 @@ export function DashboardPage() {
   const [isSuccess, setIsSuccess] = useState(false)
   const approvedServers = servers.filter(s => s.status === 'approved')
 
-  // Appeal states
-  const [appealServerId, setAppealServerId] = useState<string | null>(null)
-  const [appealServerName, setAppealServerName] = useState('')
-  const { data: appeals = [] } = useServerAppeals()
-  const submitAppealMutation = useSubmitAppealMutation()
-
-  const handleAppealSubmit = (reason: string) => {
-    if (!appealServerId || !user?.id) return
-    submitAppealMutation.mutate(
-      { serverId: appealServerId, userId: user.id, reason },
-      {
-        onSuccess: () => {
-          toast.success('Appeal Submitted', {
-            description: 'Your appeal has been submitted for review.'
-          })
-          setAppealServerId(null)
-        },
-        onError: (err: any) => {
-          toast.error('Submission Failed', { description: err.message })
-        }
-      }
-    )
-  }
-
   // Lock body scroll when any modal is open
   useEffect(() => {
     if (deleteId || isRoleModalOpen || isProjectModalOpen) {
@@ -292,7 +267,7 @@ export function DashboardPage() {
 
   const isDeleting = deleteServerMutation.isPending || deleteProjectMutation.isPending
 
-  if (loadingServers || loadingProjects) return <LoadingSpinner />
+  if (loadingServers || loadingProjects) return <AnimatedPage className="min-h-[70vh]"><div /></AnimatedPage>
 
   if (isSuccess) {
     return (
@@ -345,7 +320,7 @@ export function DashboardPage() {
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-[320px] bg-zinc-900 border border-zinc-800 p-5 rounded-2xl shadow-2xl"
+                className="relative w-full max-w-[320px] bg-zinc-900 border border-zinc-800 p-5 rounded-xl shadow-2xl"
               >
                 <div className="text-center mb-4">
                   <div className="text-red-500 mb-2 opacity-80">
@@ -360,14 +335,14 @@ export function DashboardPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <button 
                     onClick={() => setDeleteId(null)}
-                    className="py-2.5 rounded-xl bg-zinc-800 text-white font-headline font-bold text-[10px] hover:bg-zinc-700 transition-colors uppercase tracking-widest"
+                    className="py-2.5 rounded-lg bg-zinc-800 text-white font-headline font-bold text-[10px] hover:bg-zinc-700 transition-colors uppercase tracking-widest"
                   >
                     Cancel
                   </button>
                   <button 
                     onClick={confirmDelete}
                     disabled={isDeleting}
-                    className="py-2.5 rounded-xl bg-red-500 text-white font-headline font-bold text-[10px] hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 uppercase tracking-widest"
+                    className="py-2.5 rounded-lg bg-red-500 text-white font-headline font-bold text-[10px] hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 uppercase tracking-widest"
                   >
                     {isDeleting ? 'Deleting...' : 'Delete'}
                   </button>
@@ -379,27 +354,21 @@ export function DashboardPage() {
         document.body
       )}
 
-      <RoleSelectionModal 
-        isOpen={isRoleModalOpen}
-        onClose={() => setIsRoleModalOpen(false)}
-        onSelect={(role) => {
-          setIsRoleModalOpen(false)
-          navigate(`/submit?role=${role}`)
-        }}
-      />
+      <Suspense fallback={null}>
+        <RoleSelectionModal 
+          isOpen={isRoleModalOpen}
+          onClose={() => setIsRoleModalOpen(false)}
+          onSelect={(role) => {
+            setIsRoleModalOpen(false)
+            navigate(`/submit?role=${role}`)
+          }}
+        />
 
-      <ProjectSelectionModal 
-        isOpen={isProjectModalOpen}
-        onClose={() => setIsProjectModalOpen(false)}
-      />
-
-      <AppealModal
-        isOpen={!!appealServerId}
-        onClose={() => setAppealServerId(null)}
-        onSubmit={handleAppealSubmit}
-        isSubmitting={submitAppealMutation.isPending}
-        serverName={appealServerName}
-      />
+        <ProjectSelectionModal 
+          isOpen={isProjectModalOpen}
+          onClose={() => setIsProjectModalOpen(false)}
+        />
+      </Suspense>
 
       <AnimatedPage className="w-full max-w-7xl mx-auto px-8 py-12">
         <FramerIn delay={0.1} className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
@@ -439,10 +408,10 @@ export function DashboardPage() {
                     setIsProjectModalOpen(true)
                   }
                 }}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm ${
+                className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm ${
                   hasReachedProjectLimit 
-                    ? 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600' 
-                    : 'bg-blue-500 text-white hover:bg-blue-400'
+                    ? 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600 border-b-[4px] border-zinc-900 active:border-b-0 active:border-t-[4px] active:border-t-transparent' 
+                    : 'bg-blue-500 hover:bg-blue-400 text-white border-b-[4px] border-blue-700 active:border-b-0 active:border-t-[4px] active:border-t-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]'
                 }`}
               >
                 <PlusCircle className="w-4 h-4 md:w-5 h-5" />
@@ -467,14 +436,14 @@ export function DashboardPage() {
                     setIsRoleModalOpen(true)
                   }
                 }}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm ${
+                className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold transition-all text-xs md:text-sm ${
                   hasReachedLimit 
-                    ? 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600' 
-                    : 'bg-[#4EC44E] text-[#002202] hover:bg-[#85fc7e]'
+                    ? 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600 border-b-[4px] border-zinc-900 active:border-b-0 active:border-t-[4px] active:border-t-transparent' 
+                    : 'bg-[#4EC44E] hover:bg-[#5cd45c] text-[#002202] border-b-[4px] border-[#3da53d] active:border-b-0 active:border-t-[4px] active:border-t-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]'
                 }`}
               >
                 <PlusCircle className="w-4 h-4 md:w-5 h-5" />
-                New Listing
+                New Server
               </button>
             </motion.div>
           </div>
@@ -487,7 +456,7 @@ export function DashboardPage() {
         <FramerIn delay={0.4}>
           <EmptyState 
             title="No Listings Found" 
-            message="You haven't submitted any servers or realms yet. Click 'New Listing' to get started." 
+            message="You haven't submitted any servers or realms yet. Click 'New Server/Realm' to get started." 
           />
         </FramerIn>
       ) : (
@@ -508,7 +477,6 @@ export function DashboardPage() {
         >
           {servers.map(server => {
             const isSponsored = server.is_sponsored && server.sponsored_until && new Date(server.sponsored_until) > new Date();
-            const hasPendingAppeal = appeals.some((a: any) => a.server_id === server.id && a.status === 'pending');
             const cardProps = {
               server,
               showStatus: true,
@@ -517,33 +485,13 @@ export function DashboardPage() {
               hideRatings: true,
               actions: (
                 <div className="flex items-center gap-2 w-full">
-                  {server.status === 'rejected' ? (
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        if (hasPendingAppeal) return
-                        setAppealServerId(server.id)
-                        setAppealServerName(server.name)
-                      }}
-                      disabled={hasPendingAppeal}
-                      className={`text-[10px] md:text-xs font-bold px-3 md:px-4 py-2 rounded-md transition-colors border flex items-center justify-center gap-2 ${
-                        hasPendingAppeal 
-                          ? 'text-zinc-500 bg-zinc-800/50 border-zinc-700/50 cursor-not-allowed'
-                          : 'text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/20'
-                      }`}
-                    >
-                      <AlertCircle className="w-3 h-3" />
-                      {hasPendingAppeal ? 'Appealed' : 'Appeal'}
-                    </button>
-                  ) : null}
                   <button 
                     onClick={(e) => {
                       e.preventDefault()
                       e.stopPropagation()
                       navigate(`/submit/${server.id}`)
                     }}
-                    className="text-[10px] md:text-xs font-bold text-blue-400 hover:text-blue-300 px-3 md:px-4 py-2 bg-blue-500/10 rounded-md transition-colors border border-blue-500/20 flex-1 flex items-center justify-center gap-2 hover:bg-blue-500/20"
+                    className="text-[10px] md:text-xs font-bold text-zinc-400 hover:text-zinc-300 px-3 md:px-4 py-2 bg-zinc-800/50 rounded-md transition-colors border border-zinc-700/50 flex-1 flex items-center justify-center gap-2 hover:bg-zinc-700/50"
                   >
                     <Pencil className="w-3 h-3" />
                     Edit Server
@@ -554,7 +502,7 @@ export function DashboardPage() {
                       e.stopPropagation()
                       handleDeleteClick(server.id, server.name)
                     }}
-                    className="p-2 text-red-500 hover:text-red-400 bg-red-500/10 rounded-md transition-colors border border-red-500/20 flex items-center justify-center hover:bg-red-500/20"
+                    className="p-2 text-zinc-400 hover:text-zinc-300 bg-zinc-800/50 rounded-md transition-colors border border-zinc-700/50 flex items-center justify-center hover:bg-zinc-700/50"
                     title="Delete Listing"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -575,7 +523,7 @@ export function DashboardPage() {
                 {isSponsored ? (
                   <SponsorServerCard {...cardProps} />
                 ) : (
-                  <ServerCard {...cardProps} />
+                  <DirectoryServerCard {...cardProps} />
                 )}
               </motion.div>
             );
@@ -617,7 +565,7 @@ export function DashboardPage() {
                           e.stopPropagation()
                           navigate(`/submit/project?id=${project.id}`)
                         }}
-                        className="text-[10px] md:text-xs font-bold text-blue-400 hover:text-blue-300 px-3 py-1.5 md:py-2 bg-blue-500/10 rounded-md border border-blue-500/20 flex-1 flex items-center justify-center gap-2 transition-colors hover:bg-blue-500/20"
+                        className="text-[10px] md:text-xs font-bold text-zinc-400 hover:text-zinc-300 px-3 py-1.5 md:py-2 bg-zinc-800/50 rounded-md border border-zinc-700/50 flex-1 flex items-center justify-center gap-2 transition-colors hover:bg-zinc-700/50"
                       >
                         <Pencil className="w-3 h-3" />
                         Edit Project
@@ -628,7 +576,7 @@ export function DashboardPage() {
                           e.stopPropagation()
                           handleDeleteClick(project.id, project.name, 'project')
                         }}
-                        className="p-1.5 md:p-2 text-red-500 hover:text-red-400 bg-red-500/10 rounded-md transition-colors border border-red-500/20 flex items-center justify-center hover:bg-red-500/20"
+                        className="p-1.5 md:p-2 text-zinc-400 hover:text-zinc-300 bg-zinc-800/50 rounded-md transition-colors border border-zinc-700/50 flex items-center justify-center hover:bg-zinc-700/50"
                         title="Delete Listing"
                       >
                         <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -668,31 +616,48 @@ export function DashboardPage() {
                 ...savedProjects.map((p: any) => ({ ...p, _isProject: true }))
               ].map((item: any) => (
                 <motion.div key={item.id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="relative">
-                  <ProjectCard 
-                    project={item} 
-                    showStatus={false}
-                    accentColor="orange"
-                    actions={
-                      <div className="flex items-center gap-2 w-full justify-end">
-                        <button 
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            if (item._isServer) {
+                  {item._isServer ? (
+                    <DirectoryServerCard 
+                      server={item}
+                      actions={
+                        <div className="flex items-center gap-2 w-full justify-end">
+                          <button 
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
                               handleUnsaveServer(item.id)
-                            } else {
+                            }}
+                            className="text-[10px] md:text-xs font-bold text-zinc-400 hover:text-zinc-300 px-3 py-1.5 md:py-2 bg-zinc-800/50 rounded-md border border-zinc-700/50 flex items-center justify-center gap-2 transition-colors hover:bg-zinc-700/50"
+                            title="Unsave Server"
+                          >
+                            <BookmarkMinus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            Unsave
+                          </button>
+                        </div>
+                      }
+                    />
+                  ) : (
+                    <ProjectCard 
+                      project={item} 
+                      showStatus={false}
+                      actions={
+                        <div className="flex items-center gap-2 w-full justify-end">
+                          <button 
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
                               handleUnsave(item.id)
-                            }
-                          }}
-                          className="text-[10px] md:text-xs font-bold text-orange-400 hover:text-orange-300 px-3 py-1.5 md:py-2 bg-orange-500/10 rounded-md border border-orange-500/20 flex items-center justify-center gap-2 transition-colors hover:bg-orange-500/20"
-                          title={`Unsave ${item._isServer ? 'Server' : 'Project'}`}
-                        >
-                          <BookmarkMinus className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                          Unsave
-                        </button>
-                      </div>
-                    }
-                  />
+                            }}
+                            className="text-[10px] md:text-xs font-bold text-zinc-400 hover:text-zinc-300 px-3 py-1.5 md:py-2 bg-zinc-800/50 rounded-md border border-zinc-700/50 flex items-center justify-center gap-2 transition-colors hover:bg-zinc-700/50"
+                            title="Unsave Project"
+                          >
+                            <BookmarkMinus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            Unsave
+                          </button>
+                        </div>
+                      }
+                    />
+                  )}
                 </motion.div>
               ))}
             </motion.div>
@@ -745,7 +710,7 @@ export function DashboardPage() {
             <div className="absolute inset-0 border-b-4 border-r-4 border-black/40 pointer-events-none" />
             
             {/* Background Image overlay */}
-            <img src={snowBlocksBg} className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none" alt="" />
+            <img src={snowBlocksBg} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity pointer-events-none" alt="" />
             
             {/* Background Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-zinc-950/40 via-transparent to-zinc-950/40 pointer-events-none" />

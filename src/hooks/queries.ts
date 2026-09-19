@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { 
   Server, 
@@ -56,6 +56,22 @@ export function useServers(params?: {
       if (params?.limit) query = query.limit(params.limit)
 
       const { data, error } = await query
+      if (error) throw error
+      return data as unknown as Server[]
+    }
+  })
+}
+
+export function useServersByIds(ids: string[] | undefined) {
+  return useQuery({
+    queryKey: ['serversByIds', ids],
+    enabled: !!ids && ids.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('public_servers')
+        .select('*, profiles(*)')
+        .in('id', ids!)
+      
       if (error) throw error
       return data as unknown as Server[]
     }
@@ -180,7 +196,7 @@ export function useUserServers(userId: string | undefined, status?: ServerStatus
       query = query.eq('owner_id', userId!)
       query = query.order('created_at', { ascending: false })
       
-      if (status && !isApproved) {
+      if (status) {
         query = query.eq('status', status)
       }
 
@@ -561,7 +577,7 @@ export function useReports() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('reports')
-        .select('*, profiles(*), servers(name, slug)')
+        .select('*, profiles(*), servers(name, slug), projects(name, slug)')
         .order('created_at', { ascending: false })
       
       if (error) throw error
@@ -673,6 +689,62 @@ export function useProjectLikes(projectId: string | undefined, userId: string | 
         hasLiked,
         likedBy: usernames
       }
+    }
+  })
+}
+
+export function useProfileLikes(profileId: string | undefined, userId: string | undefined) {
+  return useQuery({
+    queryKey: ['profileLikes', profileId, userId],
+    enabled: !!profileId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profile_likes' as any)
+        .select(`
+          user_id,
+          profiles!profile_likes_user_id_fkey (
+            discord_username
+          )
+        `)
+        .eq('profile_id', profileId!)
+
+      if (error) throw error
+
+      const usernames = data
+        ?.map((l: any) => l.profiles?.discord_username)
+        .filter(Boolean) || []
+
+      const hasLiked = userId ? data?.some((l: any) => l.user_id === userId) : false
+
+      return { 
+        count: data?.length || 0, 
+        hasLiked,
+        likedBy: usernames
+      }
+    }
+  })
+}
+
+export function useToggleProfileLike() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ profileId, userId, hasLiked }: { profileId: string; userId: string; hasLiked: boolean }) => {
+      if (hasLiked) {
+        const { error } = await supabase
+          .from('profile_likes' as any)
+          .delete()
+          .match({ profile_id: profileId, user_id: userId })
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('profile_likes' as any)
+          .insert({ profile_id: profileId, user_id: userId })
+        if (error) throw error
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['profileLikes', variables.profileId] })
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
     }
   })
 }
@@ -846,14 +918,13 @@ export interface LiveServerStatus {
   }
 }
 
-export function useLiveServerStatus(server: Server | undefined | null) {
+export function useLiveServerStatus(server: Server | undefined | null, activeIpType: 'java' | 'bedrock' = 'java') {
   return useQuery({
-    queryKey: ['liveServerStatus', server?.id],
+    queryKey: ['liveServerStatus', server?.id, activeIpType],
     enabled: !!server && server.type === 'server' && server.status === 'approved',
     queryFn: async () => {
       if (!server) return null
 
-      // Prioritize Java IP
       const hasJavaIp = server.ip_or_code && server.ip_or_code !== 'None' && !server.ip_or_code.startsWith('http')
       const hasBedrockIp = !!server.bedrock_ip
 
@@ -861,7 +932,13 @@ export function useLiveServerStatus(server: Server | undefined | null) {
 
       try {
         let url = ''
-        if (hasJavaIp) {
+        if (activeIpType === 'bedrock' && hasBedrockIp) {
+          const port = server.bedrock_port && server.bedrock_port !== 19132 ? `:${server.bedrock_port}` : ''
+          url = `https://api.mcsrvstat.us/bedrock/3/${server.bedrock_ip}${port}`
+        } else if (activeIpType === 'java' && hasJavaIp) {
+          const port = server.port && server.port !== 25565 ? `:${server.port}` : ''
+          url = `https://api.mcsrvstat.us/3/${server.ip_or_code}${port}`
+        } else if (hasJavaIp) {
           const port = server.port && server.port !== 25565 ? `:${server.port}` : ''
           url = `https://api.mcsrvstat.us/3/${server.ip_or_code}${port}`
         } else if (hasBedrockIp) {
@@ -905,16 +982,56 @@ export function useServerAppeals(status?: string) {
   })
 }
 
-export function useUserProjects(userId: string | undefined) {
+export function useProjects(params?: {
+  type?: string
+  category?: string | null
+  searchQuery?: string
+  sortBy?: string
+  limit?: number
+}) {
   return useQuery({
-    queryKey: ['userProjects', userId],
+    queryKey: ['projects', params],
+    queryFn: async () => {
+      let query = supabase.from('public_projects' as any).select('*')
+
+      if (params?.type) query = query.eq('type', params.type)
+      if (params?.category) query = query.ilike('category', params.category)
+      if (params?.searchQuery) query = query.ilike('name', `%${params.searchQuery}%`)
+
+      if (params?.sortBy === 'downloads') {
+        query = query.order('downloads', { ascending: false })
+      } else if (params?.sortBy === 'likes') {
+        query = query.order('likes', { ascending: false })
+      } else if (params?.sortBy === 'rating') {
+        query = query.order('average_rating', { ascending: false })
+      } else if (params?.sortBy === 'latest') {
+        query = query.order('created_at', { ascending: false })
+      } else {
+        // Default: newest first
+        query = query.order('created_at', { ascending: false })
+      }
+
+      if (params?.limit) query = query.limit(params.limit)
+
+      const { data, error } = await query
+      if (error) throw error
+      return data as unknown as Project[]
+    }
+  })
+}
+
+export function useUserProjects(userId: string | undefined, status?: string) {
+  return useQuery({
+    queryKey: ['userProjects', userId, status],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('projects' as any)
-        .select('*')
-        .eq('owner_id', userId!)
-        .order('created_at', { ascending: false })
+      let query = supabase.from('projects' as any).select('*').eq('owner_id', userId!)
+      
+      if (status) {
+        query = query.eq('status', status)
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false })
       
       if (error) throw error
       return data as unknown as Project[]

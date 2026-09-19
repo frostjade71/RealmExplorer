@@ -1,5 +1,5 @@
 import { useAdminProjects } from '../hooks/queries'
-import { useUpdateProjectStatusMutation, useSendProjectMessageMutation } from '../hooks/mutations'
+import { useUpdateProjectStatusMutation, useSendProjectMessageMutation, useDeleteProjectMutation } from '../hooks/mutations'
 import type { ProjectStatus } from '../types'
 import { LoadingSpinner } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
@@ -7,9 +7,9 @@ import { FramerIn } from '../components/FramerIn'
 import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, Check, X, Clock, ChevronLeft, ChevronRight, Mail } from 'lucide-react'
 import { ContactOwnerModal } from '../components/ContactOwnerModal'
-import { useNavigate } from 'react-router-dom'
+import { ConfirmationModal } from '../components/ConfirmationModal'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 export function AdminProjectsPage() {
@@ -18,11 +18,14 @@ export function AdminProjectsPage() {
   const { data: projects = [], isLoading: loading } = useAdminProjects()
   const updateMutation = useUpdateProjectStatusMutation()
   const sendMessageMutation = useSendProjectMessageMutation()
+  const deleteMutation = useDeleteProjectMutation()
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('review')
+  const [searchParams] = useSearchParams()
+  const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('tab') || 'review')
   const [currentPage, setCurrentPage] = useState(1)
   const [modalConfig, setModalConfig] = useState<{ isOpen: boolean, type: 'contact' | 'rejection', project: any | null }>({ isOpen: false, type: 'contact', project: null })
+  const [projectToDelete, setProjectToDelete] = useState<any | null>(null)
   const ITEMS_PER_PAGE = 20
 
   const filteredProjects = useMemo(() => {
@@ -46,6 +49,14 @@ export function AdminProjectsPage() {
   useEffect(() => {
     setCurrentPage(1)
   }, [searchQuery, statusFilter])
+
+  // Sync with URL tab if it changes
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab && tab !== statusFilter) {
+      setStatusFilter(tab)
+    }
+  }, [searchParams])
 
   const handleUpdateStatus = (id: string, newStatus: ProjectStatus) => {
     updateMutation.mutate(
@@ -93,6 +104,25 @@ export function AdminProjectsPage() {
     }
   }
 
+  const handleDeleteConfirm = () => {
+    if (!projectToDelete || !profile) return
+    
+    deleteMutation.mutate(
+      { id: projectToDelete.id, adminId: profile.id, adminName: profile.discord_username },
+      {
+        onSuccess: () => {
+          toast.success('Project Deleted', {
+            description: `${projectToDelete.name} has been permanently removed.`
+          })
+          setProjectToDelete(null)
+        },
+        onError: (err: any) => {
+          toast.error('Delete Failed', { description: err.message })
+        }
+      }
+    )
+  }
+
   if (loading) return <LoadingSpinner />
 
   return (
@@ -100,7 +130,7 @@ export function AdminProjectsPage() {
       <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
-            <span className="material-symbols-outlined text-realm-green text-sm">inventory_2</span>
+            <span className="material-symbols-outlined text-white/40 text-sm">inventory_2</span>
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Staff Only</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">Manage Projects</h1>
@@ -108,7 +138,7 @@ export function AdminProjectsPage() {
         </FramerIn>
         
         <FramerIn delay={0.1}>
-          <div className="flex items-center justify-around lg:justify-start gap-4 sm:gap-6 bg-zinc-900 border border-white/10 px-4 sm:px-6 py-4 rounded-lg">
+          <div className="flex items-center justify-around lg:justify-start gap-4 sm:gap-6 bg-white/[0.02] backdrop-blur-xl border border-white/10 px-4 sm:px-6 py-4 rounded-2xl">
             <div className="text-center min-w-[70px]">
               <div className="text-realm-green font-pixel text-xl leading-none mb-1">
                 {projects.filter(p => p.status === 'pending').length}
@@ -124,24 +154,24 @@ export function AdminProjectsPage() {
         </FramerIn>
       </div>
 
-      <FramerIn delay={0.15} className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950 p-4 -mx-4 rounded-lg border border-white/5 lg:border-none lg:bg-transparent lg:p-0 lg:mx-0">
+      <FramerIn delay={0.15} className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950/80 backdrop-blur-xl p-4 -mx-4 rounded-2xl border-b border-white/10 lg:border-none lg:bg-transparent lg:backdrop-blur-none lg:p-0 lg:mx-0">
         <div className="relative w-full sm:w-96">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-base text-white/20">search</span>
           <input 
             type="text"
             placeholder="Search by name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
+            className="w-full bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
-              <X className="w-3.5 h-3.5" />
+              <span className="material-symbols-outlined text-sm">close</span>
             </button>
           )}
         </div>
         
-        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-lg">
+        <div className="flex flex-wrap items-center gap-1 bg-white/[0.02] backdrop-blur-xl border border-white/10 p-1.5 rounded-xl">
           {[
             { id: 'review', label: 'Review' },
             { id: 'approved', label: 'Approved' },
@@ -168,11 +198,11 @@ export function AdminProjectsPage() {
         </div>
       </FramerIn>
 
-      <FramerIn delay={0.2} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden min-h-[500px]">
+      <FramerIn delay={0.2} className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden min-h-[500px]">
         <div className="overflow-x-auto min-h-[500px]">
           <table className="w-full text-left font-headline text-sm border-collapse">
             <thead>
-              <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
+              <tr className="bg-white/[0.02] border-b border-white/10 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
                 <th className="px-6 py-5">Project Details</th>
                 <th className="px-6 py-5">Type</th>
                 <th className="px-6 py-5">Category</th>
@@ -223,7 +253,7 @@ export function AdminProjectsPage() {
                           )}
                         </div>
                         <div>
-                          <div className="font-bold text-white group-hover:text-realm-green transition-colors">{project.name}</div>
+                          <div className="font-bold text-white/70 group-hover:text-white transition-colors">{project.name}</div>
                           <div className="text-xs text-white/40 font-mono mt-0.5 flex flex-col gap-1">
                             <div className="flex items-center gap-1.5 opacity-80">
                               <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-tighter">Owner ID</span>
@@ -244,18 +274,14 @@ export function AdminProjectsPage() {
                       {project.category}
                     </td>
                     <td className="px-6 py-5">
-                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
-                        project.status === 'approved' ? 'bg-realm-green/10 text-realm-green border border-realm-green/20' :
-                        project.status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
-                        'bg-orange-500/10 text-orange-500 border border-orange-500/20'
+                      <div className={`inline-flex items-center gap-1.5 text-[10px] font-headline font-bold uppercase tracking-wider ${
+                        project.status === 'approved' ? 'text-realm-green' :
+                        project.status === 'rejected' ? 'text-red-400' :
+                        'text-orange-400'
                       }`}>
-                        {project.status === 'approved' ? (
-                          <Check className="w-3 h-3" />
-                        ) : project.status === 'rejected' ? (
-                          <X className="w-3 h-3" />
-                        ) : (
-                          <Clock className="w-3 h-3" />
-                        )}
+                        <span className="material-symbols-outlined text-[14px]">
+                          {project.status === 'approved' ? 'check' : project.status === 'rejected' ? 'close' : 'schedule'}
+                        </span>
                         {project.status}
                       </div>
                     </td>
@@ -269,7 +295,7 @@ export function AdminProjectsPage() {
                           className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-blue-500/20 group/btn"
                           title="Contact Owner"
                         >
-                          <Mail className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                          <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">mail</span>
                         </button>
                         {project.status !== 'approved' && (
                           <button 
@@ -295,6 +321,16 @@ export function AdminProjectsPage() {
                             <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">close</span>
                           </button>
                         )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setProjectToDelete(project)
+                          }}
+                          className="w-10 h-10 rounded-lg bg-zinc-800/50 text-zinc-400 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-zinc-700/50 hover:border-red-500 group/btn"
+                          title="Delete Project"
+                        >
+                          <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">delete</span>
+                        </button>
                       </div>
                     </td>
                   </motion.tr>
@@ -310,9 +346,9 @@ export function AdminProjectsPage() {
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="p-2 text-white/40 hover:text-white hover:bg-zinc-800 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                    className="p-2 text-white/40 hover:text-white hover:bg-zinc-800 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent transition-colors flex items-center justify-center"
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <span className="material-symbols-outlined text-lg">chevron_left</span>
                   </button>
                   <div className="px-4 font-headline text-sm font-bold text-white">
                     Page {currentPage} of {totalPages}
@@ -320,9 +356,9 @@ export function AdminProjectsPage() {
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="p-2 text-white/40 hover:text-white hover:bg-zinc-800 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                    className="p-2 text-white/40 hover:text-white hover:bg-zinc-800 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent transition-colors flex items-center justify-center"
                   >
-                    <ChevronRight className="w-5 h-5" />
+                    <span className="material-symbols-outlined text-lg">chevron_right</span>
                   </button>
                 </div>
               </div>
@@ -337,6 +373,17 @@ export function AdminProjectsPage() {
         title={modalConfig.type === 'rejection' ? 'Reject Project Listing' : 'Contact Owner'}
         submitLabel={modalConfig.type === 'rejection' ? 'Reject & Send' : 'Send Message'}
         type={modalConfig.type}
+      />
+
+      <ConfirmationModal
+        isOpen={!!projectToDelete}
+        onClose={() => setProjectToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Project Listing"
+        message={`Are you sure you want to permanently delete "${projectToDelete?.name}"? This action will remove all associated files and media from storage. This cannot be undone.`}
+        confirmLabel="Delete Permanently"
+        isLoading={deleteMutation.isPending}
+        isDangerous={true}
       />
     </AnimatedPage>
   )

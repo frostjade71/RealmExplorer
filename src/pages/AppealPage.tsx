@@ -141,7 +141,7 @@ export function AppealPage() {
                 />
               </div>
 
-              <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 md:p-4 text-orange-200 text-xs md:text-sm font-headline">
+              <div className="bg-zinc-900/50 border border-white/5 rounded-lg p-3 md:p-4 text-zinc-400 text-xs md:text-sm font-headline">
                 <div className="flex gap-2">
                   <span className="material-symbols-outlined text-orange-500 text-lg md:text-xl">info</span>
                   <p>

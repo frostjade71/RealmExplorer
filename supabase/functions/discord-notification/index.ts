@@ -1,4 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+// @ts-ignore yessir
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,6 +37,31 @@ Deno.serve(async (req: Request) => {
           appealReason: body.record.appeal_reason
         };
       }
+    } else {
+      // It's a frontend request - verify JWT and Role
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: 'Unauthorized: Missing token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: authHeader } } }
+      );
+
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+      if (userError || !user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized: Invalid token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const adminTypes = ['approval', 'log', 'appeal_log', 'unban', 'submission_log'];
+      if (adminTypes.includes(type)) {
+        const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
+        if (!profile || (profile.role !== 'admin' && profile.role !== 'moderator')) {
+          return new Response(JSON.stringify({ error: 'Forbidden: Requires Admin or Moderator role' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+      }
     }
 
     const WEBHOOK_URL = Deno.env.get('DISCORD_WEBHOOK_URL');
@@ -64,7 +91,7 @@ Deno.serve(async (req: Request) => {
 
       const serverUrl = isProject ? `https://www.realmexplorer.xyz/project/${slug}` : `https://www.realmexplorer.xyz/server/${slug}`;
       const title = approvalType === 'new_listing'
-        ? (isProject ? '<:icon:1296934822362742937> New Project Published!' : '<:icon:1296934822362742937> New Server Published!')
+        ? (isProject ? '<:icon:1547071225417830500> New Project Published!' : '<:icon:1296934822362742937> New Server Published!')
         : 'Visual Assets Approved';
       let description = approvalType === 'new_listing'
         ? `**${serverName}** has been approved and been Listed !`
@@ -76,7 +103,7 @@ Deno.serve(async (req: Request) => {
 
       discordPayload = {
         username: target === 'public' ? 'Realm Explorer | Find & Promote Website' : 'Realm Explorer | Web Logs',
-        content: (target === 'public' && approvalType === 'new_listing' && MEMBER_ROLE_ID) ? `<@&${MEMBER_ROLE_ID}>` : undefined,
+        content: (target === 'public' && approvalType === 'new_listing' && MEMBER_ROLE_ID && !isProject) ? `<@&${MEMBER_ROLE_ID}>` : undefined,
         embeds: [{
           title: title,
           description: description,

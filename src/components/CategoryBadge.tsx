@@ -1,52 +1,48 @@
-import { MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal, Pickaxe, Swords, Cloud, Target, Box, Lock, Gamepad2, Settings } from 'lucide-react'
 import type { ServerCategory } from '../types'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-
-// Asset Imports
-import factionsIcon from '../assets/category/7587-netherite-sword.png'
-import kitpvpIcon from '../assets/category/95615-mace.png'
-import skyblockIcon from '../assets/category/41601-minecraftoaktree.png'
-import moddedIcon from '../assets/category/437888-bedrock.png'
-import smpIcon from '../assets/category/708066-iron-pickaxe (1).png'
-import skygenIcon from '../assets/category/89458-iron-block.png'
-import prisonIcon from '../assets/category/7504_Iron_Bars.png'
 
 const categoryStyles: Record<ServerCategory, { bg: string, text: string, icon: React.ReactNode }> = {
   factions: { 
     bg: 'bg-red-500/10', 
     text: 'text-red-500', 
-    icon: <img src={factionsIcon} alt="" className="w-3.5 h-3.5 object-contain" /> 
+    icon: <Swords className="w-3.5 h-3.5" /> 
   },
   kitpvp: { 
     bg: 'bg-blue-500/10', 
     text: 'text-blue-500', 
-    icon: <img src={kitpvpIcon} alt="" className="w-3.5 h-3.5 object-contain" /> 
+    icon: <Target className="w-3.5 h-3.5" /> 
   },
   skyblock: { 
     bg: 'bg-cyan-500/10', 
     text: 'text-cyan-500', 
-    icon: <img src={skyblockIcon} alt="" className="w-3.5 h-3.5 object-contain" /> 
+    icon: <Cloud className="w-3.5 h-3.5" /> 
   },
   smp: { 
     bg: 'bg-green-500/10', 
     text: 'text-green-500', 
-    icon: <img src={smpIcon} alt="" className="w-3.5 h-3.5 object-contain" /> 
+    icon: <Pickaxe className="w-3.5 h-3.5" /> 
   },
   modded: { 
     bg: 'bg-purple-500/10', 
     text: 'text-purple-500', 
-    icon: <img src={moddedIcon} alt="" className="w-3.5 h-3.5 object-contain" /> 
+    icon: <Settings className="w-3.5 h-3.5" /> 
   },
   skygen: { 
     bg: 'bg-amber-500/10', 
     text: 'text-amber-500', 
-    icon: <img src={skygenIcon} alt="" className="w-3.5 h-3.5 object-contain" /> 
+    icon: <Box className="w-3.5 h-3.5" /> 
   },
   prison: { 
     bg: 'bg-zinc-500/10', 
     text: 'text-zinc-200', 
-    icon: <img src={prisonIcon} alt="" className="w-3.5 h-3.5 object-contain" /> 
+    icon: <Lock className="w-3.5 h-3.5" /> 
+  },
+  minigames: { 
+    bg: 'bg-teal-500/10', 
+    text: 'text-teal-400', 
+    icon: <Gamepad2 className="w-3.5 h-3.5" /> 
   },
   other: { 
     bg: 'bg-zinc-500/10', 
@@ -55,13 +51,60 @@ const categoryStyles: Record<ServerCategory, { bg: string, text: string, icon: R
   }
 }
 
-export function CategoryBadge({ category, className }: { category: ServerCategory, className?: string }) {
+const categoryLabels: Partial<Record<ServerCategory, string>> = {
+  smp: 'SMP',
+  factions: 'Factions',
+  kitpvp: 'KitPvP',
+  skyblock: 'Skyblock',
+  modded: 'Modded',
+  skygen: 'SkyGen',
+  prison: 'Prison',
+  minigames: 'Mini Games',
+  other: 'Other',
+}
+
+interface CategoryBadgeProps {
+  category: ServerCategory
+  className?: string
+  variant?: 'default' | 'inset' | 'neutral'
+}
+
+export function CategoryBadge({ category, className, variant = 'default' }: CategoryBadgeProps) {
   const style = categoryStyles[category] || categoryStyles.other
+  const label = categoryLabels[category] || category
   
+  if (variant === 'inset') {
+    return (
+      <div 
+        className={twMerge(clsx("flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] md:text-[9px] font-headline font-bold uppercase tracking-wider w-fit text-zinc-400", className))}
+        style={{
+          background: '#1e1e1e',
+          boxShadow: 'inset 1px 1px 3px rgba(0,0,0,0.35), inset -1px -1px 3px rgba(255,255,255,0.02)',
+        }}
+      >
+        <span className="w-3 h-3 flex items-center justify-center shrink-0 [&>img]:w-3 [&>img]:h-3 [&>img]:object-contain [&>svg]:w-3 [&>svg]:h-3">
+          {style.icon}
+        </span>
+        <span>{label}</span>
+      </div>
+    )
+  }
+
+  if (variant === 'neutral') {
+    return (
+      <div className={twMerge(clsx("flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] md:text-[9px] font-headline font-bold uppercase tracking-wider w-fit bg-zinc-900 border border-zinc-800 text-zinc-400", className))}>
+        <span className="w-3 h-3 flex items-center justify-center shrink-0 [&>img]:w-3 [&>img]:h-3 [&>img]:object-contain [&>svg]:w-3 [&>svg]:h-3">
+          {style.icon}
+        </span>
+        <span>{label}</span>
+      </div>
+    )
+  }
+
   return (
     <div className={twMerge(clsx("flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] md:text-[10px] font-headline font-bold uppercase tracking-wider w-fit", style.bg, style.text, className))}>
       {style.icon}
-      <span>{category}</span>
+      <span>{label}</span>
     </div>
   )
 }

@@ -59,8 +59,7 @@ export function Navbar() {
     { 
       label: 'Projects', 
       path: '/projects', 
-      icon: <Pickaxe className="w-4 h-4" />,
-      badge: 'Beta'
+      icon: <Pickaxe className="w-4 h-4" />
     },
     { 
       label: 'About', 
@@ -135,11 +134,6 @@ export function Navbar() {
                       <span className={`relative flex items-center gap-2 ${isActive ? 'text-white font-bold' : 'text-white/80 group-hover:text-white font-medium'}`}>
                         {item.icon}
                         {item.label}
-                        {item.badge && (
-                          <span className="ml-1 px-1 py-0.5 bg-blue-500 text-[8px] font-pixel text-white leading-none rounded uppercase tracking-tighter">
-                            {item.badge}
-                          </span>
-                        )}
                         {hasChildren && (
                           <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${activeDropdown === item.label ? 'rotate-180' : ''}`} />
                         )}
@@ -197,7 +191,7 @@ export function Navbar() {
               <motion.button 
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => signInWithDiscord()}
+                onClick={() => signInWithDiscord(window.location.pathname)}
                 className="bg-[#5865F2] text-white px-3 py-1.5 sm:px-6 sm:py-2 rounded font-headline font-bold text-[10px] sm:text-sm shadow-lg shadow-indigo-500/20 flex items-center gap-2"
               >
                 <svg 
@@ -354,6 +348,7 @@ export function Navbar() {
                       const isDropdown = (item.label === 'Events' || item.label === 'About') && hasChildren
                       const isExpanded = mobileExpanded.includes(item.label)
                       const isServers = item.label === 'Servers'
+                      const isProjects = item.label === 'Projects'
                       
                       return (
                        <div key={item.path} className="flex flex-col gap-0.5">
@@ -387,19 +382,15 @@ export function Navbar() {
                                  ? 'bg-realm-green text-zinc-950' 
                                  : isServers
                                    ? 'text-realm-green border border-realm-green/30'
-                                   : 'text-white/70 hover:text-white hover:bg-white/5'
+                                   : isProjects
+                                     ? 'text-[#3B81F5] border border-[#3B81F5]/30'
+                                     : 'text-white/70 hover:text-white hover:bg-white/5'
                              }`}
                            >
-                             <span className={`${isActive ? 'text-zinc-950' : 'text-realm-green'} transition-colors`}>
+                             <span className={`${isActive ? 'text-zinc-950' : isProjects ? 'text-[#3B81F5]' : 'text-realm-green'} transition-colors`}>
                                {item.icon}
                              </span>
                              {item.label}
-
-                             {item.badge && (
-                               <span className="ml-2 px-1 py-0.5 bg-blue-500 text-[7px] font-pixel text-white leading-none rounded uppercase tracking-tighter self-center">
-                                 {item.badge}
-                               </span>
-                             )}
                              
                              {isServers && (
                                <span className="ml-auto text-realm-green text-[9px] font-mono font-bold">
@@ -440,7 +431,7 @@ export function Navbar() {
                 <div className="pt-6 border-t border-white/5 flex flex-col gap-4 mt-auto">
                   {!user ? (
                      <button 
-                       onClick={() => signInWithDiscord()}
+                       onClick={() => signInWithDiscord(window.location.pathname)}
                        className="w-full bg-[#5865F2] text-white py-2.5 rounded font-headline font-bold text-xs shadow-lg flex items-center justify-center gap-2 hover:bg-[#4752c4] transition-colors"
                      >
                       <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -479,12 +470,7 @@ export function Navbar() {
                           alt="" 
                           className="w-8 h-8 rounded-full border-2 border-realm-green/20"
                         />
-                        <div className="flex flex-col overflow-hidden gap-1">
-                          <span className="text-white text-xs font-bold truncate group-hover:text-realm-green transition-colors">{profile?.discord_username}</span>
-                          <div className="bg-zinc-900 border-t border-l border-white/10 border-r border-b border-black/50 px-1.5 py-0.5 text-realm-green shadow-[1px_1px_0px_rgba(0,0,0,0.4)] w-fit inline-flex items-center">
-                            <span className="text-[7px] uppercase font-pixel tracking-[0.1em]">{profile?.role || 'Member'}</span>
-                          </div>
-                        </div>
+                        <span className="text-white text-xs font-bold truncate group-hover:text-realm-green transition-colors">{profile?.discord_username}</span>
                       </Link>
                       
                       <div className={`grid ${isModerator ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5`}>

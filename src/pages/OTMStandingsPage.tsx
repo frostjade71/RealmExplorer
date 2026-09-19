@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion'
 import { Trophy, Search, X, Medal, Crown, ChevronLeft, ChevronRight, Pickaxe, Code2, Award } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
@@ -25,6 +25,26 @@ export function OTMStandingsPage() {
   const isMobile = useIsMobile()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
+  
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  const springConfig = { damping: 25, stiffness: 150 }
+  const springX = useSpring(mouseX, springConfig)
+  const springY = useSpring(mouseY, springConfig)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (isMobile) return
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect()
+    const x = (e.clientX - left) / width - 0.5
+    const y = (e.clientY - top) / height - 0.5
+    mouseX.set(-x * 25)
+    mouseY.set(-y * 25)
+  }
+
+  const handleMouseLeave = () => {
+    mouseX.set(0)
+    mouseY.set(0)
+  }
   
   const currentCategory = CATEGORIES[currentIndex]
   const isSystemComingSoon = false
@@ -63,10 +83,15 @@ export function OTMStandingsPage() {
   return (
     <AnimatedPage>
       {/* Hero Section */}
-      <header className="relative pt-32 pb-16 px-8 overflow-hidden min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
+      <header 
+        className="relative pt-32 pb-16 px-8 overflow-hidden min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
         <motion.video 
-          initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
-          animate={isMobile ? { opacity: 0.5 } : { scale: 1, opacity: 0.5 }}
+          initial={isMobile ? { opacity: 0 } : { scale: 1.05, opacity: 0 }}
+          animate={isMobile ? { opacity: 0.5 } : { scale: 1.1, opacity: 0.5 }}
+          style={isMobile ? undefined : { x: springX, y: springY }}
           transition={{ duration: 1.5, ease: "easeOut" }}
           src={heroVideo} 
           autoPlay 
@@ -90,7 +115,7 @@ export function OTMStandingsPage() {
               }}
               className="flex flex-col items-center"
             >
-              <div className={`inline-flex items-center gap-3 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1.5 mb-8 text-realm-green shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
+              <div className="inline-flex items-center gap-3 mb-8 text-realm-green">
                 <div className={`flex items-center gap-2 ${isCompetitionActive ? 'border-r border-white/10 pr-3 mr-1' : ''}`}>
                   <span className="font-pixel text-[9px] tracking-widest uppercase text-white/60">
                     {isCompetitionActive ? 'Closes in:' : 'Previous OTM Standings'}
@@ -110,10 +135,11 @@ export function OTMStandingsPage() {
               </h1>
               <p className="text-zinc-400 font-headline text-center text-xs md:text-sm mb-8 uppercase tracking-[0.2em]">The Race to the Top</p>
 
-              {/* Podium */}
-              {!loadingCompetitors && filteredCompetitors.length > 0 && (
-                <div className="flex items-end justify-center mt-6 w-full max-w-4xl px-2 md:px-0">
-                  {/* 2nd Place */}
+              {/* Podium (Reserving space to prevent CLS) */}
+              <div className="flex items-end justify-center mt-6 w-full max-w-4xl px-2 md:px-0 min-h-[160px] md:min-h-[220px]">
+                {!loadingCompetitors && filteredCompetitors.length > 0 && (
+                  <>
+                    {/* 2nd Place */}
                   {podium[1] && (
                     <FramerIn delay={0.4} className="order-1 w-1/3 group">
                       <Link 
@@ -123,9 +149,10 @@ export function OTMStandingsPage() {
                         className="flex flex-col items-center"
                       >
                         <div className="relative mb-2 md:mb-4">
-                          <img src={secondPlaceIcon} className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="2nd Place" />
+                          <img src={secondPlaceIcon} fetchPriority="high" loading="eager" className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="2nd Place" />
                           <img 
                             src={(podium[1].category === 'developer' || podium[1].category === 'builder' ? podium[1].profiles?.discord_avatar : podium[1].servers?.icon_url) || "/logoRE.png"} 
+                            fetchPriority="high" loading="eager"
                             className={`w-10 h-10 md:w-16 md:h-16 border-2 md:border-4 border-zinc-400 object-cover shadow-2xl group-hover:scale-110 transition-transform rounded-sm md:rounded-lg`}
                             alt="2nd Place"
                           />
@@ -153,9 +180,10 @@ export function OTMStandingsPage() {
                         className="flex flex-col items-center"
                       >
                         <div className="relative mb-3 md:mb-6">
-                          <img src={firstPlaceIcon} className="absolute -top-4 -left-4 md:-top-8 md:-left-8 w-8 h-8 md:w-16 md:h-16 z-30 object-contain drop-shadow-xl" alt="1st Place" />
+                          <img src={firstPlaceIcon} fetchPriority="high" loading="eager" className="absolute -top-4 -left-4 md:-top-8 md:-left-8 w-8 h-8 md:w-16 md:h-16 z-30 object-contain drop-shadow-xl" alt="1st Place" />
                           <img 
                             src={(podium[0].category === 'developer' || podium[0].category === 'builder' ? podium[0].profiles?.discord_avatar : podium[0].servers?.icon_url) || "/logoRE.png"} 
+                            fetchPriority="high" loading="eager"
                             className={`w-14 h-14 md:w-24 md:h-24 border-2 md:border-4 border-yellow-500 object-cover shadow-[0_0_50px_rgba(234,179,8,0.3)] group-hover:scale-110 transition-transform rounded-md md:rounded-xl`}
                             alt="1st Place"
                           />
@@ -184,9 +212,10 @@ export function OTMStandingsPage() {
                         className="flex flex-col items-center"
                       >
                         <div className="relative mb-2 md:mb-4">
-                          <img src={thirdPlaceIcon} className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="3rd Place" />
+                          <img src={thirdPlaceIcon} fetchPriority="high" loading="eager" className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-6 h-6 md:w-12 md:h-12 z-30 object-contain drop-shadow-lg" alt="3rd Place" />
                           <img 
                             src={(podium[2].category === 'developer' || podium[2].category === 'builder' ? podium[2].profiles?.discord_avatar : podium[2].servers?.icon_url) || "/logoRE.png"} 
+                            fetchPriority="high" loading="eager"
                             className={`w-8 h-8 md:w-14 md:h-14 border-2 md:border-4 border-orange-700 object-cover shadow-2xl group-hover:scale-110 transition-transform rounded-sm md:rounded-lg`}
                             alt="3rd Place"
                           />
@@ -203,8 +232,9 @@ export function OTMStandingsPage() {
                       </Link>
                     </FramerIn>
                   )}
-                </div>
-              )}
+                  </>
+                )}
+              </div>
             </motion.div>
           </AnimatePresence>
 
@@ -320,7 +350,7 @@ export function OTMStandingsPage() {
                           </div>
                           
                           <div className={`relative w-8 h-8 md:w-10 md:h-10 shrink-0 overflow-hidden border border-white/10 rounded-lg`}>
-                            <img src={displayImage || "/logoRE.png"} className="w-full h-full object-cover" alt={displayName || 'Competitor'} />
+                            <img src={displayImage || "/logoRE.png"} loading="lazy" decoding="async" className="w-full h-full object-cover" alt={displayName || 'Competitor'} />
                           </div>
 
                           <div className="flex-1 min-w-0">

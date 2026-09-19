@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, Zap, ShieldCheck, Image as ImageIcon, PlusCircle, Share2, FileText, Sparkles, ArrowUp, X, Ticket, ChevronDown, Users, Tag, Palette } from 'lucide-react'
+import { Check, Zap, ShieldCheck, Image as ImageIcon, PlusCircle, Share2, FileText, Sparkles, ArrowUp, X, Ticket, ChevronDown, Users, Tag, Palette, Award, Search } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { useAuth } from '../contexts/AuthContext'
@@ -10,9 +10,8 @@ import { useIsMobile } from '../hooks/useMediaQuery'
 import { ConfirmationModal } from '../components/ConfirmationModal'
 import { useCancelSubscriptionMutation } from '../hooks/mutations'
 import { toast } from 'sonner'
-const upgradeHero = '/upgrades/upgradehero.webp'
+const upgradeHero = '/upgrades/goldvault.jpg'
 const goldGradient = '/upgrades/gold-minecraft-gradient.webp'
-const goldIngot = '/upgrades/9515-mc-gold-ingot.png'
 import directoryHero from '../assets/hero/directoryhero.jpg'
 const successGif = '/upgrades/4364-verification-icon.gif'
 import snowBlocksBg from '../assets/sponsors/Key art Snow Blocks cr,Ilya Vdovyuk.jpg'
@@ -94,63 +93,62 @@ export function UpgradePage() {
     { 
       title: 'Increased Limits', 
       desc: 'Submit up to 5 servers/realms instead of 1.', 
-      icon: <PlusCircle className="w-5 h-5 text-green-400" /> 
+      icon: <PlusCircle className="w-5 h-5 text-white" /> 
     },
     { 
       title: 'Golden Role', 
       desc: 'Exclusive Gold Ingot role for your profile .', 
-      icon: <img src={goldIngot} alt="" className="w-6 h-6 object-contain" /> 
+      icon: <Award className="w-5 h-5 text-white" /> 
     },
     { 
       title: 'Priority Exploration', 
       desc: 'Your listings has a higher chance to be on the top when users shuffle.', 
-      icon: <ArrowUp className="w-5 h-5 text-yellow-400" /> 
+      icon: <ArrowUp className="w-5 h-5 text-white" /> 
     },
-
     { 
       title: 'Extended Gallery', 
       desc: 'Upload up to 5 images per listing gallery.', 
-      icon: <ImageIcon className="w-5 h-5 text-blue-400" /> 
+      icon: <ImageIcon className="w-5 h-5 text-white" /> 
     },
     { 
       title: 'Styled Server', 
       desc: 'Golden borders for your listings to stand out.', 
-      icon: <Sparkles className="w-5 h-5 text-amber-400" /> 
+      icon: <Sparkles className="w-5 h-5 text-white" /> 
     },
     { 
       title: 'Social Connectivity', 
       desc: 'Add up to 6 social links to your profile and listings.', 
-      icon: <Share2 className="w-5 h-5 text-indigo-400" /> 
+      icon: <Share2 className="w-5 h-5 text-white" /> 
     },
     { 
       title: 'Rich Descriptions', 
       desc: 'Up to 5,000 characters for server descriptions.', 
-      icon: <FileText className="w-5 h-5 text-purple-400" /> 
+      icon: <FileText className="w-5 h-5 text-white" /> 
     },
     {
       title: 'Staff Members',
       desc: "Showcase up to 6 trusted staff members directly on your server's page.",
-      icon: <Users className="w-5 h-5 text-cyan-400" />
+      icon: <Users className="w-5 h-5 text-white" />
     },
     {
       title: 'Discount Sponsorship',
       desc: 'Enjoy 30% discount on server sponsorships, saving you $3.00 on every promotion.',
-      icon: <Tag className="w-5 h-5 text-rose-400" />
+      icon: <Tag className="w-5 h-5 text-white" />
     },
     { 
       title: 'Priority Support', 
       desc: 'Direct access to staff for listing issues.', 
-      icon: <ShieldCheck className="w-5 h-5 text-emerald-400" /> 
+      icon: <ShieldCheck className="w-5 h-5 text-white" /> 
     },
     { 
       title: 'Supporter Role', 
       desc: 'Get the Supporter role and Explorer+ role on our Discord server.', 
-      icon: <Zap className="w-5 h-5 text-orange-400" /> 
+      icon: <Zap className="w-5 h-5 text-white" /> 
     },
     {
       title: 'Future Project Page Customizations',
       desc: 'Increased limits and more.',
-      icon: <Palette className="w-5 h-5 text-fuchsia-400" />
+      icon: <Palette className="w-5 h-5 text-white" />
     },
   ]
 
@@ -207,9 +205,9 @@ export function UpgradePage() {
         
         <div className="max-w-7xl mx-auto w-full relative z-20 flex flex-col items-center text-center will-change-transform">
           <FramerIn>
-            <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-amber-400 shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
-              <img src={goldIngot} alt="Explorer+" className="w-5 h-5 object-contain" />
-              <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase">Explorer+</span>
+            <div className="inline-flex items-center gap-2 mb-6">
+              <Search className="w-4 h-4 text-white drop-shadow-md" />
+              <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">Have better server visibility</span>
             </div>
             <h1 className="text-3xl md:text-5xl font-pixel text-white mb-6 drop-shadow-2xl uppercase tracking-tight">
               Become an <span className="text-amber-400 italic">Explorer+</span>
@@ -229,20 +227,47 @@ export function UpgradePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* Benefits List */}
           <div className="space-y-6">
-            <h2 className="font-pixel text-sm text-white/50 uppercase tracking-widest mb-8">Explorer+ Benefits</h2>
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
-              {benefits.map((benefit, i) => (
-                <FramerIn key={i} delay={0.2 + (i * 0.05)} className="bg-zinc-900/50 border border-white/5 p-3 md:p-5 rounded-lg hover:border-white/10 transition-all group">
-                  <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-2 md:gap-4">
-                    <div className="shrink-0 group-hover:scale-110 transition-transform">{benefit.icon}</div>
-                    <div>
-                      <h3 className="text-white font-headline font-bold text-[11px] md:text-sm mb-1">{benefit.title}</h3>
-                      <p className="text-zinc-500 font-headline text-[9px] md:text-[11px] leading-relaxed">{benefit.desc}</p>
+            <h2 className="font-pixel text-sm text-white uppercase tracking-widest mt-4 md:mt-0 mb-8 leading-snug">
+              <span className="text-amber-400 block md:inline">Explorer+</span>
+              <span className="hidden md:inline"> </span>
+              <span className="block md:inline">Benefits</span>
+            </h2>
+            <FramerIn delay={0.2}>
+              <div className="relative">
+                <div className="absolute bottom-full right-8 md:right-12 -mb-[4px] z-20 pointer-events-none">
+                  <img src="/upgrades/teto-upgrade.webp" alt="Teto Upgrade" className="w-16 md:w-20 h-auto object-contain drop-shadow-xl" />
+                </div>
+                <div className="bg-[#313233] border-4 border-[#101010] p-6 md:p-8 shadow-[8px_8px_0_rgba(0,0,0,0.5)] relative overflow-hidden">
+                {/* Inner Highlight Borders */}
+                <div className="absolute inset-0 border-t-4 border-l-4 border-white/10 pointer-events-none" />
+                <div className="absolute inset-0 border-b-4 border-r-4 border-black/40 pointer-events-none" />
+                
+                {/* Background Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-zinc-950/40 via-transparent to-zinc-950/40 pointer-events-none" />
+
+                <div className="relative z-10 divide-y divide-white/5">
+                  {benefits.map((benefit, i) => (
+                    <div 
+                      key={i} 
+                      className="py-3 first:pt-0 last:pb-0 flex items-start gap-3.5 md:gap-4"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-zinc-900/60 border border-white/5 flex items-center justify-center shrink-0">
+                        {benefit.icon}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-white font-headline font-bold text-xs md:text-sm mb-0.5">
+                          {benefit.title}
+                        </h3>
+                        <p className="text-zinc-400 font-headline text-[10px] md:text-xs leading-relaxed">
+                          {benefit.desc}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </FramerIn>
-              ))}
-            </div>
+                  ))}
+                </div>
+              </div>
+              </div>
+            </FramerIn>
           </div>
 
           {/* Pricing Card */}
@@ -258,15 +283,13 @@ export function UpgradePage() {
               
               <div className="relative z-10">
                 <div className="inline-block bg-amber-400 text-zinc-950 px-3 py-1 border-2 border-black/20 shadow-[2px_2px_0_rgba(0,0,0,0.3)] font-headline font-black text-[10px] uppercase tracking-tighter mb-4">
-                  Best Value
+                  Support Realm Explorer
                 </div>
                 <div className="flex justify-between items-start mb-8">
                   <div>
                     <h3 className="font-pixel text-lg text-white uppercase mb-2 drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">Monthly Subscription</h3>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-pixel text-amber-400 drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">$2.49</span>
-                      <span className="text-zinc-500 font-headline text-xs line-through">$4.99</span>
-                      <span className="text-zinc-500 font-headline text-xs">/mo</span>
+                      <span className="text-4xl font-pixel text-amber-400 drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">$1.99</span>
                     </div>
                   </div>
                 </div>
@@ -274,15 +297,15 @@ export function UpgradePage() {
                 <div className="space-y-4 mb-8">
                   <div className="flex items-center gap-3 text-zinc-300 font-headline text-xs">
                     <Check className="w-4 h-4 text-realm-green" />
-                    Billed monthly, cancel anytime
-                  </div>
-                  <div className="flex items-center gap-3 text-zinc-300 font-headline text-xs">
-                    <Check className="w-4 h-4 text-realm-green" />
-                    Instant role activation
+                    Instant Server Priority
                   </div>
                   <div className="flex items-center gap-3 text-zinc-300 font-headline text-xs">
                     <Check className="w-4 h-4 text-realm-green" />
                     Support future development
+                  </div>
+                  <div className="flex items-center gap-3 text-zinc-300 font-headline text-xs">
+                    <Check className="w-4 h-4 text-realm-green" />
+                    Billed monthly, cancel anytime
                   </div>
                 </div>
 
@@ -319,7 +342,7 @@ export function UpgradePage() {
                     className="w-full bg-zinc-800 text-white py-4 border-4 border-[#101010] shadow-[4px_4px_0_rgba(0,0,0,0.4)] font-headline font-bold text-sm uppercase tracking-widest hover:bg-zinc-700 transition-all relative"
                   >
                     <div className="absolute inset-0 border-t-2 border-l-2 border-white/5 pointer-events-none" />
-                    Login to Upgrade
+                    Login to Purchase
                   </button>
                 ) : (
                   <div className="space-y-6">
@@ -353,7 +376,7 @@ export function UpgradePage() {
                               purchase_units: [{
                                 amount: {
                                   currency_code: "USD",
-                                  value: "2.49"
+                                  value: "1.99"
                                 },
                                 description: "Explorer+ Monthly Subscription"
                               }]

@@ -85,10 +85,10 @@ export function CategoryRequestModal({
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-4 bg-realm-green/5 border border-realm-green/10 rounded-lg text-realm-green/70">
-                <PlusCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                <p className="text-[11px] font-headline leading-relaxed">
-                  <span className="font-bold uppercase tracking-wider block mb-0.5 text-[10px]">Community Suggestion</span>
+              <div className="flex items-start gap-3 px-1">
+                <PlusCircle className="w-5 h-5 shrink-0 mt-0.5 text-realm-green" />
+                <p className="text-[11px] font-headline leading-relaxed text-white/60">
+                  <span className="font-bold uppercase tracking-wider block mb-0.5 text-[10px] text-white">Community Suggestion</span>
                   Requested categories are reviewed by staff and added if they provide value to the community.
                 </p>
               </div>
@@ -114,7 +114,7 @@ export function CategoryRequestModal({
                   className={`flex-[2] py-4 rounded-lg font-headline font-bold flex items-center justify-center gap-3 transition-all text-[10px] uppercase tracking-widest ${
                     !subject.trim() || !description.trim() || isSubmitting
                       ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-white/5'
-                      : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e] shadow-lg shadow-green-500/20'
+                      : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'
                   }`}
                 >
                   {isSubmitting ? (

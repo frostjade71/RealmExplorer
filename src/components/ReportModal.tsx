@@ -8,6 +8,8 @@ interface ReportModalProps {
   onClose: () => void
   onSubmit: (subject: string, message: string) => void
   isSubmitting?: boolean
+  title?: string
+  placeholder?: string
 }
 
 const REPORT_SUBJECTS = [
@@ -22,7 +24,9 @@ export function ReportModal({
   isOpen, 
   onClose, 
   onSubmit, 
-  isSubmitting 
+  isSubmitting,
+  title = 'Report Server',
+  placeholder = 'Why do you want to report this listing? Please provide details...'
 }: ReportModalProps) {
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
@@ -59,7 +63,7 @@ export function ReportModal({
                 <div className="p-2 rounded-xl bg-red-500/10 text-red-500">
                    <Flag className="w-5 h-5" />
                 </div>
-                <h2 className="font-pixel text-white text-base md:text-lg uppercase tracking-wider">Report Server</h2>
+                <h2 className="font-pixel text-white text-base md:text-lg uppercase tracking-wider">{title}</h2>
               </div>
               <button 
                 onClick={onClose}
@@ -71,9 +75,9 @@ export function ReportModal({
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto scrollbar-none">
               {/* Info Box */}
-              <div className="bg-red-500/5 border border-red-500/10 p-4 rounded-xl flex gap-3">
+              <div className="bg-white/5 border border-white/10 p-4 rounded-xl flex gap-3">
                 <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
-                <p className="text-[11px] text-red-200/40 leading-relaxed italic">
+                <p className="text-[11px] text-white/40 leading-relaxed italic">
                   Abuse of the reporting system may lead to an account ban. Please only report listings that violate our community guidelines.
                 </p>
               </div>
@@ -104,7 +108,7 @@ export function ReportModal({
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Why do you want to report this server? Please provide details..."
+                  placeholder={placeholder}
                   className="w-full h-32 bg-white/5 border border-white/10 rounded-xl p-4 text-white font-body text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 placeholder:text-white/10 resize-none transition-all"
                   required
                 />

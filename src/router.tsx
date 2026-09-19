@@ -49,7 +49,6 @@ import {
   DocsPage,
   ApiDocsPage,
   UpgradePage,
-  StatusPage,
   AppealPage,
   AdminAppealsPage
 } from './pages/Pages'
@@ -139,10 +138,6 @@ export const router = createBrowserRouter([
         element: <ApiDocsPage />,
       },
       {
-        path: '/status',
-        element: <StatusPage />,
-      },
-      {
         path: '/upgrade',
         element: <UpgradePage />,
       },
@@ -219,6 +214,10 @@ export const router = createBrowserRouter([
             path: 'blog',
             element: <AdminBlogPage />,
           },
+          {
+            path: 'appeals',
+            element: <AdminAppealsPage />,
+          },
           // All below require Admin role
           {
             element: <ProtectedRoute requiredRole="admin" />,
@@ -247,10 +246,7 @@ export const router = createBrowserRouter([
                 path: 'category-requests',
                 element: <AdminCategoryRequestsPage />,
               },
-              {
-                path: 'appeals',
-                element: <AdminAppealsPage />,
-              },
+
               {
                 path: 'about',
                 element: <AdminEditAboutPage />,

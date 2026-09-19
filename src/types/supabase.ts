@@ -190,6 +190,7 @@ export type Database = {
           status: string
           title: string
           updated_at: string | null
+          views: number | null
         }
         Insert: {
           author_id?: string | null
@@ -203,6 +204,7 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string | null
+          views?: number | null
         }
         Update: {
           author_id?: string | null
@@ -216,6 +218,7 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string | null
+          views?: number | null
         }
         Relationships: [
           {
@@ -619,6 +622,7 @@ export type Database = {
           discord_id: string | null
           discord_username: string | null
           id: string
+          likes: number
           role: string
           social_links: Json | null
           subscription_expires_at: string | null
@@ -632,6 +636,7 @@ export type Database = {
           discord_id?: string | null
           discord_username?: string | null
           id: string
+          likes?: number
           role?: string
           social_links?: Json | null
           subscription_expires_at?: string | null
@@ -645,12 +650,49 @@ export type Database = {
           discord_id?: string | null
           discord_username?: string | null
           id?: string
+          likes?: number
           role?: string
           social_links?: Json | null
           subscription_expires_at?: string | null
           updated_at?: string | null
         }
         Relationships: []
+      }
+      profile_likes: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_likes_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_likes: {
         Row: {
@@ -1663,6 +1705,10 @@ export type Database = {
           minecraft_username: string
           vote_count: number
         }[]
+      }
+      increment_blog_post_views: {
+        Args: { post_id: string }
+        Returns: undefined
       }
       reset_all_cooldowns: { Args: never; Returns: undefined }
       reset_all_otm_votes: { Args: never; Returns: undefined }

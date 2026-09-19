@@ -3,13 +3,26 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { useAdminServers, useAdminProjects, useCategoryRequests, useReports, useServerAppeals } from '../hooks/queries'
 import { useBanAppeals } from '../hooks/appeals'
-import { useState, useEffect } from 'react'
-import { Menu, X } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import logo from '../assets/rerealm.webp'
+import { RoleBadge } from './RoleBadge'
+
+function LiveClock() {
+  const [time, setTime] = useState(new Date())
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  return (
+    <span className="font-mono text-[11px] text-white/30 tabular-nums">
+      {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+    </span>
+  )
+}
 
 export function AdminLayout() {
   const location = useLocation()
-  const { isAdmin } = useAuth()
+  const { isAdmin, profile } = useAuth()
   const { data: servers = [] } = useAdminServers()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -17,12 +30,13 @@ export function AdminLayout() {
   useEffect(() => {
     setIsSidebarOpen(false)
   }, [location.pathname])
+
   const { data: catRequests = [] } = useCategoryRequests()
   const { data: appeals = [] } = useServerAppeals('pending')
   const { data: allBanAppeals = [] } = useBanAppeals()
   const banAppeals = allBanAppeals.filter((a: any) => a.status === 'pending')
 
-  const needsReviewCount = servers.filter(s => 
+  const needsReviewCount = servers.filter(s =>
     ['pending', 'Review Icon', 'Review Cover', 'Review Icon & Cover', 'Review Gallery', 'Review Icon & Gallery', 'Review Cover & Gallery', 'Review All Assets'].includes(s.status)
   ).length + appeals.length
 
@@ -32,160 +46,228 @@ export function AdminLayout() {
   const { data: projects = [] } = useAdminProjects()
   const pendingProjectsCount = projects.filter(p => p.status === 'pending').length
 
-  const navItems = [
-    { to: '/admin', label: 'Overview', icon: 'dashboard' },
-    { 
-      to: '/admin/servers', 
-      label: 'Manage Servers', 
-      icon: 'dns',
-      indicatorCount: needsReviewCount 
+  const totalPending = needsReviewCount + pendingReportsCount + banAppeals.length + pendingCatRequestsCount + pendingProjectsCount
+
+  const navSections = [
+    {
+      label: 'Overview',
+      items: [
+        { to: '/admin', label: 'Dashboard', icon: 'dashboard' },
+      ]
     },
-    { 
-      to: '/admin/projects', 
-      label: 'Manage Projects', 
-      icon: 'inventory_2',
-      indicatorCount: pendingProjectsCount 
+    {
+      label: 'Moderation',
+      items: [
+        {
+          to: '/admin/servers',
+          label: 'Manage Servers',
+          icon: 'dns',
+          indicatorCount: needsReviewCount
+        },
+        {
+          to: '/admin/projects',
+          label: 'Manage Projects',
+          icon: 'inventory_2',
+          indicatorCount: pendingProjectsCount
+        },
+        {
+          to: '/admin/reports',
+          label: 'Manage Reports',
+          icon: 'flag',
+          indicatorCount: pendingReportsCount
+        },
+        {
+          to: '/admin/appeals',
+          label: 'Ban Appeals',
+          icon: 'gavel',
+          indicatorCount: banAppeals.length
+        },
+        { to: '/admin/blog', label: 'Manage Blog', icon: 'article' },
+      ]
     },
-    { 
-      to: '/admin/reports', 
-      label: 'Manage Reports', 
-      icon: 'flag',
-      indicatorCount: pendingReportsCount 
-    },
-    { 
-      to: '/admin/appeals', 
-      label: 'Ban Appeals', 
-      icon: 'gavel',
-      indicatorCount: banAppeals.length 
-    },
-    { to: '/admin/blog', label: 'Manage Blog', icon: 'article' },
-    ...(isAdmin ? [
-      { to: '/admin/users', label: 'Manage Users', icon: 'group' },
-      { to: '/admin/events', label: 'Manage Events', icon: 'event' },
-      { to: '/admin/badges', label: 'Badges', icon: 'military_tech' },
-      { 
-        to: '/admin/category-requests', 
-        label: 'Category Requests', 
-        icon: 'add_circle',
-        indicatorCount: pendingCatRequestsCount
-      },
-      { to: '/admin/about', label: 'Edit About', icon: 'edit_note' },
-      { to: '/admin/settings', label: 'Global Settings', icon: 'settings' },
-      { to: '/admin/audit-logs', label: 'Audit Logs', icon: 'history' },
-    ] : [])
+    ...(isAdmin ? [{
+      label: 'Admin',
+      items: [
+        { to: '/admin/users', label: 'Manage Users', icon: 'group' },
+        { to: '/admin/events', label: 'Manage OTM', icon: 'event' },
+        { to: '/admin/badges', label: 'Badges', icon: 'military_tech' },
+        {
+          to: '/admin/category-requests',
+          label: 'Category Requests',
+          icon: 'add_circle',
+          indicatorCount: pendingCatRequestsCount
+        },
+        { to: '/admin/about', label: 'Edit About', icon: 'edit_note' },
+        { to: '/admin/settings', label: 'Global Settings', icon: 'settings' },
+        { to: '/admin/audit-logs', label: 'Audit Logs', icon: 'history' },
+      ]
+    }] : [])
   ]
 
+  const mainRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0
+    }
+  }, [location.pathname])
+
   return (
-    <div className="flex min-h-screen bg-zinc-950 text-white selection:bg-realm-green selection:text-zinc-950">
+    <div className="flex min-h-screen bg-zinc-950 text-white selection:bg-realm-green selection:text-zinc-950 relative overflow-hidden">
       {/* Mobile Backdrop */}
       <AnimatePresence>
         {isSidebarOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-black/80 z-[60] lg:hidden"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] lg:hidden"
           />
         )}
       </AnimatePresence>
 
-      {/* Premium Glass Sidebar */}
+      {/* Sidebar */}
       <aside className={`
-        fixed inset-y-0 left-0 w-72 border-r border-white/5 bg-zinc-950 p-6 shrink-0 flex flex-col z-[70] transition-transform duration-500 lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen
+        fixed inset-y-0 left-0 w-64 border-r border-white/10 bg-white/[0.02] backdrop-blur-2xl px-4 py-6 shrink-0 flex flex-col z-[70] transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="mb-10 px-2">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 bg-white/5 border border-white/10 rounded overflow-hidden flex items-center justify-center">
+        {/* Header — Logo + User */}
+        <div className="mb-8 px-1">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 bg-white/5 border border-white/10 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
               <img src={logo} className="w-full h-full object-cover" alt="" />
             </div>
-            <h2 className="text-xl font-pixel tracking-tighter text-white">PANEL</h2>
+            <div>
+              <h2 className="text-sm font-pixel tracking-tighter text-white leading-none">PANEL</h2>
+              <p className="text-[9px] text-white/30 font-headline uppercase tracking-widest mt-0.5">Admin Control</p>
+            </div>
           </div>
+
+          {/* User identity card */}
+          {profile && (
+            <div className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/5 rounded-xl">
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-white/10 shrink-0 bg-white/5">
+                {profile.discord_avatar ? (
+                  <img
+                    src={profile.discord_avatar}
+                    alt={profile.discord_username || ''}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-white/20 text-sm">person</span>
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1 flex items-center">
+                <RoleBadge role={profile.role} />
+              </div>
+            </div>
+          )}
         </div>
 
-        <nav className="flex flex-col gap-1.5 flex-grow">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.to
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`flex items-center gap-3 px-3.5 py-2 rounded-lg transition-all duration-300 group ${
-                  isActive 
-                    ? 'bg-realm-green/10 text-realm-green' 
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <span className={`material-symbols-outlined text-[18px] transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110 opacity-60 group-hover:opacity-100'}`}>
-                  {item.icon}
-                </span>
-                <span className="font-headline text-[13px] font-bold tracking-tight">{item.label}</span>
-                {item.indicatorCount && item.indicatorCount > 0 ? (
-                  <span className="ml-auto bg-orange-500 text-zinc-950 text-[10px] font-pixel px-1.5 py-0.5 rounded-md shadow-lg">
-                    {item.indicatorCount}
-                  </span>
-                ) : null}
-                {isActive && (!item.indicatorCount || item.indicatorCount === 0) && (
-                  <motion.div 
-                    layoutId="active-indicator"
-                    className="ml-auto w-1 h-1 rounded-full bg-realm-green" 
-                  />
-                )}
-              </Link>
-            )
-          })}
+        {/* Navigation */}
+        <nav className="flex flex-col gap-5 flex-grow overflow-y-auto scrollbar-thin">
+          {navSections.map((section) => (
+            <div key={section.label}>
+              <p className="text-[9px] font-headline font-bold uppercase tracking-[0.2em] text-white/20 px-4 mb-2">
+                {section.label}
+              </p>
+              <div className="flex flex-col gap-0.5">
+                {section.items.map((item) => {
+                  const isActive = item.to === '/admin' ? location.pathname === '/admin' : location.pathname.startsWith(item.to)
+                  const indicatorCount = (item as any).indicatorCount
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      className={`relative flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group mx-1.5 ${
+                        isActive
+                          ? 'bg-white/5 text-white'
+                          : 'text-white/50 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {/* Active left border */}
+                      {isActive && (
+                        <div
+                          className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-realm-green rounded-r-md"
+                        />
+                      )}
+                      <span className={`material-symbols-outlined text-[17px] shrink-0 transition-all duration-200 ${
+                        isActive ? 'text-white opacity-100' : 'opacity-50 group-hover:opacity-100'
+                      }`}>
+                        {item.icon}
+                      </span>
+                      <span className="font-headline text-[12px] font-bold tracking-tight truncate flex-1">{item.label}</span>
+                      {indicatorCount && indicatorCount > 0 ? (
+                        <span className="shrink-0 bg-orange-500 text-zinc-950 text-[9px] font-pixel px-1.5 py-0.5 rounded-md shadow-lg">
+                          {indicatorCount}
+                        </span>
+                      ) : null}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        <div className="pt-6 border-t border-white/5">
-          <Link 
-            to="/" 
-            className="flex items-center gap-3 px-3.5 py-2 rounded-lg text-white/40 hover:text-white hover:bg-white/5 transition-all group"
+        {/* Footer */}
+        <div className="pt-5 border-t border-white/5 mt-4">
+          {/* Pending queue summary */}
+          {totalPending > 0 && (
+            <div className="mb-3 px-3 py-2 bg-orange-500/10 border border-orange-500/20 rounded-lg flex items-center gap-2">
+              <span className="material-symbols-outlined text-orange-500 text-[14px]">priority_high</span>
+              <span className="text-[10px] font-headline font-bold text-orange-400">
+                {totalPending} item{totalPending !== 1 ? 's' : ''} need attention
+              </span>
+            </div>
+          )}
+
+          <Link
+            to="/"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/30 hover:text-white hover:bg-white/5 transition-all group mb-3 mx-1.5"
           >
-            <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+            <span className="material-symbols-outlined text-[16px] group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
             <span className="font-headline text-[10px] font-bold uppercase tracking-widest">Back to Site</span>
           </Link>
-          <div className="mt-4 px-4 py-2 bg-white/5 border border-white/5 rounded-lg">
-            <p className="text-[10px] font-pixel text-white/20 uppercase tracking-widest">System Version</p>
-            <p className="text-xs font-headline font-bold text-realm-green">v1.9.4</p>
+
+          <div className="px-3 py-2 bg-white/[0.03] border border-white/5 rounded-lg flex items-center justify-between">
+            <div>
+              <p className="text-[9px] font-pixel text-white/20 uppercase tracking-widest">Version</p>
+              <p className="text-[10px] font-headline font-bold text-realm-green mt-0.5">v2.0.0</p>
+            </div>
+            <LiveClock />
           </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 h-[100dvh] lg:h-screen overflow-y-auto relative scrollbar-thin">
+      <main ref={mainRef} className="flex-1 min-w-0 h-[100dvh] lg:h-screen overflow-y-auto relative scrollbar-thin main-scrollbar">
         {/* Mobile Header */}
-        <header className="lg:hidden sticky top-0 z-40 bg-zinc-950 border-b border-white/5 px-6 py-4 flex items-center justify-between">
+        <header className="lg:hidden sticky top-0 z-40 bg-white/[0.02] backdrop-blur-2xl border-b border-white/10 px-5 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-white/5 border border-white/10 rounded overflow-hidden flex items-center justify-center">
+            <div className="w-7 h-7 bg-white/5 border border-white/10 rounded-lg overflow-hidden flex items-center justify-center">
               <img src={logo} className="w-full h-full object-cover" alt="" />
             </div>
-            <h2 className="text-lg font-pixel tracking-tighter text-white">ADMIN</h2>
+            <h2 className="text-sm font-pixel tracking-tighter text-white">ADMIN</h2>
           </div>
-          <button 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white"
-          >
-            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          <div className="flex items-center gap-2">
+            {totalPending > 0 && (
+              <span className="bg-orange-500 text-zinc-950 text-[9px] font-pixel px-1.5 py-0.5 rounded-md">{totalPending}</span>
+            )}
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+            >
+              <span className="material-symbols-outlined text-[20px]">{isSidebarOpen ? 'close' : 'menu'}</span>
+            </button>
+          </div>
         </header>
 
-        {/* Subtle background decorative element */}
-        {/* Background decorative elements removed for performance */}
-        
         <div className="p-6 md:p-10 max-w-7xl mx-auto">
-          <AnimatePresence mode="wait" onExitComplete={() => { 
-            const doScroll = () => {
-              window.scrollTo(0, 0); 
-              document.documentElement.scrollTop = 0; 
-              document.body.scrollTop = 0;
-              const root = document.getElementById('root');
-              if (root) root.scrollTop = 0;
-            };
-            doScroll();
-            setTimeout(doScroll, 50);
-            setTimeout(doScroll, 150);
-          }}>
+          <AnimatePresence mode="wait">
             <Outlet key={location.pathname} />
           </AnimatePresence>
         </div>
@@ -193,4 +275,3 @@ export function AdminLayout() {
     </div>
   )
 }
-

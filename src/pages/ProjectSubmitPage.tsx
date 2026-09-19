@@ -3,18 +3,20 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
 import { supabase } from '../lib/supabase'
-import { ArrowLeft, Loader2, FileText, Layers, Tags, Type, Link, CheckCircle, Wrench, Package, Database, Sparkles, Puzzle, Hammer, PlusCircle, Paintbrush, Activity, Edit3, Eye, Trash2, GripVertical, Globe, Plus } from 'lucide-react'
-import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch } from 'react-icons/si'
+import { ArrowLeft, Loader2, FileText, Layers, Tags, Type, Link, CheckCircle, Package, PackageOpen, Braces, Glasses, Hammer, PlusCircle, Paintbrush, Activity, Edit3, Eye, Trash2, GripVertical, Globe, Plus, Plug, Mail } from 'lucide-react'
+import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch, SiGithub, SiX, SiPatreon, SiKofi } from 'react-icons/si'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { CustomSelect } from '../components/CustomSelect'
 import { ImageUpload } from '../components/ImageUpload'
 import { FileUpload } from '../components/FileUpload'
 import { RichText } from '../components/RichText'
+import { FabricIcon, ForgeIcon, QuiltIcon, NeoForgeIcon, VanillaIcon, PaperIcon, SpigotIcon, PurpurIcon, BukkitIcon } from '../components/icons/PlatformIcons'
 import { useProject, useUserProjects } from '../hooks/queries'
 import { useSubmitProjectMutation, useUploadProjectFileMutation } from '../hooks/mutations'
 import { sendProjectReviewNotification } from '../lib/discord'
 import type { ProjectType, SocialLink } from '../types'
 import { motion, Reorder } from 'framer-motion'
+import { slugify } from '../lib/urlUtils'
 
 interface ReorderableSocialLink extends SocialLink {
   localId: string;
@@ -25,7 +27,7 @@ const CATEGORIES = {
   bedrock: ['Add-ons', 'Resource Pack', 'Behavior Pack', 'Builds']
 }
 
-const PLATFORMS = ['Fabric', 'NeoForge', 'Forge', 'Quilt', 'Vanilla', 'Paper', 'Spigot', 'Purpur', 'Bucket']
+const PLATFORMS = ['Vanilla', 'Fabric', 'Forge', 'NeoForge', 'Paper', 'Quilt', 'Spigot', 'Purpur', 'Bucket']
 const VERSIONS = [
   '26.3-snapshot-3',
   '26.2',
@@ -82,6 +84,7 @@ export function ProjectSubmitPage() {
     gallery_url: '',
     short_description: '',
     social_links: [] as ReorderableSocialLink[],
+    changelogs: [] as any[],
   })
 
   const [projectFile, setProjectFile] = useState<File | null>(null)
@@ -90,6 +93,9 @@ export function ProjectSubmitPage() {
   const [projectGalleryBlob, setProjectGalleryBlob] = useState<Blob | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [changelogTitle, setChangelogTitle] = useState('')
+  const [changelogDescription, setChangelogDescription] = useState('')
+  const changelogFileInputRef = React.useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (existingProject) {
@@ -106,6 +112,7 @@ export function ProjectSubmitPage() {
         gallery_url: (existingProject.gallery && existingProject.gallery.length > 0) ? existingProject.gallery[0] : '',
         short_description: existingProject.short_description || '',
         social_links: (existingProject.social_links || []).map((l: any) => ({ ...l, localId: crypto.randomUUID() })),
+        changelogs: existingProject.changelogs || [],
       })
     }
   }, [existingProject])
@@ -130,15 +137,21 @@ export function ProjectSubmitPage() {
     })
   }
 
-  const generateSlug = (name: string) => {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + '-' + Math.floor(Math.random() * 10000)
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) {
       toast.error('You must be logged in to submit a project.')
       return
+    }
+
+    const slug = slugify(formData.name);
+
+    if (!existingProject) {
+      const { data: existingProjects } = await supabase.from('projects').select('id').eq('slug', slug);
+      if (existingProjects && existingProjects.length > 0) {
+        toast.error('A project with this name already exists. Please choose a different name.')
+        return
+      }
     }
 
     if (!projectIconBlob && !formData.icon_url) {
@@ -147,7 +160,8 @@ export function ProjectSubmitPage() {
     }
 
     if (!projectFile && !existingProject?.file_url) {
-      toast.error('Missing Project File', { description: 'Please upload a project file (.zip, .mcworld, .jar).' })
+      const allowedExts = formData.type === 'java' ? '.zip, .jar, .schem, .litematic' : '.zip, .mcaddon, .mcpack, .mcworld';
+      toast.error('Missing Project File', { description: `Please upload a project file (${allowedExts}).` })
       return
     }
 
@@ -192,7 +206,8 @@ export function ProjectSubmitPage() {
         formData.gallery_url !== ((existingProject?.gallery && existingProject.gallery.length > 0) ? existingProject.gallery[0] : '') ||
         JSON.stringify([...formData.compatibility].sort()) !== JSON.stringify([...(existingProject?.compatibility || [])].sort()) ||
         JSON.stringify([...formData.platforms].sort()) !== JSON.stringify([...(existingProject?.platforms || [])].sort()) ||
-        JSON.stringify(formData.social_links.map(l => ({ platform: l.platform, url: l.url }))) !== JSON.stringify(existingProject?.social_links || []);
+        JSON.stringify(formData.social_links.map(l => ({ platform: l.platform, url: l.url }))) !== JSON.stringify(existingProject?.social_links || []) ||
+        JSON.stringify(formData.changelogs) !== JSON.stringify(existingProject?.changelogs || []);
 
       if (existingProject && !hasChanges) {
         toast.info('No changes detected', { description: 'Your project is already up to date.' })
@@ -221,6 +236,19 @@ export function ProjectSubmitPage() {
           .getPublicUrl(filePath)
           
         finalIconUrl = publicUrl
+        
+        if (existingProject?.icon_url) {
+          try {
+            const oldUrl = new URL(existingProject.icon_url)
+            const pathParts = oldUrl.pathname.split('/project-files/')
+            if (pathParts.length > 1) {
+              const oldPath = decodeURIComponent(pathParts[1])
+              await supabase.storage.from('project-files').remove([oldPath])
+            }
+          } catch (e) {
+            console.error('Failed to delete old icon:', e)
+          }
+        }
       }
 
       if (projectGalleryBlob) {
@@ -239,17 +267,71 @@ export function ProjectSubmitPage() {
           .getPublicUrl(filePath)
           
         finalGalleryUrl = publicUrl
+        
+        const oldGalleryUrl = existingProject?.gallery && existingProject.gallery.length > 0 ? existingProject.gallery[0] : null;
+        if (oldGalleryUrl) {
+          try {
+            const oldUrl = new URL(oldGalleryUrl)
+            const pathParts = oldUrl.pathname.split('/project-files/')
+            if (pathParts.length > 1) {
+              const oldPath = decodeURIComponent(pathParts[1])
+              await supabase.storage.from('project-files').remove([oldPath])
+            }
+          } catch (e) {
+            console.error('Failed to delete old gallery image:', e)
+          }
+        }
       }
 
       if (projectFile) {
-        const path = `files/${crypto.randomUUID()}/${projectFile.name}`
+        let folderId: string = crypto.randomUUID();
+        let oldPath: string | null = null;
+        
+        if (existingProject?.file_url) {
+          try {
+            const oldUrl = new URL(existingProject.file_url)
+            const pathParts = oldUrl.pathname.split('/project-files/')
+            if (pathParts.length > 1) {
+              oldPath = decodeURIComponent(pathParts[1])
+              const folderMatch = oldPath.match(/^files\/([^\/]+)\//)
+              if (folderMatch) {
+                folderId = folderMatch[1]
+              }
+            }
+          } catch (e) {
+            console.error('Failed to parse old project file URL:', e)
+          }
+        }
+
+        const path = `files/${folderId}/${projectFile.name}`
         finalFileUrl = await uploadMutation.mutateAsync({ file: projectFile, path })
+        
+        if (oldPath && oldPath !== path) {
+          try {
+            await supabase.storage.from('project-files').remove([oldPath])
+          } catch (e) {
+            console.error('Failed to delete old project file:', e)
+          }
+        }
       }
 
       if (licenseFile && formData.license === 'Custom') {
         const fileExt = licenseFile.name.split('.').pop()
         const path = `licenses/${crypto.randomUUID()}.${fileExt}`
         finalLicenseUrl = await uploadMutation.mutateAsync({ file: licenseFile, path })
+        
+        if (existingProject?.custom_license_url) {
+          try {
+            const oldUrl = new URL(existingProject.custom_license_url)
+            const pathParts = oldUrl.pathname.split('/project-files/')
+            if (pathParts.length > 1) {
+              const oldPath = decodeURIComponent(pathParts[1])
+              await supabase.storage.from('project-files').remove([oldPath])
+            }
+          } catch (e) {
+            console.error('Failed to delete old license file:', e)
+          }
+        }
       }
 
       let notificationStatus = 'pending'
@@ -267,7 +349,7 @@ export function ProjectSubmitPage() {
         id: projectId || undefined,
         owner_id: user.id,
         name: formData.name,
-        slug: existingProject?.slug || generateSlug(formData.name),
+        slug: existingProject?.slug || slug,
         description: formData.description,
         type: formData.type,
         category: formData.category,
@@ -278,6 +360,7 @@ export function ProjectSubmitPage() {
         icon_url: finalIconUrl || null,
         gallery: finalGalleryUrl ? [finalGalleryUrl] : [],
         social_links: formData.social_links.map(l => ({ platform: l.platform, url: l.url })),
+        changelogs: formData.changelogs,
         short_description: formData.short_description,
         file_url: finalFileUrl,
         status: (e.nativeEvent as SubmitEvent).submitter?.getAttribute('name') === 'submit_review' ? 'pending' : (existingProject?.status || 'draft')
@@ -340,8 +423,8 @@ export function ProjectSubmitPage() {
             />
             
             <FileUpload
-              label="Project File (.zip, .mcworld, .jar)"
-              accept=".zip,.mcworld,.jar"
+              label={`Project File (${formData.type === 'java' ? '.zip, .jar, .schem' : '.zip, .mcaddon, .mcpack, .mcworld'})`}
+              accept={formData.type === 'java' ? '.zip,.jar,.schem,.litematic' : '.zip,.mcaddon,.mcpack,.mcworld'}
               maxSizeMB={30}
               immediateUpload={false}
               value={existingProject?.file_url || projectFile ? 'local-file' : ''}
@@ -374,15 +457,16 @@ export function ProjectSubmitPage() {
                 value={formData.category}
                 onChange={(val) => setFormData({ ...formData, category: val })}
                 options={CATEGORIES[formData.type as ProjectType].map(c => {
-                  const Icon = c === 'Mods' ? Wrench :
-                               c === 'Modpacks' ? Package :
-                               c === 'Datapacks' ? Database :
-                               c === 'Shaders' ? Sparkles :
-                               c === 'Plugins' ? Puzzle :
-                               c === 'Builds' ? Hammer :
-                               c === 'Add-ons' ? PlusCircle :
-                               c === 'Resource Pack' ? Paintbrush :
-                               c === 'Behavior Pack' ? Activity :
+                  const lower = c.toLowerCase();
+                  const Icon = lower.includes('modpacks') ? PackageOpen :
+                               lower.includes('mods') ? Package :
+                               lower.includes('datapacks') ? Braces :
+                               lower.includes('shaders') ? Glasses :
+                               lower.includes('plugins') ? Plug :
+                               lower.includes('resource') ? Paintbrush :
+                               lower.includes('builds') ? Hammer :
+                               lower.includes('behavior') ? Activity :
+                               lower.includes('add-ons') ? PlusCircle :
                                Layers;
                   
                   return { 
@@ -531,7 +615,7 @@ export function ProjectSubmitPage() {
                         <div className="cursor-grab active:cursor-grabbing p-1.5 text-zinc-600 hover:text-zinc-400 transition-colors hidden sm:block touch-none">
                           <GripVertical className="w-4 h-4" />
                         </div>
-                        <div className="flex-1 sm:w-40 sm:flex-none">
+                        <div className="flex-1 sm:w-auto sm:flex-none">
                           <CustomSelect
                             value={link.platform}
                             onChange={(val) => {
@@ -540,14 +624,21 @@ export function ProjectSubmitPage() {
                               setFormData(prev => ({ ...prev, social_links: newLinks }))
                             }}
                             options={[
-                              { key: 'discord', label: 'Discord', icon: <SiDiscord className="w-4 h-4 text-[#5865F2]" /> },
-                              { key: 'youtube', label: 'YouTube', icon: <SiYoutube className="w-4 h-4 text-[#FF0000]" /> },
-                              { key: 'instagram', label: 'Instagram', icon: <SiInstagram className="w-4 h-4 text-[#E4405F]" /> },
-                              { key: 'tiktok', label: 'TikTok', icon: <SiTiktok className="w-4 h-4 text-white" /> },
-                              { key: 'twitch', label: 'Twitch', icon: <SiTwitch className="w-4 h-4 text-[#9146FF]" /> },
-                              { key: 'facebook', label: 'Facebook', icon: <SiFacebook className="w-4 h-4 text-[#1877F2]" /> },
-                              { key: 'website', label: 'Website', icon: <Globe className="w-4 h-4 text-blue-400" /> },
+                              { key: 'discord', label: 'Discord', icon: <SiDiscord className="w-4 h-4 text-zinc-400" /> },
+                              { key: 'github', label: 'GitHub', icon: <SiGithub className="w-4 h-4 text-zinc-400" /> },
+                              { key: 'x', label: 'X (Twitter)', icon: <SiX className="w-4 h-4 text-zinc-400" /> },
+                              { key: 'youtube', label: 'YouTube', icon: <SiYoutube className="w-4 h-4 text-zinc-400" /> },
+                              { key: 'instagram', label: 'Instagram', icon: <SiInstagram className="w-4 h-4 text-zinc-400" /> },
+                              { key: 'tiktok', label: 'TikTok', icon: <SiTiktok className="w-4 h-4 text-zinc-400" /> },
+                              { key: 'twitch', label: 'Twitch', icon: <SiTwitch className="w-4 h-4 text-zinc-400" /> },
+                              { key: 'facebook', label: 'Facebook', icon: <SiFacebook className="w-4 h-4 text-zinc-400" /> },
+                              { key: 'patreon', label: 'Patreon', icon: <SiPatreon className="w-4 h-4 text-zinc-400" /> },
+                              { key: 'kofi', label: 'Ko-fi', icon: <SiKofi className="w-4 h-4 text-zinc-400" /> },
+                              { key: 'website', label: 'Website', icon: <Globe className="w-4 h-4 text-zinc-400" /> },
+                              { key: 'email', label: 'Email', icon: <Mail className="w-4 h-4 text-zinc-400" /> },
                             ]}
+                            className="w-auto flex-shrink-0"
+                            hideLabel={true}
                           />
                         </div>
                       </div>
@@ -603,6 +694,121 @@ export function ProjectSubmitPage() {
               <p className="text-zinc-500 text-[10px] font-headline">Max 1 picture, PNG/JPG up to 5MB.</p>
             </div>
 
+            <div className="space-y-2 col-span-2">
+              <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
+                <FileText className="w-3 h-3" /> Changelog
+              </label>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 md:p-6 space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-zinc-400 font-headline uppercase tracking-widest">
+                    Changelog Title
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={100}
+                    placeholder="e.g. Your Project 1.2"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline text-sm"
+                    value={changelogTitle}
+                    onChange={(e) => setChangelogTitle(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-zinc-400 font-headline uppercase tracking-widest">
+                    Description
+                  </label>
+                  <textarea
+                    maxLength={2000}
+                    placeholder="What's new in this update?"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white outline-none focus:border-realm-green transition-all font-headline resize-y min-h-[120px] text-sm"
+                    value={changelogDescription}
+                    onChange={(e) => setChangelogDescription(e.target.value)}
+                  ></textarea>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!changelogTitle.trim() || !changelogDescription.trim()) {
+                        toast.error('Missing Changelog Info', { description: 'Please fill in both title and description.' })
+                        return
+                      }
+                      
+                      changelogFileInputRef.current?.click()
+                    }}
+                    className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg font-headline font-bold text-sm transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add & Update File
+                  </button>
+                  <input
+                    type="file"
+                    ref={changelogFileInputRef}
+                    accept={formData.type === 'java' ? '.zip,.jar,.schem,.litematic' : '.zip,.mcaddon,.mcpack,.mcworld'}
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+
+                      if (file.size > 30 * 1024 * 1024) {
+                        toast.error('File too large', { description: 'Project file must be under 30MB.' })
+                        if (changelogFileInputRef.current) changelogFileInputRef.current.value = ''
+                        return
+                      }
+
+                      const newChangelog = {
+                        title: changelogTitle.trim(),
+                        description: changelogDescription.trim(),
+                        created_at: new Date().toISOString()
+                      }
+                      
+                      setFormData(prev => ({
+                        ...prev,
+                        changelogs: [newChangelog, ...prev.changelogs]
+                      }))
+                      
+                      setChangelogTitle('')
+                      setChangelogDescription('')
+                      setProjectFile(file)
+                      
+                      if (changelogFileInputRef.current) changelogFileInputRef.current.value = ''
+                      
+                      toast.success('Changelog Added', { description: 'Project File updated with the new upload.' })
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                  />
+                </div>
+                
+                {formData.changelogs.length > 0 && (
+                  <div className="mt-6 pt-6 border-t border-zinc-800 space-y-4">
+                    <h4 className="text-sm font-bold text-white font-headline">Recent Changelogs</h4>
+                    <div className="space-y-3">
+                      {formData.changelogs.map((log: any, idx: number) => (
+                        <div key={idx} className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg relative group">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                changelogs: prev.changelogs.filter((_, i) => i !== idx)
+                              }))
+                            }}
+                            className="absolute top-3 right-3 text-zinc-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <h5 className="text-white font-bold text-sm mb-1">{log.title}</h5>
+                          <p className="text-zinc-400 text-xs font-body whitespace-pre-wrap">{log.description}</p>
+                          <div className="text-zinc-600 text-[10px] uppercase font-headline tracking-widest mt-2">
+                            {new Date(log.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-2 col-span-2 md:col-span-1">
               <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2 mb-3">
                 <CheckCircle className="w-3 h-3" /> Minecraft Versions
@@ -631,20 +837,35 @@ export function ProjectSubmitPage() {
                   <Layers className="w-3 h-3" /> Platforms
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {PLATFORMS.map(platform => (
-                    <button
-                      key={platform}
-                      type="button"
-                      onClick={() => toggleArrayItem('platforms', platform)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-headline font-bold transition-all active:scale-95 border ${
-                        formData.platforms.includes(platform) 
-                          ? 'bg-realm-green/10 text-realm-green border-realm-green' 
-                          : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-300 hover:border-zinc-700'
-                      }`}
-                    >
-                      {platform}
-                    </button>
-                  ))}
+                  {PLATFORMS.map(platform => {
+                    const lower = platform.toLowerCase();
+                    let Icon = VanillaIcon;
+                    if (lower === 'fabric') Icon = FabricIcon;
+                    else if (lower === 'neoforge') Icon = NeoForgeIcon;
+                    else if (lower.includes('forge')) Icon = ForgeIcon;
+                    else if (lower === 'quilt') Icon = QuiltIcon;
+                    else if (lower === 'vanilla') Icon = VanillaIcon;
+                    else if (lower === 'paper') Icon = PaperIcon;
+                    else if (lower === 'spigot') Icon = SpigotIcon;
+                    else if (lower === 'purpur') Icon = PurpurIcon;
+                    else if (lower === 'bucket' || lower === 'bukkit') Icon = BukkitIcon;
+                    
+                    return (
+                      <button
+                        key={platform}
+                        type="button"
+                        onClick={() => toggleArrayItem('platforms', platform)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-headline font-bold transition-all active:scale-95 border ${
+                          formData.platforms.includes(platform) 
+                            ? 'bg-realm-green/10 text-realm-green border-realm-green' 
+                            : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-300 hover:border-zinc-700'
+                        }`}
+                      >
+                        <Icon className={`w-3.5 h-3.5 ${formData.platforms.includes(platform) ? 'text-realm-green' : 'text-zinc-400'}`} />
+                        {platform}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}

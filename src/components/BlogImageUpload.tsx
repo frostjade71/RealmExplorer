@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { convertToWebP } from '../lib/imageUtils'
 import { useAuth } from '../contexts/AuthContext'
-import { Image as ImageIcon, Upload, X, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion'
 
 interface BlogImageUploadProps {
@@ -124,7 +123,7 @@ export function BlogImageUpload({ label, onUpload, value }: BlogImageUploadProps
                 className="flex flex-col items-center gap-3 z-20"
               >
                 <div className="relative w-12 h-12 flex items-center justify-center">
-                  <Loader2 className="absolute inset-0 w-full h-full text-realm-green animate-spin opacity-20" />
+                  <div className="absolute inset-0 w-full h-full border-2 border-realm-green/20 border-t-realm-green rounded-full animate-spin" />
                   <motion.span className="text-[10px] font-pixel text-realm-green">
                     {progressDisplay}
                   </motion.span>
@@ -151,7 +150,7 @@ export function BlogImageUpload({ label, onUpload, value }: BlogImageUploadProps
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 text-center">
-                  <Upload className="w-6 h-6 text-realm-green" />
+                  <span className="material-symbols-outlined text-2xl text-realm-green">upload</span>
                   <span className="text-[10px] font-bold text-white uppercase tracking-widest font-headline px-4">Change Cover Image</span>
                 </div>
                 <button
@@ -160,9 +159,9 @@ export function BlogImageUpload({ label, onUpload, value }: BlogImageUploadProps
                     e.stopPropagation()
                     removeImage()
                   }}
-                  className="absolute top-4 right-4 z-30 bg-red-500/80 text-white p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 shadow-xl"
+                  className="absolute top-4 right-4 z-30 bg-red-500/80 text-white p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 shadow-xl flex items-center justify-center"
                 >
-                  <X className="w-4 h-4" />
+                  <span className="material-symbols-outlined text-base">close</span>
                 </button>
               </motion.div>
             ) : (
@@ -174,7 +173,7 @@ export function BlogImageUpload({ label, onUpload, value }: BlogImageUploadProps
                 className="flex flex-col items-center justify-center p-8"
               >
                 <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 group-hover:border-realm-green/50 transition-colors">
-                  <ImageIcon className="w-8 h-8 text-zinc-600 group-hover:text-realm-green transition-colors" />
+                  <span className="material-symbols-outlined text-3xl text-zinc-600 group-hover:text-realm-green transition-colors">image</span>
                 </div>
                 <span className="text-sm text-zinc-400 font-headline font-bold uppercase tracking-widest mb-1 group-hover:text-white transition-colors">
                   Upload Cover Image

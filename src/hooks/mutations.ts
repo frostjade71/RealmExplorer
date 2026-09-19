@@ -1286,6 +1286,15 @@ export function useUpdateSiteSettingMutation() {
       if (error) throw error
       
       await logAction('SITE_SETTING_UPDATED', { key }, adminId, adminName)
+
+      await sendLogNotification({
+        action: key === 'homepage_intro' ? '⚙️ Intro Updated' : '⚙️ Site Setting Updated',
+        adminName: adminName,
+        details: key === 'homepage_intro' 
+          ? 'The Homepage intro was updated.' 
+          : `The global setting **${key}** was updated.`,
+        color: 0x3498db
+      })
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['siteSetting', variables.key] })
@@ -1296,8 +1305,8 @@ export function useUpdateSiteSettingMutation() {
 export function useSubmitReportMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (data: { reporter_id: string; server_id: string; subject: string; message: string }) => {
-      const { error } = await supabase.from('reports').insert([data])
+    mutationFn: async (data: { reporter_id: string; server_id?: string | null; project_id?: string | null; subject: string; message: string }) => {
+      const { error } = await supabase.from('reports' as any).insert([data] as any)
       if (error) throw error
     },
     onSuccess: () => {
@@ -1323,13 +1332,14 @@ export function useUpdateReportStatusMutation() {
       // 1. Get report details before update
       const { data: report } = await supabase
         .from('reports')
-        .select('*, servers(name, slug)')
+        .select('*, servers(name, slug), projects(name, slug)')
         .eq('id', id)
         .single()
       
       if (!report) throw new Error('Report not found')
 
-      const serverName = (report as any).servers?.name || 'Unknown Server'
+      const targetName = (report as any).servers?.name || (report as any).projects?.name || 'Unknown'
+      const isProject = !(report as any).server_id && !!(report as any).project_id
 
       // 2. Update status
       const { error: updateError } = await supabase
@@ -1341,12 +1351,13 @@ export function useUpdateReportStatusMutation() {
 
       // 3. Create Notification for reporter
       let notificationMessage = ''
+      const targetLabel = isProject ? 'Project' : 'Server'
       if (status === 'reviewing') {
-        notificationMessage = `Your Report to ${serverName} is now being reviewed`
+        notificationMessage = `Your Report on ${targetLabel} "${targetName}" is now being reviewed`
       } else if (status === 'resolved') {
-        notificationMessage = `Your Report to ${serverName} has been Resolved`
+        notificationMessage = `Your Report on ${targetLabel} "${targetName}" has been Resolved`
       } else if (status === 'rejected') {
-        notificationMessage = `Your Report to ${serverName} has been rejected`
+        notificationMessage = `Your Report on ${targetLabel} "${targetName}" has been rejected`
       }
 
       await supabase.from('notifications').insert({
@@ -1354,7 +1365,7 @@ export function useUpdateReportStatusMutation() {
         type: 'report_update',
         title: 'Report Update',
         message: notificationMessage,
-        related_id: report.server_id
+        related_id: (report as any).server_id || (report as any).project_id
       } as any)
 
       // 4. Log Action
@@ -1364,7 +1375,7 @@ export function useUpdateReportStatusMutation() {
 
       await logAction(
         actionName,
-        { serverName, subject: report.subject },
+        { targetName, subject: report.subject },
         adminId,
         adminName,
         id
@@ -1373,7 +1384,7 @@ export function useUpdateReportStatusMutation() {
       await sendLogNotification({
         action: '🚩 Report Status Updated',
         adminName: adminName,
-        details: `Report for **${serverName}** marked as **${status}** (previously: \`${report.status}\`).\n**Subject:** ${report.subject}`,
+        details: `Report for **${targetName}** marked as **${status}** (previously: \`${report.status}\`).\n**Subject:** ${report.subject}`,
         color: status === 'resolved' ? 0x2ecc71 : status === 'rejected' ? 0xe74c3c : 0xf1c40f
       })
     },
@@ -1578,21 +1589,7 @@ export function useUpdateProjectStatusMutation() {
           id
         )
 
-        if ((status === 'approved' || status === 'rejected') && project?.name && status !== project.status) {
-          await sendSubmissionLogNotification({
-            targetName: project.name,
-            isProject: true,
-            status: status === 'approved' ? 'approved' : 'denied',
-            adminName: adminName || 'A Staff Member',
-            previousStatus: project.status
-          })
-        } else if (status !== 'approved' && status !== 'rejected' && project?.name && status !== project.status) {
-          await sendLogNotification({
-            action: '📝 Project Status Updated',
-            adminName: adminName,
-            details: `**${project.name}** status changed to **${status}** (previously: \`${project.status}\`).`,
-          })
-        } else if (status === 'approved' && project?.name && status !== project.status) {
+        if (status === 'approved' && project?.name && status !== project.status) {
           if (!project.has_been_approved) {
             await sendApprovalNotification({
               serverName: project.name,
@@ -1625,6 +1622,22 @@ export function useUpdateProjectStatusMutation() {
               isProject: true
             })
           }
+        }
+
+        if ((status === 'approved' || status === 'rejected') && project?.name && status !== project.status) {
+          await sendSubmissionLogNotification({
+            targetName: project.name,
+            isProject: true,
+            status: status === 'approved' ? 'approved' : 'denied',
+            adminName: adminName || 'A Staff Member',
+            previousStatus: project.status
+          })
+        } else if (status !== 'approved' && status !== 'rejected' && project?.name && status !== project.status) {
+          await sendLogNotification({
+            action: '📝 Project Status Updated',
+            adminName: adminName,
+            details: `**${project.name}** status changed to **${status}** (previously: \`${project.status}\`).`,
+          })
         }
       }
 
@@ -1772,8 +1785,8 @@ export function useIncrementProjectDownloadMutation() {
       if (error) throw error
       return data
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project'] })
     }
   })
 }
@@ -1797,10 +1810,7 @@ export function useToggleProjectLikeMutation() {
       }
     },
     onSuccess: () => {
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['projectLikes'] })
-        queryClient.invalidateQueries({ queryKey: ['project'] })
-      }, 500)
+      queryClient.invalidateQueries({ queryKey: ['projectLikes'] })
     }
   })
 }
@@ -1824,11 +1834,8 @@ export function useToggleProjectSaveMutation() {
       }
     },
     onSuccess: () => {
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['projectSaves'] })
-        queryClient.invalidateQueries({ queryKey: ['project'] })
-        queryClient.invalidateQueries({ queryKey: ['savedProjects'] })
-      }, 500)
+      queryClient.invalidateQueries({ queryKey: ['projectSaves'] })
+      queryClient.invalidateQueries({ queryKey: ['savedProjects'] })
     }
   })
 }

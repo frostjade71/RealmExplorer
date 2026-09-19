@@ -25,7 +25,16 @@ import {
   Info,
   Eye,
   Edit3,
-  Loader2
+  Loader2,
+  Pickaxe,
+  Swords,
+  Cloud,
+  Target,
+  Box,
+  Lock,
+  Gamepad2,
+  Settings,
+  Mail
 } from "lucide-react";
 import {
   SiDiscord,
@@ -34,10 +43,14 @@ import {
   SiTiktok,
   SiFacebook,
   SiTwitch,
+  SiGithub,
+  SiX,
+  SiPatreon,
+  SiKofi,
 } from "react-icons/si";
 import { AnimatedPage } from "../components/AnimatedPage";
 import { FramerIn } from "../components/FramerIn";
-import { motion, Reorder } from "framer-motion";
+import { motion, Reorder, AnimatePresence } from "framer-motion";
 import { ImageUpload } from "../components/ImageUpload";
 import { slugify } from "../lib/urlUtils";
 import { toast } from "sonner";
@@ -45,13 +58,6 @@ import { CustomSelect } from "../components/CustomSelect";
 import { RichText } from "../components/RichText";
 
 // Category Icons
-import factionsIcon from "../assets/category/7587-netherite-sword.png";
-import kitpvpIcon from "../assets/category/95615-mace.png";
-import skyblockIcon from "../assets/category/41601-minecraftoaktree.png";
-import moddedIcon from "../assets/category/437888-bedrock.png";
-import smpIcon from "../assets/category/708066-iron-pickaxe (1).png";
-import skygenIcon from "../assets/category/89458-iron-block.png";
-import prisonIcon from "../assets/category/7504_Iron_Bars.png";
 
 interface ReorderableSocialLink extends SocialLink {
   localId: string;
@@ -63,9 +69,10 @@ export function SubmitPage() {
   const roleParam = searchParams.get("role") || "Owner";
 
   const isEditing = !!id;
-  const { user, hasPremiumPerks } = useAuth();
+  const { user, profile, hasPremiumPerks } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [showNuvotifierInfo, setShowNuvotifierInfo] = useState(false);
 
   const limits = {
     gallery: hasPremiumPerks ? 5 : 1,
@@ -547,63 +554,57 @@ export function SubmitPage() {
     "skyblock",
     "skygen",
     "prison",
+    "minigames",
     "smp",
     "modded",
     "other",
   ];
 
-  const categoryOptions = categories.map((c) => ({
-    key: c,
-    label: c.charAt(0).toUpperCase() + c.slice(1),
-    icon: (() => {
-      const icons: Record<string, string> = {
-        smp: smpIcon,
-        factions: factionsIcon,
-        kitpvp: kitpvpIcon,
-        skyblock: skyblockIcon,
-        skygen: skygenIcon,
-        prison: prisonIcon,
-        modded: moddedIcon,
-      };
-      return icons[c] ? (
-        <img src={icons[c]} alt="" className="w-5 h-5 object-contain" />
-      ) : (
-        <MoreHorizontal className="w-5 h-5 text-zinc-500" />
-      );
-    })(),
-  }));
+  const categoryLabels: Record<string, string> = {
+    smp: "SMP",
+    factions: "Factions",
+    kitpvp: "KitPvP",
+    skyblock: "Skyblock",
+    skygen: "SkyGen",
+    prison: "Prison",
+    minigames: "Mini Games",
+    modded: "Modded",
+    other: "Other",
+  };
+
+  const categoryOptions = categories.map((c) => {
+    const Icon = {
+      smp: Pickaxe,
+      factions: Swords,
+      skyblock: Cloud,
+      kitpvp: Target,
+      skygen: Box,
+      prison: Lock,
+      minigames: Gamepad2,
+      modded: Settings,
+      other: MoreHorizontal,
+    }[c] || MoreHorizontal;
+
+    return {
+      key: c,
+      label: categoryLabels[c] || c.charAt(0).toUpperCase() + c.slice(1),
+      icon: <Icon className="w-4 h-4 text-zinc-400" />
+    };
+  });
 
   const socialOptions = [
-    {
-      key: "website",
-      label: "Website",
-      icon: <Globe className="w-3.5 h-3.5" />,
-    },
-    {
-      key: "instagram",
-      label: "Instagram",
-      icon: <SiInstagram className="w-3.5 h-3.5" />,
-    },
-    {
-      key: "youtube",
-      label: "YouTube",
-      icon: <SiYoutube className="w-3.5 h-3.5" />,
-    },
-    {
-      key: "tiktok",
-      label: "TikTok",
-      icon: <SiTiktok className="w-3.5 h-3.5" />,
-    },
-    {
-      key: "facebook",
-      label: "Facebook",
-      icon: <SiFacebook className="w-3.5 h-3.5" />,
-    },
-    {
-      key: "twitch",
-      label: "Twitch",
-      icon: <SiTwitch className="w-3.5 h-3.5" />,
-    },
+    { key: "website", label: "Website", icon: <Globe className="w-3.5 h-3.5" /> },
+    { key: "discord", label: "Discord", icon: <SiDiscord className="w-3.5 h-3.5" /> },
+    { key: "github", label: "GitHub", icon: <SiGithub className="w-3.5 h-3.5" /> },
+    { key: "x", label: "X (Twitter)", icon: <SiX className="w-3.5 h-3.5" /> },
+    { key: "instagram", label: "Instagram", icon: <SiInstagram className="w-3.5 h-3.5" /> },
+    { key: "youtube", label: "YouTube", icon: <SiYoutube className="w-3.5 h-3.5" /> },
+    { key: "tiktok", label: "TikTok", icon: <SiTiktok className="w-3.5 h-3.5" /> },
+    { key: "twitch", label: "Twitch", icon: <SiTwitch className="w-3.5 h-3.5" /> },
+    { key: "facebook", label: "Facebook", icon: <SiFacebook className="w-3.5 h-3.5" /> },
+    { key: "patreon", label: "Patreon", icon: <SiPatreon className="w-3.5 h-3.5" /> },
+    { key: "kofi", label: "Ko-fi", icon: <SiKofi className="w-3.5 h-3.5" /> },
+    { key: "email", label: "Email", icon: <Mail className="w-3.5 h-3.5" /> },
   ];
 
   const roleOptions = [
@@ -631,8 +632,15 @@ export function SubmitPage() {
       <FramerIn delay={0.2}>
         <div className="mb-6 flex justify-center">
           <div className="inline-flex items-center gap-3 bg-zinc-900 border border-zinc-800 px-6 py-3 rounded-xl shadow-xl">
-            <div className="w-10 h-10 bg-realm-green/10 rounded-lg flex items-center justify-center">
-              <User className="w-5 h-5 text-realm-green" />
+            <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-800 border border-zinc-700/50 flex items-center justify-center shrink-0">
+              <img
+                src={profile?.discord_avatar || "https://cdn.discordapp.com/embed/avatars/0.png"}
+                alt={profile?.discord_username || "User avatar"}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "https://cdn.discordapp.com/embed/avatars/0.png";
+                }}
+              />
             </div>
             <div>
               <p className="text-[10px] text-zinc-500 font-headline uppercase tracking-widest leading-none mb-1">
@@ -699,16 +707,16 @@ export function SubmitPage() {
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, type: "server" })}
-                  className={`flex-1 py-3 px-4 rounded-lg border flex items-center justify-center gap-2 font-headline font-bold transition-all active:scale-95 whitespace-nowrap ${formData.type === "server" ? "bg-realm-green/10 border-realm-green text-realm-green" : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300"}`}
+                  className={`flex-1 py-3 px-4 rounded-lg border flex items-center justify-center gap-2 font-headline font-bold transition-all active:scale-95 whitespace-nowrap bg-zinc-950 ${formData.type === "server" ? "border-realm-green text-white" : "border-zinc-800 text-zinc-500 hover:text-zinc-300"}`}
                 >
-                  <Server className="w-4 h-4" /> Server
+                  <Server className="w-4 h-4 text-realm-green" /> Server
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, type: "realm" })}
-                  className={`flex-1 py-3 px-4 rounded-lg border flex items-center justify-center gap-2 font-headline font-bold transition-all active:scale-95 whitespace-nowrap ${formData.type === "realm" ? "bg-realm-green/10 border-realm-green text-realm-green" : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300"}`}
+                  className={`flex-1 py-3 px-4 rounded-lg border flex items-center justify-center gap-2 font-headline font-bold transition-all active:scale-95 whitespace-nowrap bg-zinc-950 ${formData.type === "realm" ? "border-purple-500 text-white" : "border-zinc-800 text-zinc-500 hover:text-zinc-300"}`}
                 >
-                  <Globe className="w-4 h-4" /> Realm
+                  <Box className="w-4 h-4 text-purple-500" /> Realm
                 </button>
               </div>
             </div>
@@ -967,29 +975,31 @@ export function SubmitPage() {
                   <Reorder.Item
                     key={link.localId}
                     value={link}
-                    className="flex gap-2 items-center group"
+                    className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 bg-zinc-950 border border-zinc-800 p-2 sm:p-3 rounded-lg group relative"
                   >
-                    <div className="cursor-grab active:cursor-grabbing p-1 text-zinc-700 hover:text-zinc-400 transition-colors flex-shrink-0">
-                      <GripVertical className="w-4 h-4" />
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <div className="cursor-grab active:cursor-grabbing p-1.5 text-zinc-600 hover:text-zinc-400 transition-colors hidden sm:block touch-none">
+                        <GripVertical className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 sm:w-auto sm:flex-none">
+                        <CustomSelect
+                          value={link.platform}
+                          onChange={(val) => {
+                            const newLinks = [...(formData.social_links || [])];
+                            newLinks[index].platform = val;
+                            setFormData({ ...formData, social_links: newLinks });
+                          }}
+                          options={socialOptions}
+                          className="w-auto flex-shrink-0"
+                          hideLabel={true}
+                        />
+                      </div>
                     </div>
-
-                    <div className="flex-1 flex gap-2 items-center bg-zinc-950 border border-zinc-800 p-2 rounded-lg min-w-0">
-                      <CustomSelect
-                        value={link.platform}
-                        onChange={(val) => {
-                          const newLinks = [...(formData.social_links || [])];
-                          newLinks[index].platform = val;
-                          setFormData({ ...formData, social_links: newLinks });
-                        }}
-                        options={socialOptions}
-                        className="w-16 md:w-36 flex-shrink-0"
-                        hideLabelMobile={true}
-                      />
-                      <div className="h-4 w-px bg-zinc-800 mx-1 flex-shrink-0" />
+                    <div className="flex items-center gap-2 w-full sm:flex-1">
                       <input
                         type="url"
                         placeholder="https://..."
-                        className="flex-1 min-w-0 bg-transparent border-none text-sm text-white outline-none font-headline focus:ring-0"
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-white outline-none focus:border-realm-green transition-all font-headline text-xs"
                         value={link.url}
                         onChange={(e) => {
                           const newLinks = [...(formData.social_links || [])];
@@ -997,28 +1007,27 @@ export function SubmitPage() {
                           setFormData({ ...formData, social_links: newLinks });
                         }}
                       />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newLinks = (formData.social_links || []).filter(
+                            (_, i) => i !== index,
+                          );
+                          setFormData({ ...formData, social_links: newLinks });
+                        }}
+                        className="p-2.5 text-red-500/50 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                        title="Remove Link"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newLinks = (formData.social_links || []).filter(
-                          (_, i) => i !== index,
-                        );
-                        setFormData({ ...formData, social_links: newLinks });
-                      }}
-                      className="p-2 text-zinc-600 hover:text-red-400 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100 flex-shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </Reorder.Item>
                 ))}
 
                 {formData.social_links?.length === 0 && (
-                  <div className="py-4 text-center border-2 border-dashed border-zinc-800 rounded-lg">
-                    <p className="text-zinc-600 text-[10px] font-headline uppercase tracking-widest">
-                      No social links added yet
-                    </p>
+                  <div className="text-center py-6 bg-zinc-950/50 border border-dashed border-zinc-800 rounded-lg">
+                    <Globe className="w-6 h-6 text-zinc-600 mx-auto mb-2" />
+                    <p className="text-zinc-500 font-headline text-xs">No social links added yet.</p>
                   </div>
                 )}
               </Reorder.Group>
@@ -1233,10 +1242,20 @@ export function SubmitPage() {
 
             {formData.type === "server" && (
               <div className="space-y-4 col-span-2 pt-6 border-t border-zinc-800">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[14px]">hub</span> NuVotifier Configuration
-                  </label>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[14px]">hub</span> NuVotifier Configuration
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowNuvotifierInfo(!showNuvotifierInfo)}
+                      className="text-zinc-500 hover:text-white transition-colors"
+                      title="What is NuVotifier?"
+                    >
+                      <Info size={16} />
+                    </button>
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-headline">Enable Votifier</span>
                     <button
@@ -1251,6 +1270,35 @@ export function SubmitPage() {
                     </button>
                   </div>
                 </div>
+
+                <AnimatePresence>
+                  {showNuvotifierInfo && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden mb-4"
+                    >
+                      <div className="bg-zinc-900/50 border border-white/5 p-4 rounded-xl text-sm text-zinc-400">
+                        <p className="mb-2">
+                          <strong className="text-white">NuVotifier</strong> is a plugin that allows your server to be notified when a user votes for it on Realm Explorer. 
+                          You can use this to automatically reward players in-game!
+                        </p>
+                        <p>
+                          Learn how to set it up by reading our{" "}
+                          <a 
+                            href="/docs?tab=listing-servers#votifier-integration" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-realm-green font-bold underline hover:text-realm-green/80 transition-colors"
+                          >
+                            Integration Guide
+                          </a>.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {formData.enable_votifier && (
                   <motion.div

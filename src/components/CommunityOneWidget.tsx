@@ -142,8 +142,7 @@ export function CommunityOneWidget() {
     '/servers',
     '/admin',
     '/profile',
-    '/submit',
-    '/status'
+    '/submit'
   ]
   const shouldHideWidget = hiddenPaths.some(path => location.pathname.startsWith(path))
 

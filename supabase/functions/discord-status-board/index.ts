@@ -70,7 +70,10 @@ serve(async (req: Request) => {
         await fetch(`https://discord.com/api/v10/channels/${DISCORD_CHANNEL_ID}/messages/${messageId}`, {
           method: "PATCH",
           headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ embeds: [generateEmbed(stats)] }),
+          body: JSON.stringify({ 
+            embeds: [generateEmbed(stats)],
+            components: generateComponents()
+          }),
         });
       }
 
@@ -95,7 +98,10 @@ serve(async (req: Request) => {
     if (messageId === "INITIALIZING") messageId = null;
 
     const discordUrl = `https://discord.com/api/v10/channels/${DISCORD_CHANNEL_ID}/messages`;
-    const payload = { embeds: [generateEmbed(stats)] };
+    const payload = { 
+      embeds: [generateEmbed(stats)],
+      components: generateComponents()
+    };
 
     if (messageId) {
       let res = await fetch(`${discordUrl}/${messageId}`, {
@@ -167,18 +173,33 @@ function generateEmbed(stats: any) {
   return {
     title: "<a:mchop:1296934851592589336> Realm Explorer - Live Status",
     description: "Real-time metrics from the Realm Explorer website.",
-    color: 5763719,
+    color: 0x4EC44E,
     fields: [
       { name: "👥 Total Users", value: `\`${stats.userCount || 0}\``, inline: true },
       { name: "<:servers:1296934822362742937> Active Servers", value: `\`${stats.serverCount || 0}\``, inline: true },
       { name: "🗳️ Total Votes", value: `\`${stats.voteCount || 0}\``, inline: true },
       { name: `${onlineEmoji} Database`, value: "Operational", inline: true },
       { name: `${onlineEmoji} Edge`, value: "Operational", inline: true },
-      { name: `${stats.websiteOnline ? onlineEmoji : offlineEmoji} Portal`, value: stats.websiteOnline ? "Operational" : "Down / Issue", inline: true },
-      { name: "\u200B", value: "-# Status Page: https://www.realmexplorer.xyz/status", inline: false },
+      { name: `${stats.websiteOnline ? onlineEmoji : offlineEmoji} Portal`, value: stats.websiteOnline ? "Operational" : "Down / Issue", inline: true }
     ],
     timestamp: new Date().toISOString(),
-    footer: { text: "Updates every 5 minutes • Realm Explorer Bot" },
+    footer: { text: "Updates every 5 minutes" },
   };
+}
+
+function generateComponents() {
+  return [
+    {
+      type: 1,
+      components: [
+        {
+          type: 2,
+          style: 5,
+          label: "Status Page",
+          url: "https://status.realmexplorer.xyz/"
+        }
+      ]
+    }
+  ];
 }
 

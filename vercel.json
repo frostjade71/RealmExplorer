@@ -63,6 +63,11 @@
   ],
   "redirects": [
     {
+      "source": "/status",
+      "destination": "https://status.realmexplorer.xyz",
+      "permanent": true
+    },
+    {
       "source": "/(.*)",
       "has": [
         {

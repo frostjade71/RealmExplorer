@@ -1,28 +1,23 @@
 import { Link } from 'react-router-dom'
 import type { Server } from '../types'
 import { CategoryBadge } from './CategoryBadge'
-import voteIcon from '../assets/leaderboards/1139-voteup.png'
-import ratingIcon from '../assets/leaderboards/star.png'
 import { motion, type Variants } from 'framer-motion'
 import { slugify } from '../lib/urlUtils'
 import directoryHero from '../assets/hero/directoryhero.jpg'
-import serverGif from '../assets/category/gif/6128-minecraft.gif'
-import realmGif from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
+import { Server as ServerIcon, Box, WifiOff } from 'lucide-react'
 
 export function SponsorServerCard({ 
   server, 
   showStatus = false,
   actions,
   showRole = false,
-  hideVotes = false,
-  hideRatings = false
+  priority = false
 }: { 
   server: Server, 
   showStatus?: boolean,
   actions?: React.ReactNode,
   showRole?: boolean,
-  hideVotes?: boolean,
-  hideRatings?: boolean
+  priority?: boolean
 }) {
   const statusInfo = {
     approved: { label: 'Active', bg: 'bg-realm-green/10', text: 'text-realm-green' },
@@ -97,8 +92,8 @@ export function SponsorServerCard({
 
   return (
     <Link to={`/server/${server.slug || slugify(server.name)}`} className="block h-full group relative">
-      <div className="absolute inset-0 z-0 rounded-lg overflow-hidden pointer-events-none p-[1.5px]">
-        <div className={`absolute inset-0 bg-gradient-to-r ${theme.glow} rounded-lg blur-md opacity-75 group-hover:opacity-100 transition-opacity duration-300`} />
+      <div className="absolute inset-0 z-0 rounded-xl overflow-hidden pointer-events-none p-[1.5px]">
+        <div className={`absolute inset-0 bg-gradient-to-r ${theme.glow} rounded-xl blur-md opacity-75 group-hover:opacity-100 transition-opacity duration-300`} />
         <div
           className={`absolute inset-[-200%] opacity-100 animate-spin-slow`}
           style={{ background: `conic-gradient(from 0deg, transparent 0deg, transparent 120deg, ${theme.conic1} 180deg, ${theme.conic2} 240deg, transparent 300deg, transparent 360deg)` }}
@@ -110,7 +105,7 @@ export function SponsorServerCard({
         initial="initial"
         whileHover="hover"
         whileTap="tap"
-        className={`bg-zinc-950 border ${theme.border} rounded-lg flex flex-col h-full min-h-[350px] md:min-h-[380px] overflow-hidden relative cursor-pointer shadow-xl transition-colors duration-200 z-10 m-[1.5px] backdrop-blur-sm`}
+        className={`bg-[#121212] border ${theme.border} rounded-xl flex flex-col h-full min-h-[350px] md:min-h-[380px] overflow-hidden relative cursor-pointer shadow-xl transition-colors duration-200 z-10 m-[1.5px] backdrop-blur-sm`}
       >
         <motion.div 
           variants={shineVariants}
@@ -121,34 +116,30 @@ export function SponsorServerCard({
           <img 
             src={server.banner_url || directoryHero} 
             alt={`${server.name} banner`} 
-            loading="lazy"
-            decoding="async"
+            loading={priority ? 'eager' : 'lazy'}
+            decoding={priority ? 'sync' : 'async'}
+            fetchPriority={priority ? 'high' : 'auto'}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-black/20 to-transparent pointer-events-none" />
 
-          {(!hideRatings || !hideVotes) && (
-            <div className={`absolute top-2 right-2 z-20 flex items-center gap-2 bg-black/75 border ${theme.border} px-2 py-1 rounded-md backdrop-blur-md shadow-md`}>
-              {!hideRatings && (
-                <div className="flex items-center gap-1">
-                  <img 
-                    src={ratingIcon} 
-                    alt="" 
-                    className={`w-4 h-4 object-contain ${server.average_rating === 0 ? 'grayscale opacity-60' : ''}`} 
-                  />
-                  <span className="text-[10px] md:text-xs font-bold text-white leading-none">
-                    {server.average_rating > 0 ? server.average_rating.toFixed(1) : '0.0'}
+          {server.type === 'server' && server.online_players !== undefined && server.online_players !== null && (
+            <div className={`absolute top-2 right-2 z-20 flex items-center gap-1.5 bg-black/75 border ${theme.border} px-2 py-1 rounded-md backdrop-blur-md shadow-md`}>
+              {server.online_players === -1 ? (
+                <div className="flex items-center gap-1 text-red-500/80" title="Offline">
+                  <WifiOff className="w-3 h-3" />
+                  <span className="text-[10px] md:text-xs font-bold leading-none">
+                    Offline
                   </span>
                 </div>
-              )}
-              {!hideRatings && !hideVotes && (
-                <div className={`w-[1px] h-3 ${theme.accent.replace('text-', 'bg-')}/20 self-center`} />
-              )}
-              {!hideVotes && (
-                <div className="flex items-center gap-1">
-                  <img src={voteIcon} alt="" className="w-3.5 h-3.5 object-contain" />
-                  <span className="text-[10px] md:text-xs font-bold text-white/90 leading-none">
-                    {server.votes.toLocaleString()}
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <div className="relative flex h-1.5 w-1.5 md:h-2 md:w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-realm-green opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 md:h-2 md:w-2 bg-realm-green" />
+                  </div>
+                  <span className="text-[10px] md:text-xs font-bold leading-none text-white">
+                    {server.online_players}
                   </span>
                 </div>
               )}
@@ -161,10 +152,10 @@ export function SponsorServerCard({
         {/* Content Container */}
         <div className="relative p-4 md:p-5 pt-0 flex flex-col flex-grow z-10">
           <div 
-            className={`w-14 h-14 md:w-16 md:h-16 -mt-7 md:-mt-8 mb-3 bg-zinc-900 rounded-lg overflow-hidden flex-shrink-0 border-2 shadow-lg z-20 ${theme.borderAccent}`}
+            className={`w-14 h-14 md:w-16 md:h-16 -mt-7 md:-mt-8 mb-3 bg-zinc-900 rounded-xl overflow-hidden flex-shrink-0 border-2 shadow-lg z-20 ${theme.borderAccent}`}
           >
             {server.icon_url ? (
-              <img src={server.icon_url} alt={server.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+              <img src={server.icon_url} alt={server.name} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'sync' : 'async'} fetchPriority={priority ? 'high' : 'auto'} className="w-full h-full object-cover" />
             ) : (
               <div className={`w-full h-full flex items-center justify-center ${theme.accent} font-pixel text-xs`}>
                 {server.name.substring(0, 2).toUpperCase()}
@@ -195,11 +186,11 @@ export function SponsorServerCard({
             
             <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
               <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] md:text-[9px] font-headline font-bold uppercase tracking-wider w-fit bg-zinc-900 border ${theme.border} text-white`}>
-                <img 
-                  src={server.type === 'server' ? serverGif : realmGif} 
-                  alt="" 
-                  className="w-3 h-3 object-contain rounded-sm" 
-                />
+                {server.type === 'server' ? (
+                  <ServerIcon className="w-3 h-3 text-realm-green" />
+                ) : (
+                  <Box className="w-3 h-3 text-purple-500" />
+                )}
                 <span>{server.type === 'server' ? 'Server' : 'Realm'}</span>
               </div>
 
@@ -208,7 +199,7 @@ export function SponsorServerCard({
                   {statusInfo.label}
                 </span>
               )}
-              <CategoryBadge category={server.category} />
+              <CategoryBadge category={server.category} variant="neutral" className={`border ${theme.border} text-white`} />
             </div>
           </div>
           

@@ -1,12 +1,13 @@
 import { BookOpen, ArrowRight, Rss } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams, useLocation } from 'react-router-dom'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { useBlogPosts } from '../hooks/queries'
 import { format } from 'date-fns'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { BlogLikeButton } from '../components/BlogLikeButton'
+import { BlogViewCount } from '../components/BlogViewCount'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import blogBg from '../assets/blog/blogbg.jpg'
 
@@ -15,7 +16,44 @@ const CATEGORIES = ['All', 'Server Spotlight', 'Event/News', 'Changelog'] as con
 export function BlogPage() {
   const isMobile = useIsMobile()
   const { data: posts = [], isLoading } = useBlogPosts({ status: 'published' })
-  const [activeCategory, setActiveCategory] = useState<typeof CATEGORIES[number]>('All')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const location = useLocation()
+  const initialCategory = (searchParams.get('category') as typeof CATEGORIES[number]) || 'All'
+  const [activeCategory, setActiveCategory] = useState<typeof CATEGORIES[number]>(
+    CATEGORIES.includes(initialCategory) ? initialCategory : 'All'
+  )
+
+  useEffect(() => {
+    if (location.hash === '#feed') {
+      const scrollToFeed = () => {
+        const element = document.getElementById('feed')
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' })
+        }
+      }
+      
+      // Try scrolling immediately, then again after a delay to ensure page is rendered
+      scrollToFeed()
+      setTimeout(scrollToFeed, 100)
+      setTimeout(scrollToFeed, 300)
+      setTimeout(scrollToFeed, 600)
+    }
+  }, [location.hash, location.key, isLoading])
+
+  const handleCategoryChange = (cat: typeof CATEGORIES[number]) => {
+    setActiveCategory(cat)
+    if (cat === 'All') {
+      searchParams.delete('category')
+    } else {
+      searchParams.set('category', cat)
+    }
+    setSearchParams(searchParams, { replace: true })
+    
+    // Auto scroll back to the tabs when a new tab is selected
+    setTimeout(() => {
+      document.getElementById('feed')?.scrollIntoView({ behavior: 'smooth' })
+    }, 50)
+  }
   const featuredPost = posts.find(p => p.is_featured)
   
   const filteredPosts = useMemo(() => {
@@ -37,7 +75,10 @@ export function BlogPage() {
           initial={isMobile ? { opacity: 0 } : { scale: 1.1, opacity: 0 }}
           animate={isMobile ? { opacity: 0.4 } : { scale: 1, opacity: 0.4 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          src={blogBg} 
+          src={blogBg}
+          fetchPriority="high"
+          loading="eager"
+          decoding="sync"
           className="absolute inset-0 w-full h-full object-cover z-0 block will-change-[opacity,transform]"
           alt="Blog Background"
         />
@@ -46,9 +87,9 @@ export function BlogPage() {
         
         <div className="w-full max-w-7xl mx-auto px-4 relative z-20 flex flex-col items-center text-center will-change-transform">
           <FramerIn delay={0.2}>
-            <div className={`inline-flex items-center gap-2 bg-zinc-800/90 border-t-2 border-l-2 border-white/20 border-r-2 border-b-2 border-black/50 px-3 py-1 mb-6 md:mb-8 text-[#85fc7e] shadow-[2px_2px_0px_rgba(0,0,0,0.4)] ${isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-md'}`}>
-              <Rss className="w-4 h-4 text-[#85fc7e]" />
-              <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase">Official Feed</span>
+            <div className="inline-flex items-center gap-2 mb-6 md:mb-8">
+              <Rss className="w-4 h-4 text-realm-green" />
+              <span className="font-pixel text-white text-[8px] md:text-[9px] tracking-widest uppercase drop-shadow-md">Official Feed</span>
             </div>
           </FramerIn>
 
@@ -71,10 +112,17 @@ export function BlogPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-12 md:py-24">
         {/* Featured Post Highlight */}
-        {featuredPost && (
+        {isLoading ? (
           <FramerIn className="mb-12 md:mb-20">
             <div className="flex items-center gap-4 mb-6">
-              <span className="material-symbols-outlined text-realm-green text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>stars</span>
+              <h2 className="font-pixel text-white text-xs md:text-sm uppercase tracking-[0.3em]">Featured Spotlight</h2>
+              <div className="flex-1 h-px bg-gradient-to-r from-realm-green/30 to-transparent" />
+            </div>
+            <div className="w-full h-[400px] lg:h-[250px] bg-white/5 rounded-xl animate-pulse" />
+          </FramerIn>
+        ) : featuredPost && (
+          <FramerIn className="mb-12 md:mb-20">
+            <div className="flex items-center gap-4 mb-6">
               <h2 className="font-pixel text-white text-xs md:text-sm uppercase tracking-[0.3em]">Featured Spotlight</h2>
               <div className="flex-1 h-px bg-gradient-to-r from-realm-green/30 to-transparent" />
             </div>
@@ -88,13 +136,13 @@ export function BlogPage() {
                 <div className="relative z-10 flex flex-col lg:flex-row gap-6 md:gap-8 items-center">
                   <div className="flex-1 text-center lg:text-left w-full">
                     <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-3 md:mb-4">
-                      <span className="px-2 py-0.5 bg-realm-green text-zinc-950 font-pixel text-[8px] uppercase tracking-widest shadow-[2px_2px_0px_rgba(0,0,0,0.3)] font-bold">
-                        Must Read
-                      </span>
-                      <span className="text-[9px] font-pixel text-white/40 uppercase tracking-widest">
+                      <span className="text-xs md:text-sm font-headline text-white/40 uppercase tracking-widest">
                         {format(new Date(featuredPost.created_at), 'MMMM dd, yyyy')}
                       </span>
-                      <BlogLikeButton postId={featuredPost.id} />
+                      <div className="flex items-center gap-3">
+                        <BlogViewCount views={featuredPost.views || 0} />
+                        <BlogLikeButton postId={featuredPost.id} />
+                      </div>
                     </div>
 
                     <h2 className="text-lg md:text-3xl font-pixel text-white mb-3 md:mb-4 uppercase leading-none transition-colors drop-shadow-xl">
@@ -105,8 +153,8 @@ export function BlogPage() {
                       {featuredPost.content?.replace(/[#*`]/g, '').slice(0, 250)}...
                     </p>
 
-                    <div className="inline-flex items-center justify-center lg:justify-start gap-3 px-4 py-2 bg-realm-green text-zinc-950 font-pixel text-[8px] uppercase tracking-widest shadow-[2px_2px_0px_rgba(0,0,0,0.3)] group-hover:bg-white transition-colors font-bold">
-                      View Full Story
+                    <div className="inline-flex items-center justify-center lg:justify-start gap-3 px-4 py-2 bg-white text-zinc-950 font-pixel text-[8px] uppercase tracking-widest shadow-[2px_2px_0px_rgba(0,0,0,0.3)] group-hover:bg-white transition-colors font-bold">
+                      Read All
                       <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
@@ -133,16 +181,19 @@ export function BlogPage() {
           </FramerIn>
         )}
 
+        {/* Filter Bar Anchor */}
+        <div id="feed" className="scroll-mt-20" />
         {/* Filter Bar */}
-        <FramerIn className="mb-12">
-          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-[#313233]/30 border-t-2 border-l-2 border-white/5 border-b-2 border-r-2 border-black/40 shadow-inner">
+        <div className="sticky top-20 z-40 py-4 -my-4 mb-8">
+          <FramerIn>
+            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 p-4 bg-[#313233]/80 backdrop-blur-xl border-t-2 border-l-2 border-white/10 border-b-2 border-r-2 border-black/60 shadow-xl shadow-black/20 rounded-xl">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => handleCategoryChange(cat)}
                 className={`px-4 md:px-6 py-2 md:py-3 font-pixel text-[8px] md:text-[10px] uppercase tracking-widest transition-all relative group ${
                   activeCategory === cat
-                    ? 'bg-realm-green text-zinc-950 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] translate-y-[-2px]'
+                    ? 'bg-white text-zinc-950 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] translate-y-[-2px]'
                     : 'bg-zinc-900/50 text-white/40 hover:text-white border-2 border-white/5'
                 }`}
               >
@@ -156,8 +207,9 @@ export function BlogPage() {
                 )}
               </button>
             ))}
-          </div>
-        </FramerIn>
+            </div>
+          </FramerIn>
+        </div>
 
         {/* Regular Blog List */}
         <div className="space-y-12">
@@ -171,7 +223,11 @@ export function BlogPage() {
           )}
 
           <div className="flex flex-col gap-6 md:gap-8">
-            {filteredPosts.map((post, idx) => (
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="relative w-full bg-[#313233]/40 border-4 border-[#101010] h-[250px] sm:h-[180px] animate-pulse" />
+              ))
+            ) : filteredPosts.map((post, idx) => (
               <FramerIn key={post.id} delay={idx * 0.1}>
                 <Link 
                   to={`/blog/${post.slug}`}
@@ -186,14 +242,11 @@ export function BlogPage() {
                       {/* Left: Content */}
                       <div className="flex-1 text-center sm:text-left w-full">
                         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-3 md:mb-4 opacity-40">
-                          <span className="text-[8px] md:text-[10px] font-pixel text-white uppercase tracking-widest">
+                          <span className="text-[10px] md:text-xs font-headline text-white uppercase tracking-widest">
                             {format(new Date(post.created_at), 'MMMM dd, yyyy')}
                           </span>
-                          <div className="w-1.5 h-1.5 bg-realm-green rounded-full shadow-[0_0_5px_rgba(133,252,126,0.5)]" />
-                          <span className="text-[8px] md:text-[10px] font-pixel text-[#85fc7e] uppercase tracking-widest">
-                            {post.category}
-                          </span>
-                          <div className="ml-auto">
+                          <div className="ml-auto flex items-center gap-3">
+                            <BlogViewCount views={post.views || 0} />
                             <BlogLikeButton postId={post.id} />
                           </div>
                         </div>
@@ -239,11 +292,7 @@ export function BlogPage() {
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-realm-green/30 border-t-realm-green rounded-full animate-spin" />
-          </div>
-        ) : filteredPosts.length === 0 && (
+        {!isLoading && filteredPosts.length === 0 && (
           <FramerIn className="text-center py-20 bg-zinc-900/30 border border-dashed border-white/5 rounded-3xl">
             <p className="text-zinc-600 font-headline italic uppercase tracking-widest text-xs">No posts found in this category.</p>
           </FramerIn>

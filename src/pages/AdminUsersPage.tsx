@@ -8,7 +8,6 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
 import { useState, useMemo, useEffect } from 'react'
-import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -78,7 +77,7 @@ export function AdminUsersPage() {
       <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
-            <span className="material-symbols-outlined text-realm-green text-sm">group</span>
+            <span className="material-symbols-outlined text-white/40 text-sm">group</span>
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Community</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">User Registry</h1>
@@ -86,7 +85,7 @@ export function AdminUsersPage() {
         </FramerIn>
 
         <FramerIn delay={0.1}>
-          <div className="flex items-center justify-between lg:justify-start gap-4 sm:gap-6 bg-zinc-900 border border-white/10 px-4 sm:px-6 py-4 rounded-lg">
+          <div className="flex items-center justify-between lg:justify-start gap-4 sm:gap-6 bg-white/[0.02] backdrop-blur-xl border border-white/10 px-4 sm:px-6 py-4 rounded-2xl">
             <div className="flex -space-x-3 shrink-0">
               {users.slice(0, 5).map(user => (
                 <img 
@@ -110,24 +109,24 @@ export function AdminUsersPage() {
         </FramerIn>
       </div>
 
-      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950 p-4 -mx-4 rounded-lg border border-white/5 lg:border-none lg:bg-transparent lg:p-0 lg:mx-0">
+      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950/80 backdrop-blur-xl p-4 -mx-4 rounded-2xl border-b border-white/10 lg:border-none lg:bg-transparent lg:backdrop-blur-none lg:p-0 lg:mx-0">
         <div className="flex-1 relative min-w-[200px]">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-base text-white/20">search</span>
           <input 
             type="text"
             placeholder="Search by username or ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
+            className="w-full bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
-              <X className="w-3.5 h-3.5" />
+              <span className="material-symbols-outlined text-sm">close</span>
             </button>
           )}
         </div>
         
-        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-lg">
+        <div className="flex flex-wrap items-center gap-1 bg-white/[0.02] backdrop-blur-xl border border-white/10 p-1.5 rounded-xl">
           {[
             { id: 'all', label: 'All' },
             { id: 'admin', label: 'Admins' },
@@ -151,11 +150,11 @@ export function AdminUsersPage() {
         </div>
       </FramerIn>
 
-      <FramerIn delay={0.2} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden min-h-[500px]">
+      <FramerIn delay={0.2} className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden min-h-[500px]">
         <div className="overflow-x-auto min-h-[500px]">
           <table className="w-full text-left font-headline text-sm border-collapse">
             <thead>
-              <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
+              <tr className="bg-white/[0.02] border-b border-white/10 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
                 <th className="px-6 py-5">User Profile</th>
                 <th className="px-6 py-5">Role</th>
                 <th className="px-6 py-5">Joined</th>
@@ -199,7 +198,7 @@ export function AdminUsersPage() {
                       <div>
                         <Link 
                           to={`/profile/${user.discord_username}`}
-                          className="font-bold text-white hover:text-realm-green transition-colors cursor-pointer"
+                          className="font-bold text-white/70 hover:text-white transition-colors cursor-pointer"
                         >
                           {user.discord_username || 'Unknown Player'}
                         </Link>
@@ -258,9 +257,9 @@ export function AdminUsersPage() {
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="p-2 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+              className="p-2 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-white/10 transition-colors flex items-center justify-center"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <span className="material-symbols-outlined text-base">chevron_left</span>
             </button>
             
             <div className="flex items-center gap-1">
@@ -295,9 +294,9 @@ export function AdminUsersPage() {
             <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="p-2 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+              className="p-2 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-white/10 transition-colors flex items-center justify-center"
             >
-              <ChevronRight className="w-4 h-4" />
+              <span className="material-symbols-outlined text-base">chevron_right</span>
             </button>
           </div>
         </div>

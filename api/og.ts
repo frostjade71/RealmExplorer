@@ -54,7 +54,7 @@ export default async function handler(req: Request) {
 
   try {
     if (type === 'server') {
-       const { data, error } = await supabase.from('servers').select('name, description, icon_url').eq('slug', slug).single()
+       const { data, error } = await supabase.from('public_servers').select('name, description, icon_url').eq('slug', slug).single()
        if (error) throw error
        if (data) {
           title = `${data.name} | Realm Explorer`
@@ -62,7 +62,7 @@ export default async function handler(req: Request) {
           image = data.icon_url || image
        }
     } else if (type === 'projects') {
-       const { data, error } = await supabase.from('projects').select('name, short_description, description, icon_url').eq('slug', slug).single()
+       const { data, error } = await supabase.from('public_projects').select('name, short_description, description, icon_url').eq('slug', slug).single()
        if (error) throw error
        if (data) {
           title = `${data.name} | Realm Explorer`

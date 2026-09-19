@@ -6,7 +6,6 @@ import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
 import { useState, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { Search, X, Check, Trash2, PlusCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 
@@ -72,7 +71,7 @@ export function AdminCategoryRequestsPage() {
       <div className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
-            <PlusCircle className="text-realm-green w-4 h-4" />
+            <span className="material-symbols-outlined text-white/40 text-base">add_circle</span>
             <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Staff Only</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">Category Requests</h1>
@@ -80,7 +79,7 @@ export function AdminCategoryRequestsPage() {
         </FramerIn>
         
         <FramerIn delay={0.1}>
-          <div className="flex items-center justify-around lg:justify-start gap-4 sm:gap-6 bg-zinc-900 border border-white/10 px-4 sm:px-6 py-4 rounded-lg">
+          <div className="flex items-center justify-around lg:justify-start gap-4 sm:gap-6 bg-white/[0.02] backdrop-blur-xl border border-white/10 px-4 sm:px-6 py-4 rounded-xl">
             <div className="text-center min-w-[70px]">
               <div className="text-orange-500 font-pixel text-xl leading-none mb-1">
                 {requests.filter(r => r.status === 'pending').length}
@@ -103,24 +102,24 @@ export function AdminCategoryRequestsPage() {
         </FramerIn>
       </div>
 
-      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center sticky top-[72px] lg:top-0 z-30 bg-zinc-950 p-4 -mx-4 rounded-lg border border-white/5 lg:border-none lg:bg-transparent lg:p-0 lg:mx-0">
+      <FramerIn delay={0.15} className="mb-6 flex flex-wrap gap-4 items-center sticky top-[72px] lg:top-0 z-30 bg-black/50 backdrop-blur-xl p-4 -mx-4 rounded-xl border border-white/10 lg:border-none lg:bg-transparent lg:p-0 lg:mx-0">
         <div className="flex-1 relative min-w-[200px]">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-base text-white/20">search</span>
           <input 
             type="text"
             placeholder="Search suggestions or users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
+            className="w-full bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-xl pl-11 pr-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:border-realm-green transition-all outline-none"
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
-              <X className="w-3.5 h-3.5" />
+              <span className="material-symbols-outlined text-sm">close</span>
             </button>
           )}
         </div>
         
-        <div className="flex flex-wrap items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-lg">
+        <div className="flex flex-wrap items-center gap-1 bg-white/[0.02] backdrop-blur-xl border border-white/10 p-1.5 rounded-xl">
           {[
             { id: 'pending', label: 'Pending' },
             { id: 'accepted', label: 'Accepted' },
@@ -142,11 +141,11 @@ export function AdminCategoryRequestsPage() {
         </div>
       </FramerIn>
 
-      <FramerIn delay={0.2} className="bg-zinc-900/60 border border-white/5 rounded-lg overflow-hidden">
+      <FramerIn delay={0.2} className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left font-headline text-sm border-collapse">
             <thead>
-              <tr className="bg-black/40 border-b border-white/5 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
+              <tr className="bg-white/[0.02] border-b border-white/10 text-white/30 uppercase tracking-[0.2em] text-[10px] font-bold">
                 <th className="px-6 py-5">Requester</th>
                 <th className="px-6 py-5">Category Name</th>
                 <th className="px-6 py-5">Description</th>
@@ -182,7 +181,7 @@ export function AdminCategoryRequestsPage() {
                           <span className="material-symbols-outlined text-white/20 text-lg">person</span>
                         )}
                       </div>
-                      <div className="font-bold text-white text-xs">{req.profiles?.discord_username || 'Unknown'}</div>
+                      <div className="font-bold text-white/70 text-xs">{req.profiles?.discord_username || 'Unknown'}</div>
                     </div>
                   </td>
                   <td className="px-6 py-5 font-bold text-realm-green uppercase tracking-wider text-[11px]">
@@ -195,12 +194,14 @@ export function AdminCategoryRequestsPage() {
                     {format(new Date(req.created_at), 'MMM dd, HH:mm')}
                   </td>
                   <td className="px-6 py-5">
-                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
-                      req.status === 'accepted' ? 'bg-realm-green/10 text-realm-green border border-realm-green/20' :
-                      req.status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
-                      'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                    <div className={`inline-flex items-center gap-1.5 text-[10px] font-headline font-bold uppercase tracking-wider ${
+                      req.status === 'accepted' ? 'text-realm-green' :
+                      req.status === 'rejected' ? 'text-red-400' :
+                      'text-orange-400'
                     }`}>
-                      <span className="w-1 h-1 rounded-lg bg-current" />
+                      <span className="material-symbols-outlined text-[14px]">
+                        {req.status === 'accepted' ? 'check' : req.status === 'rejected' ? 'close' : 'schedule'}
+                      </span>
                       {req.status}
                     </div>
                   </td>
@@ -211,28 +212,28 @@ export function AdminCategoryRequestsPage() {
                           <button 
                             onClick={() => handleUpdateStatus(req.id, 'accepted')}
                             disabled={updateMutation.isPending}
-                            className="p-2 rounded-lg bg-realm-green/10 text-realm-green hover:bg-realm-green hover:text-zinc-950 transition-all border border-realm-green/20"
+                            className="p-2 rounded-lg bg-realm-green/10 text-realm-green hover:bg-realm-green hover:text-zinc-950 transition-all border border-realm-green/20 flex items-center justify-center"
                             title="Accept Request"
                           >
-                            <Check className="w-4 h-4" />
+                            <span className="material-symbols-outlined text-base">check</span>
                           </button>
                           <button 
                             onClick={() => handleUpdateStatus(req.id, 'rejected')}
                             disabled={updateMutation.isPending}
-                            className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+                            className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/20 flex items-center justify-center"
                             title="Reject Request"
                           >
-                            <X className="w-4 h-4" />
+                            <span className="material-symbols-outlined text-base">close</span>
                           </button>
                         </>
                       )}
                       <button 
                         onClick={() => handleDeleteRequest(req.id)}
                         disabled={deleteMutation.isPending}
-                        className="p-2 rounded-lg bg-white/5 text-white/20 hover:bg-red-500 hover:text-white transition-all border border-white/10 hover:border-red-500/20"
+                        className="p-2 rounded-lg bg-white/5 text-white/20 hover:bg-red-500 hover:text-white transition-all border border-white/10 hover:border-red-500/20 flex items-center justify-center"
                         title="Delete Request"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <span className="material-symbols-outlined text-base">delete</span>
                       </button>
                     </div>
                   </td>

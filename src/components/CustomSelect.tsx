@@ -39,7 +39,7 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Select a
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2 md:px-4 py-3 text-white flex items-center justify-between hover:border-zinc-700 transition-all font-headline group focus:ring-1 focus:ring-realm-green/30 outline-none"
+        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 md:px-4 py-3 text-white flex items-center justify-between gap-2 md:gap-3 hover:border-zinc-700 transition-all font-headline group focus:ring-1 focus:ring-realm-green/30 outline-none"
       >
         <div className="flex items-center gap-1.5 md:gap-3">
           <div className="flex-shrink-0">
@@ -72,24 +72,20 @@ export function CustomSelect({ value, onChange, options, placeholder = 'Select a
                     onChange(option.key)
                     setIsOpen(false)
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-headline relative group/item ${
+                  className={`w-full px-3 py-2.5 rounded-lg transition-all text-sm font-headline relative group/item ${
                     value === option.key 
                     ? 'bg-realm-green/10 text-realm-green border border-realm-green/20' 
                     : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-white border border-transparent'
                   }`}
                 >
-                  <div className={`flex-shrink-0 transition-transform duration-300 ${value === option.key ? 'scale-110' : 'group-hover/item:scale-110'}`}>
-                    {option.icon}
+                  <div className={`flex items-center gap-3 transition-transform duration-300 ${value === option.key ? 'translate-x-1.5' : ''}`}>
+                    <div className={`flex-shrink-0 transition-transform duration-300 ${value === option.key ? 'scale-110' : 'group-hover/item:scale-110'}`}>
+                      {option.icon}
+                    </div>
+                    <span className="flex-grow text-left font-medium">
+                      {option.label}
+                    </span>
                   </div>
-                  <span className="flex-grow text-left font-medium">
-                    {option.label}
-                  </span>
-                  {value === option.key && (
-                    <motion.div 
-                      layoutId="active-check"
-                      className="w-1 h-3 bg-realm-green rounded-full shadow-[0_0_8px_rgba(78,196,78,0.5)]"
-                    />
-                  )}
                 </button>
               ))}
             </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { Book, Power, HelpCircle, Trophy, Users, Pickaxe, Menu, X, ChevronRight, ChevronLeft, Layout, ShieldAlert, ArrowUp, Link2, Sparkles } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
+import { Book, Power, HelpCircle, Trophy, Pickaxe, Menu, X, ChevronRight, ChevronLeft, Layout, ShieldAlert, ArrowUp, Link2, Sparkles } from 'lucide-react'
+import { SiDiscord } from 'react-icons/si'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { MetaTags } from '../components/MetaTags'
@@ -73,11 +74,11 @@ const docsSections: DocSection[] = [
           </li>
         </ul>
 
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 mt-8 flex gap-4">
-          <ShieldAlert className="text-blue-400 flex-shrink-0 mt-1" size={20} />
+        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-5 mt-8 flex gap-4">
+          <ShieldAlert className="text-white flex-shrink-0 mt-1" size={20} />
           <div>
-            <h4 className="text-blue-400 font-body font-bold tracking-tight mb-1 text-sm">Privacy Note</h4>
-            <p className="text-blue-400/80 text-xs md:text-sm">We only request basic profile information (username and avatar) from Discord. We do not have access to your messages or friends list.</p>
+            <h4 className="text-white font-body font-bold tracking-tight mb-1 text-sm">Privacy Note</h4>
+            <p className="text-zinc-400 text-xs md:text-sm">We only request basic profile information (username and avatar) from Discord. We do not have access to your messages or friends list.</p>
           </div>
         </div>
       </div>
@@ -184,36 +185,66 @@ const docsSections: DocSection[] = [
   },
   {
     id: 'projects',
-    title: 'Projects & Add-ons',
+    title: 'Adding a Project',
     icon: Pickaxe,
     content: (
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="mb-6">
-          <h2 className="text-2xl md:text-3xl font-body font-bold text-white tracking-tight">Projects & Add-ons</h2>
+          <h2 className="text-2xl md:text-3xl font-body font-bold text-white tracking-tight">Adding a Project</h2>
         </div>
         <p className="text-zinc-400 text-sm md:text-base leading-relaxed">
-          The Projects section is dedicated to Minecraft Bedrock and Java creations that aren't playable servers. This includes Mods, Add-ons, Maps, Texture Packs, and tools.
+          Adding your project, mod, or add-on to the directory is a great way to share your creations. Here is a breakdown of all the fields and features available when submitting your project.
         </p>
 
-        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-6 mt-6">
-          <h3 className="text-lg font-body font-bold text-white mb-4 tracking-tight">Project Types</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 bg-zinc-800/30 rounded-lg border border-white/5">
-              <strong className="text-zinc-200 block mb-1">Add-ons / Mods</strong>
-              <p className="text-xs text-zinc-500">Modifications that change gameplay, add new items, or alter mechanics.</p>
-            </div>
-            <div className="p-4 bg-zinc-800/30 rounded-lg border border-white/5">
-              <strong className="text-zinc-200 block mb-1">Maps / Worlds</strong>
-              <p className="text-xs text-zinc-500">Adventure maps, parkour, mini-games, or survival spawns.</p>
-            </div>
-            <div className="p-4 bg-zinc-800/30 rounded-lg border border-white/5">
-              <strong className="text-zinc-200 block mb-1">Resource Packs</strong>
-              <p className="text-xs text-zinc-500">Texture packs, UI modifications, and audio enhancements.</p>
-            </div>
-            <div className="p-4 bg-zinc-800/30 rounded-lg border border-white/5">
-              <strong className="text-zinc-200 block mb-1">Tools / Scripts</strong>
-              <p className="text-xs text-zinc-500">External tools, command block scripts, or server management utilities.</p>
-            </div>
+        <div className="space-y-10 mt-10">
+          <div>
+            <h3 className="text-xl font-body font-bold text-white mb-5 flex items-center gap-2">Media & Assets</h3>
+            <ul className="space-y-5 text-zinc-400 text-base list-none ml-2">
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">1</span>
+                <div><strong className="text-zinc-200">Project Icon:</strong> A square image representing your project. Required for all listings.</div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">2</span>
+                <div><strong className="text-zinc-200">Gallery:</strong> Showcase gameplay screenshots or features. <em className="text-zinc-500">(Max 1 image, up to 5MB)</em></div>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-body font-bold text-white mb-5 flex items-center gap-2">Core Details</h3>
+            <ul className="space-y-5 text-zinc-400 text-base list-none ml-2">
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">3</span>
+                <div><strong className="text-zinc-200">Project File:</strong> Upload your creation (e.g., .zip, .jar, .mcaddon, .mcpack) up to 30MB.</div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">4</span>
+                <div><strong className="text-zinc-200">Name & Category:</strong> Choose a unique name (Max 100 characters) and select a category such as Mods, Add-ons, Resource Packs, or Builds.</div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">5</span>
+                <div><strong className="text-zinc-200">License:</strong> Select a standard license (like MIT, Apache 2.0, or GPLv3) or upload a custom license file.</div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">6</span>
+                <div><strong className="text-zinc-200">Description:</strong> Provide a brief tagline and a full detailed description with Markdown support to explain your project.</div>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-body font-bold text-white mb-5 flex items-center gap-2">Community & Updates</h3>
+            <ul className="space-y-5 text-zinc-400 text-base list-none ml-2">
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">7</span>
+                <div><strong className="text-zinc-200">Social Links:</strong> Add up to 4 links to your Website, Discord, GitHub, YouTube, and more.</div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">8</span>
+                <div><strong className="text-zinc-200">Changelogs:</strong> Keep your users updated by adding version titles, descriptions, and attaching new project files for each release.</div>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
@@ -260,11 +291,11 @@ const docsSections: DocSection[] = [
           </li>
         </ul>
 
-        <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-5 mt-8 flex gap-4">
-          <ShieldAlert className="text-orange-400 flex-shrink-0 mt-1" size={20} />
+        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-5 mt-8 flex gap-4">
+          <ShieldAlert className="text-white flex-shrink-0 mt-1" size={20} />
           <div>
-            <h4 className="text-orange-400 font-body font-bold tracking-tight mb-1 text-sm">Anti-Cheat Policy</h4>
-            <p className="text-orange-400/80 text-xs md:text-sm">We actively monitor for vote manipulation (botting, alt accounts). Listings caught manipulating votes will be penalized or removed from the directory.</p>
+            <h4 className="text-white font-body font-bold tracking-tight mb-1 text-sm">Anti-Cheat Policy</h4>
+            <p className="text-zinc-400 text-xs md:text-sm">We actively monitor for vote manipulation (botting, alt accounts). Listings caught manipulating votes will be penalized or removed from the directory.</p>
           </div>
         </div>
       </div>
@@ -354,7 +385,7 @@ const docsSections: DocSection[] = [
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white px-6 py-3 rounded-lg font-body font-bold text-sm tracking-wider transition-all shadow-lg hover:scale-105 active:scale-95"
           >
-            <Users size={18} />
+            <SiDiscord size={18} />
             Join our Discord
           </a>
           <a 
@@ -417,19 +448,19 @@ const docsSections: DocSection[] = [
           </li>
         </ul>
 
-        <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-5 mt-8 flex gap-4">
-          <Sparkles className="text-purple-400 flex-shrink-0 mt-1" size={20} />
+        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-5 mt-8 flex gap-4">
+          <Sparkles className="text-white flex-shrink-0 mt-1" size={20} />
           <div>
-            <h4 className="text-purple-400 font-body font-bold tracking-tight mb-1 text-sm">Bedrock & Realms Support Coming Soon!</h4>
-            <p className="text-purple-400/80 text-xs md:text-sm">Native Votifier integration for Bedrock and Realms is currently in development! You'll soon be able to seamlessly reward players on any platform.</p>
+            <h4 className="text-white font-body font-bold tracking-tight mb-1 text-sm">Bedrock & Realms Support Coming Soon!</h4>
+            <p className="text-zinc-400 text-xs md:text-sm">Native Votifier integration for Bedrock and Realms is currently in development! You'll soon be able to seamlessly reward players on any platform.</p>
           </div>
         </div>
 
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 mt-4 flex gap-4">
-          <ShieldAlert className="text-blue-400 flex-shrink-0 mt-1" size={20} />
+        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-5 mt-4 flex gap-4">
+          <ShieldAlert className="text-white flex-shrink-0 mt-1" size={20} />
           <div>
-            <h4 className="text-blue-400 font-body font-bold tracking-tight mb-1 text-sm">Security</h4>
-            <p className="text-blue-400/80 text-xs md:text-sm">Your Votifier credentials (especially your token and public key) are securely encrypted and safely stored in our database. They are never exposed publicly.</p>
+            <h4 className="text-white font-body font-bold tracking-tight mb-1 text-sm">Security</h4>
+            <p className="text-zinc-400 text-xs md:text-sm">Your Votifier credentials (especially your token and public key) are securely encrypted and safely stored in our database. They are never exposed publicly.</p>
           </div>
         </div>
       </div>
@@ -438,9 +469,24 @@ const docsSections: DocSection[] = [
 ]
 
 export function DocsPage() {
-  const [activeSectionId, setActiveSectionId] = useState<string>(docsSections[0].id)
+  const location = useLocation()
+  const [activeSectionId, setActiveSectionId] = useState<string>(() => {
+    const params = new URLSearchParams(location.search)
+    return params.get('tab') || docsSections[0].id
+  })
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  
+
+  useEffect(() => {
+    if (location.hash) {
+      setTimeout(() => {
+        const id = location.hash.replace('#', '')
+        const element = document.getElementById(id)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' })
+        }
+      }, 100)
+    }
+  }, [location.hash, activeSectionId])
 
 
   const handleScrollToTop = () => {

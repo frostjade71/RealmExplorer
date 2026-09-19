@@ -133,7 +133,7 @@ export function RatingModal({
                   className={`w-full py-4 rounded-xl font-headline font-bold flex items-center justify-center gap-2 transition-all uppercase tracking-widest text-[10px] ${
                     rating === 0 || isSubmitting || isRemoving
                       ? 'bg-zinc-900 text-white/20 cursor-not-allowed border border-white/5'
-                      : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e] shadow-lg shadow-green-500/20'
+                      : 'bg-realm-green text-zinc-950 hover:bg-[#85fc7e]'
                   }`}
                 >
                   {isSubmitting ? (
