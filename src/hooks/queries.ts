@@ -934,16 +934,16 @@ export function useLiveServerStatus(server: Server | undefined | null, activeIpT
         let url = ''
         if (activeIpType === 'bedrock' && hasBedrockIp) {
           const port = server.bedrock_port && server.bedrock_port !== 19132 ? `:${server.bedrock_port}` : ''
-          url = `https://api.mcsrvstat.us/bedrock/3/${server.bedrock_ip}${port}`
+          url = `https://api.mcstatus.io/v2/status/bedrock/${server.bedrock_ip}${port}`
         } else if (activeIpType === 'java' && hasJavaIp) {
           const port = server.port && server.port !== 25565 ? `:${server.port}` : ''
-          url = `https://api.mcsrvstat.us/3/${server.ip_or_code}${port}`
+          url = `https://api.mcstatus.io/v2/status/java/${server.ip_or_code}${port}`
         } else if (hasJavaIp) {
           const port = server.port && server.port !== 25565 ? `:${server.port}` : ''
-          url = `https://api.mcsrvstat.us/3/${server.ip_or_code}${port}`
+          url = `https://api.mcstatus.io/v2/status/java/${server.ip_or_code}${port}`
         } else if (hasBedrockIp) {
           const port = server.bedrock_port && server.bedrock_port !== 19132 ? `:${server.bedrock_port}` : ''
-          url = `https://api.mcsrvstat.us/bedrock/3/${server.bedrock_ip}${port}`
+          url = `https://api.mcstatus.io/v2/status/bedrock/${server.bedrock_ip}${port}`
         }
 
         if (!url) return null
@@ -952,7 +952,23 @@ export function useLiveServerStatus(server: Server | undefined | null, activeIpT
         if (!res.ok) throw new Error('Failed to fetch status')
         const data = await res.json()
         
-        return data as LiveServerStatus
+        const normalized: LiveServerStatus = {
+          online: data.online,
+          players: data.players ? {
+            online: data.players.online,
+            max: data.players.max,
+          } : undefined,
+          version: data.version?.name_clean || data.version?.name_raw || undefined,
+          motd: data.motd ? {
+            html: typeof data.motd.html === 'string' 
+              ? data.motd.html.split('\n') 
+              : Array.isArray(data.motd.html) 
+                ? data.motd.html 
+                : [],
+          } : undefined,
+        }
+
+        return normalized
       } catch (err) {
         console.error('Failed to fetch live server status:', err)
         return null

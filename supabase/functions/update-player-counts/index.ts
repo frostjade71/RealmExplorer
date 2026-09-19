@@ -44,10 +44,10 @@ serve(async (req) => {
       let url = ''
       if (hasJavaIp) {
         const port = server.port && server.port !== 25565 ? `:${server.port}` : ''
-        url = `https://api.mcsrvstat.us/3/${server.ip_or_code}${port}`
+        url = `https://api.mcstatus.io/v2/status/java/${server.ip_or_code}${port}?query=false`
       } else if (hasBedrockIp) {
         const port = server.bedrock_port && server.bedrock_port !== 19132 ? `:${server.bedrock_port}` : ''
-        url = `https://api.mcsrvstat.us/bedrock/3/${server.bedrock_ip}${port}`
+        url = `https://api.mcstatus.io/v2/status/bedrock/${server.bedrock_ip}${port}?query=false`
       }
 
       if (!url) continue

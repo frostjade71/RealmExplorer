@@ -222,7 +222,7 @@ export function PrivacyPage() {
                     <li className="mb-1"><a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" className="text-realm-green hover:underline">Supabase</a> (Database & Auth)</li>
                     <li className="mb-1"><a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-realm-green hover:underline">Vercel</a> (Hosting & Analytics)</li>
                     <li className="mb-1"><a href="https://www.paypal.com/webapps/mpp/ua/privacy-full" target="_blank" rel="noopener noreferrer" className="text-realm-green hover:underline">PayPal</a> (Payments)</li>
-                    <li className="mb-1"><a href="https://mcsrvstat.us/" target="_blank" rel="noopener noreferrer" className="text-realm-green hover:underline">mcsrvstat.us</a> (Minecraft Server Status API)</li>
+                    <li className="mb-1"><a href="https://mcstatus.io/" target="_blank" rel="noopener noreferrer" className="text-realm-green hover:underline">mcstatus.io</a> (Minecraft Server Status API)</li>
                   </ul>
                 </div>
               </div>
