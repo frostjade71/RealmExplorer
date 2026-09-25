@@ -1196,3 +1196,20 @@ export function useSavedServers(userId: string | undefined) {
     }
   })
 }
+
+export function useDirectoryStats() {
+  return useQuery({
+    queryKey: ['directoryStats'],
+    queryFn: async () => {
+      const { count: realmCount } = await supabase.from('public_servers').select('*', { count: 'exact', head: true }).eq('status', 'approved').eq('type', 'realm')
+      const { count: serverCount } = await supabase.from('public_servers').select('*', { count: 'exact', head: true }).eq('status', 'approved').eq('type', 'server')
+      const { count: projectCount } = await supabase.from('public_projects' as any).select('*', { count: 'exact', head: true }).eq('status', 'approved')
+      
+      return { 
+        realms: realmCount || 0, 
+        servers: serverCount || 0,
+        projects: projectCount || 0
+      }
+    }
+  })
+}

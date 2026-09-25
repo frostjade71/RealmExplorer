@@ -796,7 +796,7 @@ export function ProjectSubmitPage() {
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
-                          <h5 className="text-white font-bold text-sm mb-1">{log.title}</h5>
+                          <p className="text-white font-bold text-sm mb-1">{log.title}</p>
                           <p className="text-zinc-400 text-xs font-body whitespace-pre-wrap">{log.description}</p>
                           <div className="text-zinc-600 text-[10px] uppercase font-headline tracking-widest mt-2">
                             {new Date(log.created_at).toLocaleDateString()}

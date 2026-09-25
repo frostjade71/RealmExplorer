@@ -1,10 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useServers, useGlobalStats, useOTMWinners, useSiteSetting, useServersByIds } from '../hooks/queries'
+import { useServers, useGlobalStats, useOTMWinners, useSiteSetting, useServersByIds, useDirectoryStats } from '../hooks/queries'
 import { ServerCard } from '../components/ServerCard'
 
 import { AnimatedPage } from '../components/AnimatedPage'
+import { DiscordInviteCard } from '../components/DiscordInviteCard'
 import { FramerIn, FramerInList } from '../components/FramerIn'
-import { motion, useMotionValue, useSpring } from 'framer-motion'
+import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion'
 import { useState, useMemo, lazy, Suspense } from 'react'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { ArcFlowCarousel, fallbackServers } from '../components/ArcFlowCarousel'
@@ -16,14 +17,12 @@ const AffiliateModal = lazy(() => import('../components/AffiliateModal').then(m 
 import { useCreateCategoryRequestMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
-import { SiDiscord } from 'react-icons/si'
 import heroBg from '../assets/hero/Lush Caves1.jpg'
 import ctaBg from '../assets/homepage/venture_mc.jpg'
 import mcGif from '../assets/category/gif/6128-minecraft.gif'
-import communityOneLogo from '../assets/affiliates/communityonelogo.webp'
-import realmBotLogo from '../assets/affiliates/realmbot.webp'
-import communityOneCover from '../assets/affiliates/communityone-cover.webp'
-import realmBotCover from '../assets/affiliates/realmbot-cover.webp'
+import realmGif from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
+import { Folder, ChevronDown } from 'lucide-react'
+
 
 // Category Icons
 import factionsIcon from '../assets/category/7587-netherite-sword.png'
@@ -86,6 +85,7 @@ export function HomePage() {
   const { data: otmWinners = [] } = useOTMWinners()
   const { data: allApprovedServers = [] } = useServers({ limit: 40 })
   const { data: stats } = useGlobalStats()
+  const { data: dirStats } = useDirectoryStats()
   const { data: introSetting } = useSiteSetting('homepage_intro')
   const introData = introSetting?.value as {word: string, color: string}[] | undefined
   const { data: showcaseCardsSetting } = useSiteSetting('homepage_showcase_cards')
@@ -97,6 +97,7 @@ export function HomePage() {
   const createRequestMutation = useCreateCategoryRequestMutation()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [affiliateModal, setAffiliateModal] = useState({ isOpen: false, name: '', websiteUrl: '', discordUrl: '', logoUrl: '' })
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null)
 
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
@@ -412,64 +413,26 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="pt-0 pb-12 md:pb-16 px-8 bg-[#0A0A0A]">
+      <section className="pt-0 pb-8 md:pb-16 px-6 md:px-8 bg-[#0A0A0A]">
         <div className="max-w-7xl mx-auto flex flex-col items-center">
           <FramerIn className="text-center mb-12 md:mb-16">
             <h2 className="font-pixel text-white text-xl md:text-2xl mb-2">Our Partners</h2>
             <div className="h-1 w-12 md:w-16 bg-primary-container mx-auto"></div>
           </FramerIn>
           <FramerIn delay={0.2} className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
-            <div 
-              onClick={() => setAffiliateModal({ isOpen: true, name: 'Community One', websiteUrl: 'https://communityone.io/', discordUrl: 'https://discord.com/invite/nVqt3z78Mw', logoUrl: communityOneLogo })}
-              className="block h-full group relative w-full cursor-pointer text-left"
-            >
-              <div className="bg-surface border border-outline-variant/30 hover:border-purple-500/30 rounded-xl flex flex-col h-full min-h-[220px] overflow-hidden relative shadow-sm transition-colors duration-200 z-10">
-                <div className="relative h-24 md:h-28 w-full overflow-hidden bg-zinc-900/60 flex-shrink-0">
-                  <img src={communityOneCover} alt="Community One cover" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                </div>
-                <div className="absolute top-0 left-0 right-0 h-[3px] z-20 bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                <div className="relative p-4 md:p-5 pt-0 flex flex-col flex-grow z-10">
-                  <div className="w-14 h-14 md:w-16 md:h-16 -mt-7 md:-mt-8 mb-3 bg-zinc-900 rounded-xl overflow-hidden flex-shrink-0 border-2 border-zinc-800 shadow-md z-20">
-                    <img src={communityOneLogo} alt="Community One" loading="lazy" decoding="async" className="w-full h-full object-contain p-1" />
-                  </div>
-                  <div className="min-w-0 flex-grow pr-1 mb-2 text-left">
-                    <h3 className="font-pixel text-sm md:text-base line-clamp-2 mb-1.5 text-white transition-colors leading-tight break-words">
-                      Community One
-                    </h3>
-                  </div>
-                  <p className="text-zinc-400 text-[12px] md:text-[13px] flex-grow leading-relaxed group-hover:text-zinc-200 transition-colors text-left">
-                    The all-in-one AI bot for Discord and the web. Gamified quests, real-time analytics dashboard, brand-grade moderation, YouTube integration, and etc
-                  </p>
-                </div>
-              </div>
+            <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full flex justify-center">
+              <DiscordInviteCard 
+                inviteCode="nVqt3z78Mw"
+                websiteUrl="https://communityone.io/"
+                className="w-full max-w-[350px] h-full justify-start hover:border-purple-500/50 transition-colors duration-300"
+              />
             </div>
-            <div 
-              onClick={() => setAffiliateModal({ isOpen: true, name: 'Realm Bot', websiteUrl: 'https://realmbot.dev/', discordUrl: 'https://discord.com/invite/realmbot', logoUrl: realmBotLogo })}
-              className="block h-full group relative w-full cursor-pointer text-left"
-            >
-              <div className="bg-surface border border-outline-variant/30 hover:border-realm-green/30 rounded-xl flex flex-col h-full min-h-[220px] overflow-hidden relative shadow-sm transition-colors duration-200 z-10">
-                <div className="relative h-24 md:h-28 w-full overflow-hidden bg-zinc-900/60 flex-shrink-0">
-                  <img src={realmBotCover} alt="Realm Bot cover" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                </div>
-                <div className="absolute top-0 left-0 right-0 h-[3px] z-20 bg-realm-green shadow-[0_0_15px_rgba(78,196,78,0.4)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                <div className="relative p-4 md:p-5 pt-0 flex flex-col flex-grow z-10">
-                  <div className="w-14 h-14 md:w-16 md:h-16 -mt-7 md:-mt-8 mb-3 bg-zinc-900 rounded-xl overflow-hidden flex-shrink-0 border-2 border-zinc-800 shadow-md z-20">
-                    <img src={realmBotLogo} alt="Realm Bot" loading="lazy" decoding="async" className="w-full h-full object-contain p-1" />
-                  </div>
-                  <div className="min-w-0 flex-grow pr-1 mb-2 text-left">
-                    <h3 className="font-pixel text-sm md:text-base line-clamp-2 mb-1.5 text-white transition-colors leading-tight break-words">
-                      Realm Bot
-                    </h3>
-                  </div>
-                  <p className="text-zinc-400 text-[12px] md:text-[13px] flex-grow leading-relaxed group-hover:text-zinc-200 transition-colors text-left">
-                    Realm Bot is a cutting-edge Minecraft Bedrock Realm management bot designed to revolutionize the way communities operate their servers.
-                  </p>
-                </div>
-              </div>
+            <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full flex justify-center -mt-8 md:mt-0">
+              <DiscordInviteCard 
+                inviteCode="realmbot"
+                websiteUrl="https://realmbot.dev/"
+                className="w-full max-w-[350px] h-full justify-start hover:border-realm-green/50 transition-colors duration-300"
+              />
             </div>
           </FramerIn>
         </div>
@@ -499,8 +462,8 @@ export function HomePage() {
         </section>
       )}
 
-      <section className="px-8 py-12 md:py-24 bg-[#0A0A0A]">
-        <FramerIn className="max-w-5xl mx-auto bg-zinc-900 rounded-xl p-8 md:p-14 text-center relative overflow-hidden shadow-2xl border border-white/5">
+      <section className="px-4 md:px-8 py-8 md:py-24 bg-[#0A0A0A]">
+        <FramerIn className="max-w-5xl mx-auto bg-zinc-900 rounded-xl px-5 py-8 md:p-14 relative overflow-hidden shadow-2xl border border-white/5">
           {/* Cinematic Background Image */}
           <img 
             src={ctaBg} 
@@ -510,36 +473,128 @@ export function HomePage() {
             className="absolute inset-0 w-full h-full object-cover opacity-40 z-0"
           />
           {/* Gradient Overlay for Legibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent z-10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent z-10" />
           
-          <div className="relative z-20">
-            <h2 className="font-pixel text-white text-xl md:text-3xl mb-6 md:mb-8">Ready to Explore?</h2>
-            <p className="text-white/80 font-headline text-xs md:text-base max-w-xl mx-auto mb-10 md:mb-14 leading-relaxed px-4">
-              Join thousands of players and creators in the most sophisticated Minecraft ecosystem ever built.
-            </p>
-            <div className="flex flex-col items-center justify-center gap-4 md:gap-6">
-              <a 
-                href="https://discord.gg/G8CyUZjPRt" 
-                target="_blank" 
-                rel="noreferrer"
-                className="bg-[#5865F2] hover:bg-[#6974f3] text-white px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] border-b-[4px] border-[#4752C4] active:border-b-0 active:border-t-[4px] active:border-t-transparent min-w-[140px] md:min-w-[180px] flex items-center justify-center gap-2 text-xs md:text-sm"
-              >
-                <SiDiscord className="w-4 h-4 md:w-5 md:h-5" />
-                Join our Discord
-              </a>
-              <iframe 
-                src="https://discord.com/widget?id=1258132272419311676&theme=dark" 
-                width="350" 
-                height="400" 
-                allowTransparency={true} 
-                frameBorder="0" 
-                sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
-                className="rounded-xl shadow-2xl border border-zinc-800/50 max-w-full"
-              />
+          <div className="relative z-20 flex flex-col md:flex-row items-start justify-between gap-10">
+            <div className="flex-1 text-left pt-2 md:pt-4">
+              <h2 className="font-pixel text-white text-2xl md:text-4xl mb-6 leading-tight">Ready to Explore?</h2>
+              <p className="text-white/80 font-headline text-sm md:text-lg max-w-lg leading-relaxed">
+                Join thousands of players and creators in the most sophisticated Minecraft ecosystem ever built.
+              </p>
+              
+              <div className="flex flex-wrap items-center gap-3 md:gap-4 mt-8 md:mt-10">
+                <Link 
+                  to="/servers?type=realm" 
+                  className="group flex items-center px-5 py-2.5 bg-zinc-800/50 hover:bg-zinc-700/60 text-zinc-200 hover:text-white font-semibold rounded-lg border border-zinc-700/50 hover:border-zinc-500 transition-all duration-300 font-headline text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <img src={realmGif} alt="" className="w-4 h-4 object-contain rounded-sm" />
+                    <span>Realms</span>
+                  </div>
+                  <div className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap opacity-0 group-hover:opacity-100 flex items-center">
+                    <span className="pl-2 text-zinc-400 text-xs font-normal">({dirStats?.realms || 0})</span>
+                  </div>
+                </Link>
+                <Link 
+                  to="/servers?type=server" 
+                  className="group flex items-center px-5 py-2.5 bg-zinc-800/50 hover:bg-zinc-700/60 text-zinc-200 hover:text-white font-semibold rounded-lg border border-zinc-700/50 hover:border-zinc-500 transition-all duration-300 font-headline text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <img src={mcGif} alt="" className="w-4 h-4 object-contain rounded-sm" />
+                    <span>Servers</span>
+                  </div>
+                  <div className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap opacity-0 group-hover:opacity-100 flex items-center">
+                    <span className="pl-2 text-zinc-400 text-xs font-normal">({dirStats?.servers || 0})</span>
+                  </div>
+                </Link>
+                <Link 
+                  to="/projects" 
+                  className="group flex items-center px-5 py-2.5 bg-zinc-800/50 hover:bg-zinc-700/60 text-zinc-200 hover:text-white font-semibold rounded-lg border border-zinc-700/50 hover:border-zinc-500 transition-all duration-300 font-headline text-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <Folder className="w-4 h-4" />
+                    <span>Projects</span>
+                  </div>
+                  <div className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap opacity-0 group-hover:opacity-100 flex items-center">
+                    <span className="pl-2 text-zinc-400 text-xs font-normal">({dirStats?.projects || 0})</span>
+                  </div>
+                </Link>
+              </div>
+            </div>
+            
+            <div className="flex-shrink-0 z-30 origin-top md:origin-center w-full md:w-auto flex justify-center md:block mt-8 md:mt-0">
+              <div className="w-[125%] md:w-auto scale-[0.85] md:scale-100 origin-top flex justify-center md:block">
+                <DiscordInviteCard 
+                  inviteCode="G8CyUZjPRt"
+                  bannerImg={ctaBg}
+                  className="w-full md:w-[350px] max-w-none md:max-w-full"
+                />
+              </div>
             </div>
           </div>
           <div className="absolute top-0 left-0 w-full h-full opacity-10 pixel-grid pointer-events-none"></div>
         </FramerIn>
+      </section>
+
+      {/* SEO Content Section */}
+      <section className="w-full bg-zinc-950 py-8 md:py-20 px-6 md:px-8 relative z-10">
+        <div className="max-w-4xl mx-auto flex flex-col gap-12 md:gap-16">
+          <div>
+            <div className="mb-6 md:mb-8 text-center flex flex-col items-center">
+              <h2 className="font-pixel text-lg md:text-2xl mb-4 text-white">Frequently Asked Questions</h2>
+              <div className="h-1 w-16 md:w-24 bg-realm-green"></div>
+            </div>
+            <div className="flex flex-col gap-4">
+              {[
+                {
+                  q: "How do I join a Minecraft server from this list?",
+                  a: "Joining a server is easy! Simply browse our directory and click on any server that catches your eye to view its dedicated page. There, you will find the Server IP (for Java Edition) or the Realm Code / Port (for Bedrock Edition). Open your Minecraft client, navigate to the Multiplayer or Realms tab, and enter the provided details. Many servers also feature a direct \"Join Discord\" button so you can meet the community before you even log in!"
+                },
+                {
+                  q: "What is the difference between a Server and a Realm?",
+                  a: "Minecraft Servers are independently hosted multiplayer worlds that can support anywhere from dozens to thousands of concurrent players. They often feature custom plugins, mini-games, and extensive modifications (like economy systems and custom biomes). Minecraft Realms, on the other hand, are officially hosted by Mojang. They are typically smaller, invite-only, or code-based servers designed for tight-knit groups of friends or smaller communities to enjoy a vanilla survival experience without the hassle of third-party hosting."
+                },
+                {
+                  q: "How can I get my server listed on Realm Explorer?",
+                  a: "If you are a server owner or community manager, you can list your server by creating a free account on our platform and navigating to the Dashboard. From there, you can submit your server's details, upload a custom banner, and sync your Discord community. Once approved by our moderation team, your server will instantly appear in our directory and become eligible to receive votes from the community. Higher votes mean better visibility!"
+                },
+                {
+                  q: "What are Server Categories?",
+                  a: "To help you find exactly what you are looking for, we divide our directory into multiple categories. \"SMP\" stands for Survival Multiplayer, focusing on cooperative vanilla gameplay. \"Factions\" involves claiming land, raiding enemies, and engaging in PvP. \"Skyblock\" challenges you to survive and build an empire starting from a single floating block. We also feature Modded servers, Prison servers, SkyGen, and Minigames. You can use the category filters at the top of the page to narrow down your search instantly."
+                }
+              ].map((faq, idx) => {
+                const isOpen = openFaqIndex === idx;
+                return (
+                  <div key={idx} className="bg-zinc-900/50 rounded-xl border border-zinc-800/50 overflow-hidden">
+                    <button 
+                      onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                      className="w-full flex items-center justify-between p-5 md:p-6 text-left hover:bg-white/[0.02] transition-colors"
+                    >
+                      <h3 className="text-sm md:text-base font-headline font-bold text-white pr-4">{faq.q}</h3>
+                      <ChevronDown className={`w-5 h-5 text-zinc-500 transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    <AnimatePresence>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        >
+                          <div className="mx-5 md:mx-6 px-1 pb-5 md:pb-6 pt-4 border-t border-zinc-800/50">
+                            <p className="text-zinc-400 text-xs md:text-sm leading-relaxed font-body">
+                              {faq.a}
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
       </section>
 
       <Suspense fallback={null}>
