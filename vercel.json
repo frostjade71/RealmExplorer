@@ -63,6 +63,156 @@
   ],
   "redirects": [
     {
+      "source": "/minecraft-bedrock-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-java-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-java-bedrock-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-bedrock-realms",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-java-realms",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-realms",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-survival-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-smp-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-lifesteal-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-skyblock-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-factions-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-prison-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-earth-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-creative-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-anarchy-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-pvp-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-minigame-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-rpg-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-towny-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-oneblock-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-pixelmon-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-lifesteal-smp-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-bedrock-lifesteal-smp-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-java-lifesteal-smp-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-survival-smp-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-bedrock-survival-smp-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-java-survival-smp-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-anarchy-smp-servers",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-realm-list",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
+      "source": "/minecraft-server-list",
+      "destination": "/servers",
+      "permanent": true
+    },
+    {
       "source": "/status",
       "destination": "https://status.realmexplorer.xyz",
       "permanent": true

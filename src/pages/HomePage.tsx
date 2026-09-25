@@ -12,6 +12,7 @@ import type { Server } from '../types'
 import { slugify } from '../lib/urlUtils'
 
 const CategoryRequestModal = lazy(() => import('../components/CategoryRequestModal').then(m => ({ default: m.CategoryRequestModal })))
+const AffiliateModal = lazy(() => import('../components/AffiliateModal').then(m => ({ default: m.AffiliateModal })))
 import { useCreateCategoryRequestMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
@@ -19,7 +20,10 @@ import { SiDiscord } from 'react-icons/si'
 import heroBg from '../assets/hero/Lush Caves1.jpg'
 import ctaBg from '../assets/homepage/venture_mc.jpg'
 import mcGif from '../assets/category/gif/6128-minecraft.gif'
-import communityOneLogo from '../assets/affiliates/communityonelogo.png'
+import communityOneLogo from '../assets/affiliates/communityonelogo.webp'
+import realmBotLogo from '../assets/affiliates/realmbot.webp'
+import communityOneCover from '../assets/affiliates/communityone-cover.webp'
+import realmBotCover from '../assets/affiliates/realmbot-cover.webp'
 
 // Category Icons
 import factionsIcon from '../assets/category/7587-netherite-sword.png'
@@ -92,6 +96,7 @@ export function HomePage() {
   const navigate = useNavigate()
   const createRequestMutation = useCreateCategoryRequestMutation()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [affiliateModal, setAffiliateModal] = useState({ isOpen: false, name: '', websiteUrl: '', discordUrl: '', logoUrl: '' })
 
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
@@ -410,14 +415,62 @@ export function HomePage() {
       <section className="pt-0 pb-12 md:pb-16 px-8 bg-[#0A0A0A]">
         <div className="max-w-7xl mx-auto flex flex-col items-center">
           <FramerIn className="text-center mb-12 md:mb-16">
-            <h2 className="font-pixel text-white text-xl md:text-2xl mb-2">Our Affiliates</h2>
+            <h2 className="font-pixel text-white text-xl md:text-2xl mb-2">Our Partners</h2>
             <div className="h-1 w-12 md:w-16 bg-primary-container mx-auto"></div>
           </FramerIn>
-          <FramerIn delay={0.2} className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
-            <a href="https://communityone.io/" target="_blank" rel="noreferrer" className="group flex flex-col items-center gap-3 saturate-50 opacity-70 hover:saturate-100 hover:opacity-100 transition-all duration-300 cursor-pointer">
-              <img src={communityOneLogo} alt="Community One" width={80} height={80} loading="lazy" decoding="async" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300" />
-              <span className="font-headline text-xs md:text-sm text-zinc-400 group-hover:text-white transition-colors font-medium">Community One</span>
-            </a>
+          <FramerIn delay={0.2} className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
+            <div 
+              onClick={() => setAffiliateModal({ isOpen: true, name: 'Community One', websiteUrl: 'https://communityone.io/', discordUrl: 'https://discord.com/invite/nVqt3z78Mw', logoUrl: communityOneLogo })}
+              className="block h-full group relative w-full cursor-pointer text-left"
+            >
+              <div className="bg-surface border border-outline-variant/30 hover:border-purple-500/30 rounded-xl flex flex-col h-full min-h-[220px] overflow-hidden relative shadow-sm transition-colors duration-200 z-10">
+                <div className="relative h-24 md:h-28 w-full overflow-hidden bg-zinc-900/60 flex-shrink-0">
+                  <img src={communityOneCover} alt="Community One cover" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                </div>
+                <div className="absolute top-0 left-0 right-0 h-[3px] z-20 bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <div className="relative p-4 md:p-5 pt-0 flex flex-col flex-grow z-10">
+                  <div className="w-14 h-14 md:w-16 md:h-16 -mt-7 md:-mt-8 mb-3 bg-zinc-900 rounded-xl overflow-hidden flex-shrink-0 border-2 border-zinc-800 shadow-md z-20">
+                    <img src={communityOneLogo} alt="Community One" loading="lazy" decoding="async" className="w-full h-full object-contain p-1" />
+                  </div>
+                  <div className="min-w-0 flex-grow pr-1 mb-2 text-left">
+                    <h3 className="font-pixel text-sm md:text-base line-clamp-2 mb-1.5 text-white transition-colors leading-tight break-words">
+                      Community One
+                    </h3>
+                  </div>
+                  <p className="text-zinc-400 text-[12px] md:text-[13px] flex-grow leading-relaxed group-hover:text-zinc-200 transition-colors text-left">
+                    The all-in-one AI bot for Discord and the web. Gamified quests, real-time analytics dashboard, brand-grade moderation, YouTube integration, and etc
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div 
+              onClick={() => setAffiliateModal({ isOpen: true, name: 'Realm Bot', websiteUrl: 'https://realmbot.dev/', discordUrl: 'https://discord.com/invite/realmbot', logoUrl: realmBotLogo })}
+              className="block h-full group relative w-full cursor-pointer text-left"
+            >
+              <div className="bg-surface border border-outline-variant/30 hover:border-realm-green/30 rounded-xl flex flex-col h-full min-h-[220px] overflow-hidden relative shadow-sm transition-colors duration-200 z-10">
+                <div className="relative h-24 md:h-28 w-full overflow-hidden bg-zinc-900/60 flex-shrink-0">
+                  <img src={realmBotCover} alt="Realm Bot cover" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                </div>
+                <div className="absolute top-0 left-0 right-0 h-[3px] z-20 bg-realm-green shadow-[0_0_15px_rgba(78,196,78,0.4)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <div className="relative p-4 md:p-5 pt-0 flex flex-col flex-grow z-10">
+                  <div className="w-14 h-14 md:w-16 md:h-16 -mt-7 md:-mt-8 mb-3 bg-zinc-900 rounded-xl overflow-hidden flex-shrink-0 border-2 border-zinc-800 shadow-md z-20">
+                    <img src={realmBotLogo} alt="Realm Bot" loading="lazy" decoding="async" className="w-full h-full object-contain p-1" />
+                  </div>
+                  <div className="min-w-0 flex-grow pr-1 mb-2 text-left">
+                    <h3 className="font-pixel text-sm md:text-base line-clamp-2 mb-1.5 text-white transition-colors leading-tight break-words">
+                      Realm Bot
+                    </h3>
+                  </div>
+                  <p className="text-zinc-400 text-[12px] md:text-[13px] flex-grow leading-relaxed group-hover:text-zinc-200 transition-colors text-left">
+                    Realm Bot is a cutting-edge Minecraft Bedrock Realm management bot designed to revolutionize the way communities operate their servers.
+                  </p>
+                </div>
+              </div>
+            </div>
           </FramerIn>
         </div>
       </section>
@@ -464,7 +517,7 @@ export function HomePage() {
             <p className="text-white/80 font-headline text-xs md:text-base max-w-xl mx-auto mb-10 md:mb-14 leading-relaxed px-4">
               Join thousands of players and creators in the most sophisticated Minecraft ecosystem ever built.
             </p>
-            <div className="flex flex-wrap justify-center gap-3 md:gap-4">
+            <div className="flex flex-col items-center justify-center gap-4 md:gap-6">
               <a 
                 href="https://discord.gg/G8CyUZjPRt" 
                 target="_blank" 
@@ -474,12 +527,15 @@ export function HomePage() {
                 <SiDiscord className="w-4 h-4 md:w-5 md:h-5" />
                 Join our Discord
               </a>
-              <Link 
-                to="/servers" 
-                className="bg-[#4EC44E] hover:bg-[#5cd45c] text-zinc-950 px-6 md:px-8 py-3 md:py-3.5 rounded-lg font-headline font-bold transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] border-b-[4px] border-[#3da53d] active:border-b-0 active:border-t-[4px] active:border-t-transparent min-w-[140px] md:min-w-[180px] flex items-center justify-center text-xs md:text-sm"
-              >
-                Browse Realms
-              </Link>
+              <iframe 
+                src="https://discord.com/widget?id=1258132272419311676&theme=dark" 
+                width="350" 
+                height="400" 
+                allowTransparency={true} 
+                frameBorder="0" 
+                sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+                className="rounded-xl shadow-2xl border border-zinc-800/50 max-w-full"
+              />
             </div>
           </div>
           <div className="absolute top-0 left-0 w-full h-full opacity-10 pixel-grid pointer-events-none"></div>
@@ -492,6 +548,14 @@ export function HomePage() {
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleRequestSubmit}
           isSubmitting={createRequestMutation.isPending}
+        />
+        <AffiliateModal
+          isOpen={affiliateModal.isOpen}
+          onClose={() => setAffiliateModal(prev => ({ ...prev, isOpen: false }))}
+          affiliateName={affiliateModal.name}
+          websiteUrl={affiliateModal.websiteUrl}
+          discordUrl={affiliateModal.discordUrl}
+          logoUrl={affiliateModal.logoUrl}
         />
       </Suspense>
     </AnimatedPage>

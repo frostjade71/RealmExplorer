@@ -1,121 +1,121 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://realmexplorer.xyz/</loc>
+    <loc>https://www.realmexplorer.xyz/</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/servers</loc>
+    <loc>https://www.realmexplorer.xyz/servers</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/projects</loc>
+    <loc>https://www.realmexplorer.xyz/projects</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/leaderboards</loc>
+    <loc>https://www.realmexplorer.xyz/leaderboards</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/rotm</loc>
+    <loc>https://www.realmexplorer.xyz/rotm</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/sotm</loc>
+    <loc>https://www.realmexplorer.xyz/sotm</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/botm</loc>
+    <loc>https://www.realmexplorer.xyz/botm</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/dotm</loc>
+    <loc>https://www.realmexplorer.xyz/dotm</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/otm-standings</loc>
+    <loc>https://www.realmexplorer.xyz/otm-standings</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/about</loc>
+    <loc>https://www.realmexplorer.xyz/about</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/team</loc>
+    <loc>https://www.realmexplorer.xyz/team</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/blog</loc>
+    <loc>https://www.realmexplorer.xyz/blog</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/docs</loc>
+    <loc>https://www.realmexplorer.xyz/docs</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/api-docs</loc>
+    <loc>https://www.realmexplorer.xyz/api-docs</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/terms</loc>
+    <loc>https://www.realmexplorer.xyz/terms</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/privacy</loc>
+    <loc>https://www.realmexplorer.xyz/privacy</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/copyright</loc>
+    <loc>https://www.realmexplorer.xyz/copyright</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/status</loc>
+    <loc>https://www.realmexplorer.xyz/status</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/upgrade</loc>
+    <loc>https://www.realmexplorer.xyz/upgrade</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://realmexplorer.xyz/appeal</loc>
+    <loc>https://www.realmexplorer.xyz/appeal</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
