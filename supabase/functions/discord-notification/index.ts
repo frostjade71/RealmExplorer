@@ -417,7 +417,12 @@ Deno.serve(async (req: Request) => {
         isTruncated = true;
       }
 
-      let cleanDesc = truncatedDesc.replace(/[#*`_~\[\]]/g, '');
+      let cleanDesc = truncatedDesc
+        .replace(/!\[.*?\]\(.*?\)/g, '')
+        .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+        .replace(/[#*`_~>]/g, '')
+        .replace(/\n+/g, ' ')
+        .trim();
       
       if (isTruncated) {
         cleanDesc += `\n\nContinue reading at [realmexplorer.xyz/blog](${blogUrl})`;
