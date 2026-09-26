@@ -397,7 +397,7 @@ Deno.serve(async (req: Request) => {
     } else if (type === 'blog_publish') {
       const { title, slug, description, imageUrl, adminName, category } = payload;
 
-      const BLOG_CHANNEL_ID = '1459920203554095328';
+      const BLOG_CHANNEL_ID = '1511995700303364116';
       const BLOG_ROLE_ID = '1456662903762587698';
 
       if (!DISCORD_BOT_TOKEN) {
