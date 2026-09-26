@@ -7,7 +7,8 @@ import {
   sendStaffReviewNotification, 
   sendLogNotification, 
   sendErrorNotification,
-  sendSubmissionLogNotification
+  sendSubmissionLogNotification,
+  sendBlogPublishNotification
 } from '../lib/discord'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -1009,6 +1010,15 @@ export function useCreateBlogPostMutation() {
         adminName: adminName,
         details: `**${title}** has been published to the blog.`,
         color: 0x3498db // Blue
+      })
+
+      await sendBlogPublishNotification({
+        title,
+        slug,
+        description: content,
+        imageUrl: image_url,
+        adminName,
+        category: category || 'Event/News',
       })
     },
     onSuccess: () => {

@@ -238,6 +238,10 @@
       "source": "/projects/:slug",
       "destination": "/api/og?type=projects&slug=:slug"
     },
+    {
+      "source": "/blog/:slug",
+      "destination": "/api/og?type=blog&slug=:slug"
+    },
     { "source": "/appeal", "destination": "/appeal.html" },
     { "source": "/api-docs", "destination": "/api/og?type=api-docs" },
     { "source": "/api/servers", "destination": "/api/servers" },

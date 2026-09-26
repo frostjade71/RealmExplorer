@@ -21,7 +21,7 @@ export default async function handler(req: Request) {
     })
   }
   
-  if (!slug || (type !== 'server' && type !== 'projects')) {
+  if (!slug || (type !== 'server' && type !== 'projects' && type !== 'blog')) {
      return fetch(new URL('/index.html', req.url)) // fallback to SPA
   }
 
@@ -44,6 +44,8 @@ export default async function handler(req: Request) {
   let title = 'Realm Explorer'
   let description = 'Discover the best Minecraft Servers and Realms. Vote for your favorites and find your next adventure.'
   let image = 'https://realmexplorer.xyz/meta-preview/RE-Banned_EAA0FDC.webp'
+  let ogType = 'website'
+  let twitterCard = 'summary'
   
   const truncate = (text: string | null, length: number = 100) => {
     if (!text) return ''
@@ -68,6 +70,16 @@ export default async function handler(req: Request) {
           title = `${data.name} | Realm Explorer`
           description = truncate(data.short_description) || truncate(data.description) || description
           image = data.icon_url || image
+       }
+    } else if (type === 'blog') {
+       const { data, error } = await supabase.from('blog_posts').select('title, content, image_url, category').eq('slug', slug).eq('status', 'published').single()
+       if (error) throw error
+       if (data) {
+          title = `${data.title} | Realm Explorer Blog`
+          description = truncate(data.content, 160) || description
+          image = data.image_url || image
+          ogType = 'article'
+          twitterCard = 'summary_large_image'
        }
     }
   } catch (error: any) {
@@ -97,13 +109,13 @@ export default async function handler(req: Request) {
         <meta name="title" content="${safeTitle}" />
         <meta name="description" content="${safeDescription}" />
         
-        <meta property="og:type" content="website" />
+        <meta property="og:type" content="${ogType}" />
         <meta property="og:url" content="${safeUrl}" />
         <meta property="og:title" content="${safeTitle}" />
         <meta property="og:description" content="${safeDescription}" />
         <meta property="og:image" content="${safeImage}" />
         
-        <meta property="twitter:card" content="summary" />
+        <meta property="twitter:card" content="${twitterCard}" />
         <meta property="twitter:url" content="${safeUrl}" />
         <meta property="twitter:title" content="${safeTitle}" />
         <meta property="twitter:description" content="${safeDescription}" />

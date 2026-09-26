@@ -154,3 +154,32 @@ export async function sendErrorNotification(params: {
     console.error('Failed to send Discord error log:', error);
   }
 }
+
+export async function sendBlogPublishNotification(params: {
+  title: string;
+  slug: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  adminName?: string | null;
+  category?: string;
+}) {
+  try {
+    const { error } = await supabase.functions.invoke('discord-notification', {
+      body: {
+        type: 'blog_publish',
+        payload: {
+          title: params.title,
+          slug: params.slug,
+          description: params.description,
+          imageUrl: params.imageUrl,
+          adminName: params.adminName,
+          category: params.category || 'Event/News',
+        }
+      }
+    });
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Failed to send blog publish notification:', error);
+  }
+}

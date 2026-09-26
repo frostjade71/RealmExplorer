@@ -55,7 +55,7 @@ Deno.serve(async (req: Request) => {
         return new Response(JSON.stringify({ error: 'Unauthorized: Invalid token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      const adminTypes = ['approval', 'log', 'appeal_log', 'unban', 'submission_log'];
+      const adminTypes = ['approval', 'log', 'appeal_log', 'unban', 'submission_log', 'blog_publish'];
       if (adminTypes.includes(type)) {
         const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
         if (!profile || (profile.role !== 'admin' && profile.role !== 'moderator')) {
@@ -392,6 +392,61 @@ Deno.serve(async (req: Request) => {
           description: `The ban appeal for **${discordUsername}** (<@${discordId}>) has been **${status}** by **${adminName}**.`,
           color: isApproved ? 0x00ff00 : 0xff0000,
           timestamp: new Date().toISOString()
+        }]
+      };
+    } else if (type === 'blog_publish') {
+      const { title, slug, description, imageUrl, adminName, category } = payload;
+
+      const BLOG_CHANNEL_ID = '1459920203554095328';
+      const BLOG_ROLE_ID = '1456662903762587698';
+
+      if (!DISCORD_BOT_TOKEN) {
+        throw new Error('DISCORD_BOT_TOKEN is not configured.');
+      }
+
+      useBotApi = true;
+      targetEndpoint = `https://discord.com/api/v10/channels/${BLOG_CHANNEL_ID}/messages`;
+
+      const blogUrl = `https://www.realmexplorer.xyz/blog/${slug}`;
+
+      let isTruncated = false;
+      let truncatedDesc = description || '';
+
+      if (description && description.length > 200) {
+        truncatedDesc = description.substring(0, 200).trim() + '...';
+        isTruncated = true;
+      }
+
+      let cleanDesc = truncatedDesc.replace(/[#*`_~\[\]]/g, '');
+      
+      if (isTruncated) {
+        cleanDesc += `\n\nContinue reading at [realmexplorer.xyz/blog](${blogUrl})`;
+      }
+
+      const categoryEmoji = category === 'Changelog' ? '📋' : category === 'Server Spotlight' ? '🔦' : '📰';
+
+      discordPayload = {
+        content: `<@&${BLOG_ROLE_ID}>`,
+        embeds: [{
+          title: `${categoryEmoji} ${title}`,
+          url: blogUrl,
+          description: cleanDesc,
+          color: 0x00ff00,
+          image: imageUrl ? { url: imageUrl } : undefined,
+          fields: [
+            { name: '📅 Published at', value: `<t:${Math.floor(Date.now() / 1000)}:F> (<t:${Math.floor(Date.now() / 1000)}:R>)`, inline: false },
+            { name: '✍️ Author', value: adminName || 'Staff', inline: false },
+          ],
+          footer: { text: `Realm Explorer Blog • ${category || 'Event/News'}` },
+        }],
+        components: [{
+          type: 1,
+          components: [{
+            type: 2,
+            style: 5,
+            label: "View Blog",
+            url: blogUrl
+          }]
         }]
       };
     } else {
