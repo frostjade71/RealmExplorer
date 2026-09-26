@@ -11,6 +11,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkBreaks from 'remark-breaks'
 import remarkGfm from 'remark-gfm'
 import { supabase } from '../lib/supabase'
+import { sendBlogPublishNotification } from '../lib/discord'
 
 interface AdminBlogEditorProps {
   isOpen: boolean
@@ -102,6 +103,29 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
       onClose()
     } catch (error: any) {
       toast.error('Operation Failed', { description: error.message })
+    }
+  }
+
+  const [isReposting, setIsReposting] = useState(false)
+
+  const handleRepost = async () => {
+    if (!profile || !post) return
+    
+    setIsReposting(true)
+    try {
+      await sendBlogPublishNotification({
+        title,
+        slug,
+        description: content,
+        imageUrl,
+        adminName: profile.discord_username,
+        category,
+      })
+      toast.success('Re-Posted', { description: 'Notification sent to Discord.' })
+    } catch (error: any) {
+      toast.error('Failed to Re-Post', { description: error.message })
+    } finally {
+      setIsReposting(false)
     }
   }
 
@@ -343,6 +367,22 @@ export function AdminBlogEditor({ isOpen, onClose, post }: AdminBlogEditorProps)
             >
               Cancel
             </button>
+            
+            {post && (
+              <button
+                onClick={handleRepost}
+                disabled={isReposting || !title || !content}
+                type="button"
+                className="flex items-center gap-2 px-6 py-3 bg-[#5865F2] text-white rounded-xl font-headline font-bold text-xs uppercase tracking-widest hover:bg-[#4752C4] transition-all disabled:opacity-50 shadow-md mr-auto"
+              >
+                {isReposting ? (
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <span className="material-symbols-outlined text-base">campaign</span>
+                )}
+                Re-Post to Discord
+              </button>
+            )}
             <button
               onClick={handleSubmit}
               disabled={createMutation.isPending || updateMutation.isPending || !title || !content}
