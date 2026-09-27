@@ -1306,18 +1306,16 @@ export function ServerDetailPage() {
                       className="w-full bg-zinc-900 border border-zinc-700 rounded-md px-4 h-12 text-sm font-headline text-white placeholder:text-zinc-500 focus:outline-none focus:border-realm-green/50 transition-colors shadow-sm"
                     />
                   </div>
-                  <motion.button 
+                  <button 
                     type="button"
-                    whileHover={isVoteReady ? { scale: 1.02 } : {}}
-                    whileTap={isVoteReady ? { scale: 0.98 } : {}}
                     onClick={handleVote}
                     disabled={isVoteDisabled}
-                    style={{ touchAction: 'manipulation' }}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-md font-headline font-bold transition-colors shadow-lg text-sm ${
+                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-md font-headline font-bold shadow-lg text-sm transition-all duration-150 ${
                       isVoteDisabled
                       ? (!isApproved ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-800' :
                          'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700')
-                      : 'bg-[#4EC44E] text-zinc-950 hover:bg-[#85fc7e] active:bg-[#85fc7e]'
+                      : 'bg-[#4EC44E] text-zinc-950 hover:bg-[#85fc7e] active:bg-[#85fc7e] hover:scale-[1.02] active:scale-[0.98]'
                     }`}
                   >
                     <ArrowUpSquare className={`w-4 h-4 ${isVoteDisabled ? 'text-zinc-600' : ''}`} />
@@ -1336,7 +1334,7 @@ export function ServerDetailPage() {
                         </Suspense>
                       )}
                     </span>
-                  </motion.button>
+                  </button>
                 </div>
               ) : (
                 <div className="text-sm font-headline text-zinc-500 border border-zinc-800 p-6 rounded-md text-center bg-zinc-950/30">
