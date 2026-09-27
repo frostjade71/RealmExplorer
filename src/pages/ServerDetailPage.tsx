@@ -166,6 +166,8 @@ export function ServerDetailPage() {
   // A user has voted if they have a record in the DB OR if they just successfully clicked the button
   const alreadyVoted = voteStatus?.hasVoted || voteMutation.isSuccess
   const isApproved = server?.status === 'approved'
+  const isVoteDisabled = alreadyVoted || voteMutation.isPending || checkingVote || !isApproved || mcUsername.length < 3
+  const isVoteReady = isApproved && !alreadyVoted && !checkingVote && !voteMutation.isPending && mcUsername.length > 2
 
 
 
@@ -649,20 +651,22 @@ export function ServerDetailPage() {
                       {/* Line 2: Buttons */}
                       <div className="flex items-stretch gap-1 w-full">
                         <motion.button 
-                          whileHover={isApproved && !alreadyVoted && mcUsername.length > 2 ? { scale: 1.02 } : {}}
-                          whileTap={isApproved && !alreadyVoted && mcUsername.length > 2 ? { scale: 0.98 } : {}}
+                          type="button"
+                          whileHover={isVoteReady ? { scale: 1.02 } : {}}
+                          whileTap={isVoteReady ? { scale: 0.98 } : {}}
                           onClick={handleVote}
-                          disabled={alreadyVoted || voteMutation.isPending || checkingVote || !isApproved || mcUsername.length < 3}
+                          disabled={isVoteDisabled}
+                          style={{ touchAction: 'manipulation' }}
                           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-l-md font-headline font-bold transition-colors shadow-lg text-[10px] md:text-xs ${
-                            !isApproved ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-800 opacity-50' :
-                            alreadyVoted ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' : 
-                            mcUsername.length < 3 ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' :
-                            'bg-[#4EC44E] text-zinc-950 hover:bg-[#85fc7e]'
+                            isVoteDisabled
+                            ? (!isApproved ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-800 opacity-50' :
+                               'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700')
+                            : 'bg-[#4EC44E] text-zinc-950 hover:bg-[#85fc7e] active:bg-[#85fc7e]'
                           }`}
                         >
-                          <ArrowUpSquare className={`w-3.5 h-3.5 md:w-4 md:h-4 ${alreadyVoted || !isApproved || mcUsername.length < 3 ? 'text-zinc-600' : ''}`} />
+                          <ArrowUpSquare className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isVoteDisabled ? 'text-zinc-600' : ''}`} />
                           <span className="truncate flex items-center gap-1.5 leading-tight">
-                            {voteMutation.isPending ? 'Voting...' : !isApproved ? 'Pending' : alreadyVoted ? 'Voted' : 'Submit Vote'}
+                            {voteMutation.isPending ? 'Voting...' : checkingVote ? 'Checking...' : !isApproved ? 'Pending' : alreadyVoted ? 'Voted' : 'Submit Vote'}
                             {alreadyVoted && voteStatus?.lastVoteTime && (
                               <Suspense fallback={<div className="w-16 h-4 bg-zinc-800 animate-pulse rounded" />}>
                                 <VoteTimer 
@@ -1303,20 +1307,22 @@ export function ServerDetailPage() {
                     />
                   </div>
                   <motion.button 
-                    whileHover={isApproved && !alreadyVoted && mcUsername.length > 2 ? { scale: 1.02 } : {}}
-                    whileTap={isApproved && !alreadyVoted && mcUsername.length > 2 ? { scale: 0.98 } : {}}
+                    type="button"
+                    whileHover={isVoteReady ? { scale: 1.02 } : {}}
+                    whileTap={isVoteReady ? { scale: 0.98 } : {}}
                     onClick={handleVote}
-                    disabled={alreadyVoted || voteMutation.isPending || checkingVote || !isApproved || mcUsername.length < 3}
+                    disabled={isVoteDisabled}
+                    style={{ touchAction: 'manipulation' }}
                     className={`w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-md font-headline font-bold transition-colors shadow-lg text-sm ${
-                      !isApproved ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-800' :
-                      alreadyVoted ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' : 
-                      mcUsername.length < 3 ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' :
-                      'bg-[#4EC44E] text-zinc-950 hover:bg-[#85fc7e]'
+                      isVoteDisabled
+                      ? (!isApproved ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-800' :
+                         'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700')
+                      : 'bg-[#4EC44E] text-zinc-950 hover:bg-[#85fc7e] active:bg-[#85fc7e]'
                     }`}
                   >
-                    <ArrowUpSquare className={`w-4 h-4 ${alreadyVoted || !isApproved || mcUsername.length < 3 ? 'text-zinc-600' : ''}`} />
+                    <ArrowUpSquare className={`w-4 h-4 ${isVoteDisabled ? 'text-zinc-600' : ''}`} />
                     <span className="flex items-center gap-1.5">
-                      {voteMutation.isPending ? 'Voting...' : !isApproved ? 'Pending' : alreadyVoted ? 'Voted' : 'Submit Vote'}
+                      {voteMutation.isPending ? 'Voting...' : checkingVote ? 'Checking...' : !isApproved ? 'Pending' : alreadyVoted ? 'Voted' : 'Submit Vote'}
                       {alreadyVoted && voteStatus?.lastVoteTime && (
                         <Suspense fallback={<div className="w-16 h-4 bg-zinc-800 animate-pulse rounded" />}>
                           <VoteTimer 

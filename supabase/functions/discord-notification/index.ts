@@ -439,8 +439,8 @@ Deno.serve(async (req: Request) => {
           color: 0x00ff00,
           image: imageUrl ? { url: imageUrl } : undefined,
           fields: [
-            { name: '📅 Published at', value: `<t:${Math.floor(Date.now() / 1000)}:F> (<t:${Math.floor(Date.now() / 1000)}:R>)`, inline: false },
-            { name: '✍️ Author', value: adminName || 'Staff', inline: false },
+            { name: 'Published at', value: `<t:${Math.floor(Date.now() / 1000)}:F> (<t:${Math.floor(Date.now() / 1000)}:R>)`, inline: false },
+            { name: 'Author', value: adminName || 'Staff', inline: false },
           ],
           footer: { text: `Realm Explorer Blog • ${category || 'Event/News'}` },
         }],
