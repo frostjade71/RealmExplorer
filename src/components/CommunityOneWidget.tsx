@@ -140,6 +140,7 @@ export function CommunityOneWidget() {
 
   const hiddenPaths = [
     '/servers',
+    '/server/',
     '/admin',
     '/profile',
     '/submit'
