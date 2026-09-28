@@ -108,13 +108,15 @@ export function BlogPostDetailPage() {
       <AnimatedPage>
       <div className="max-w-6xl mx-auto px-6 py-12 md:py-20">
         <FramerIn>
-          <Link 
-            to="/blog"
-            className="inline-flex items-center gap-2 text-white/40 hover:text-white transition-colors font-headline text-xs font-bold uppercase tracking-widest mb-10 group"
-          >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            Back to Blog
-          </Link>
+          <div className="flex justify-end w-full mb-10">
+            <Link 
+              to="/blog"
+              className="inline-flex items-center gap-2 text-white/40 hover:text-white transition-colors font-headline text-xs font-bold uppercase tracking-widest group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Back to Blog
+            </Link>
+          </div>
         </FramerIn>
 
         {/* Hero Section */}

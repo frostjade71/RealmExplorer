@@ -222,7 +222,7 @@ export function BlogPage() {
             </div>
           )}
 
-          <div className="flex flex-col gap-6 md:gap-8">
+          <div className="flex flex-col gap-3 md:gap-4">
             {isLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="relative w-full bg-[#313233]/40 border-4 border-[#101010] h-[250px] sm:h-[180px] animate-pulse" />
@@ -233,7 +233,7 @@ export function BlogPage() {
                   to={`/blog/${post.slug}`}
                   className="group block w-full"
                 >
-                  <div className="relative w-full bg-[#313233] border-4 border-[#101010] p-4 md:p-6 shadow-[5px_5px_0_rgba(0,0,0,0.5)] hover:bg-[#3c3c43] transition-all hover:scale-[1.01]">
+                  <div className="relative w-full bg-[#313233] border-4 border-[#101010] p-4 md:p-6 shadow-[5px_5px_0_rgba(0,0,0,0.5)] transition-all hover:scale-[1.01]">
                     {/* Inner Highlight Borders */}
                     <div className="absolute inset-0 border-t-2 border-l-2 border-white/10 pointer-events-none" />
                     <div className="absolute inset-0 border-b-2 border-r-2 border-black/40 pointer-events-none" />
