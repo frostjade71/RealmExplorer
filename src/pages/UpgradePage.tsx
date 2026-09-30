@@ -91,6 +91,11 @@ export function UpgradePage() {
 
   const benefits = [
     { 
+      title: 'Priority Exploration', 
+      desc: 'Your listings has a higher chance to be on the top when users shuffle.', 
+      icon: <ArrowUp className="w-5 h-5 text-white" /> 
+    },
+    { 
       title: 'Increased Limits', 
       desc: 'Submit up to 5 servers/realms instead of 1.', 
       icon: <PlusCircle className="w-5 h-5 text-white" /> 
@@ -99,11 +104,6 @@ export function UpgradePage() {
       title: 'Golden Role', 
       desc: 'Exclusive Gold Ingot role for your profile .', 
       icon: <Award className="w-5 h-5 text-white" /> 
-    },
-    { 
-      title: 'Priority Exploration', 
-      desc: 'Your listings has a higher chance to be on the top when users shuffle.', 
-      icon: <ArrowUp className="w-5 h-5 text-white" /> 
     },
     { 
       title: 'Extended Gallery', 
