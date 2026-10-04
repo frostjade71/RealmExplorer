@@ -50,7 +50,7 @@ import {
 } from "react-icons/si";
 import { AnimatedPage } from "../components/AnimatedPage";
 import { FramerIn } from "../components/FramerIn";
-import { motion, Reorder, AnimatePresence } from "framer-motion";
+import { motion, Reorder, AnimatePresence, useDragControls } from "framer-motion";
 import { ImageUpload } from "../components/ImageUpload";
 import { slugify } from "../lib/urlUtils";
 import { toast } from "sonner";
@@ -977,56 +977,14 @@ export function SubmitPage() {
                 className="space-y-3 max-w-2xl"
               >
                 {(formData.social_links || []).map((link, index) => (
-                  <Reorder.Item
+                  <SocialLinkReorderItem
                     key={link.localId}
-                    value={link}
-                    className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 bg-zinc-950 border border-zinc-800 p-2 sm:p-3 rounded-lg group relative"
-                  >
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <div className="cursor-grab active:cursor-grabbing p-1.5 text-zinc-600 hover:text-zinc-400 transition-colors hidden sm:block touch-none">
-                        <GripVertical className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 sm:w-auto sm:flex-none">
-                        <CustomSelect
-                          value={link.platform}
-                          onChange={(val) => {
-                            const newLinks = [...(formData.social_links || [])];
-                            newLinks[index].platform = val;
-                            setFormData({ ...formData, social_links: newLinks });
-                          }}
-                          options={socialOptions}
-                          className="w-auto flex-shrink-0"
-                          hideLabel={true}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 w-full sm:flex-1">
-                      <input
-                        type="url"
-                        placeholder="https://..."
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-white outline-none focus:border-realm-green transition-all font-headline text-xs"
-                        value={link.url}
-                        onChange={(e) => {
-                          const newLinks = [...(formData.social_links || [])];
-                          newLinks[index].url = e.target.value;
-                          setFormData({ ...formData, social_links: newLinks });
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newLinks = (formData.social_links || []).filter(
-                            (_, i) => i !== index,
-                          );
-                          setFormData({ ...formData, social_links: newLinks });
-                        }}
-                        className="p-2.5 text-red-500/50 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
-                        title="Remove Link"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </Reorder.Item>
+                    link={link}
+                    index={index}
+                    formData={formData}
+                    setFormData={setFormData}
+                    socialOptions={socialOptions}
+                  />
                 ))}
 
                 {formData.social_links?.length === 0 && (
@@ -1425,52 +1383,15 @@ export function SubmitPage() {
                 className="grid grid-cols-2 md:grid-cols-5 gap-4"
               >
                 {formData.gallery.map((item, index) => (
-                  <Reorder.Item
+                  <GalleryReorderItem
                     key={item.localId}
-                    value={item}
-                    className="relative group/gallery"
-                  >
-                    <ImageUpload
-                      label={`Image ${index + 1}`}
-                      immediateUpload={false}
-                      onUpload={(newUrl, file) => {
-                        const newGallery = [...formData.gallery];
-                        newGallery[index] = { ...newGallery[index], url: newUrl };
-                        setFormData({ ...formData, gallery: newGallery });
-                        
-                        const newBlobs = { ...galleryBlobs };
-                        if (file) newBlobs[item.localId] = file;
-                        else delete newBlobs[item.localId];
-                        setGalleryBlobs(newBlobs);
-                      }}
-                      value={item.url}
-                      aspectRatio="square"
-                    />
-                    
-                    <div className="absolute -top-2 -right-2 flex items-center gap-1.5 z-30 opacity-100 md:opacity-0 md:group-hover/gallery:opacity-100 transition-all">
-                      <div className="w-7 h-7 bg-zinc-900/90 border border-zinc-800 text-zinc-400 rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing shadow-xl hover:text-white hover:border-zinc-700" title="Move Slide">
-                        <GripVertical className="w-3.5 h-3.5" />
-                      </div>
-                      {formData.gallery.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newGallery = formData.gallery.filter(
-                              (g) => g.localId !== item.localId,
-                            );
-                            setFormData({ ...formData, gallery: newGallery });
-                            const newBlobs = { ...galleryBlobs };
-                            delete newBlobs[item.localId];
-                            setGalleryBlobs(newBlobs);
-                          }}
-                          className="w-7 h-7 bg-zinc-900/90 border border-zinc-800 text-zinc-400 rounded-full flex items-center justify-center shadow-xl hover:text-red-500 hover:border-red-500/50"
-                          title="Remove Slide"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  </Reorder.Item>
+                    item={item}
+                    index={index}
+                    formData={formData}
+                    setFormData={setFormData}
+                    galleryBlobs={galleryBlobs}
+                    setGalleryBlobs={setGalleryBlobs}
+                  />
                 ))}
               </Reorder.Group>
             </div>
@@ -1503,5 +1424,130 @@ export function SubmitPage() {
         </form>
       </FramerIn>
     </AnimatedPage>
+  );
+}
+
+function GalleryReorderItem({ item, index, formData, setFormData, galleryBlobs, setGalleryBlobs }: any) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={item}
+      dragListener={false}
+      dragControls={controls}
+      className="relative group/gallery select-none"
+    >
+      <ImageUpload
+        label={`Image ${index + 1}`}
+        immediateUpload={false}
+        onUpload={(newUrl, file) => {
+          const newGallery = [...formData.gallery];
+          newGallery[index] = { ...newGallery[index], url: newUrl };
+          setFormData({ ...formData, gallery: newGallery });
+          
+          const newBlobs = { ...galleryBlobs };
+          if (file) newBlobs[item.localId] = file;
+          else delete newBlobs[item.localId];
+          setGalleryBlobs(newBlobs);
+        }}
+        value={item.url}
+        aspectRatio="square"
+      />
+      
+      <div className="absolute -top-2 -right-2 flex items-center gap-1.5 z-30 opacity-100 md:opacity-0 md:group-hover/gallery:opacity-100 transition-all">
+        <div 
+          className="w-7 h-7 bg-zinc-900/90 border border-zinc-800 text-zinc-400 rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing shadow-xl hover:text-white hover:border-zinc-700 touch-none" 
+          title="Move Slide"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            controls.start(e);
+          }}
+        >
+          <GripVertical className="w-3.5 h-3.5" />
+        </div>
+        {formData.gallery.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              const newGallery = formData.gallery.filter(
+                (g) => g.localId !== item.localId,
+              );
+              setFormData({ ...formData, gallery: newGallery });
+              const newBlobs = { ...galleryBlobs };
+              delete newBlobs[item.localId];
+              setGalleryBlobs(newBlobs);
+            }}
+            className="w-7 h-7 bg-zinc-900/90 border border-zinc-800 text-zinc-400 rounded-full flex items-center justify-center shadow-xl hover:text-red-500 hover:border-red-500/50"
+            title="Remove Slide"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+    </Reorder.Item>
+  );
+}
+
+function SocialLinkReorderItem({ link, index, formData, setFormData, socialOptions }: any) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={link}
+      dragListener={false}
+      dragControls={controls}
+      className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 bg-zinc-950 border border-zinc-800 p-2 sm:p-3 rounded-lg group relative select-none"
+    >
+      <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div 
+          className="cursor-grab active:cursor-grabbing p-1.5 text-zinc-600 hover:text-zinc-400 transition-colors hidden sm:block touch-none select-none"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            controls.start(e);
+          }}
+        >
+          <GripVertical className="w-4 h-4" />
+        </div>
+        <div className="flex-1 sm:w-auto sm:flex-none">
+          <CustomSelect
+            value={link.platform}
+            onChange={(val) => {
+              const newLinks = [...(formData.social_links || [])];
+              newLinks[index].platform = val;
+              setFormData({ ...formData, social_links: newLinks });
+            }}
+            options={socialOptions}
+            className="w-auto flex-shrink-0"
+            hideLabel={true}
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-2 w-full sm:flex-1">
+        <input
+          type="url"
+          placeholder="https://..."
+          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-white outline-none focus:border-realm-green transition-all font-headline text-xs"
+          value={link.url}
+          onChange={(e) => {
+            const newLinks = [...(formData.social_links || [])];
+            newLinks[index].url = e.target.value;
+            setFormData({ ...formData, social_links: newLinks });
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => {
+            const newLinks = (formData.social_links || []).filter(
+              (_, i) => i !== index,
+            );
+            setFormData({ ...formData, social_links: newLinks });
+          }}
+          className="p-2.5 text-red-500/50 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+          title="Remove Link"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </Reorder.Item>
   );
 }
