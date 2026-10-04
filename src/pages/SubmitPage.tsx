@@ -100,7 +100,7 @@ export function SubmitPage() {
     website_url: "",
     icon_url: "",
     banner_url: "",
-    gallery: [] as string[],
+    gallery: [] as { url: string; localId: string }[],
     social_links: [] as ReorderableSocialLink[],
     submitter_role: roleParam,
     verify_discord: false,
@@ -124,7 +124,7 @@ export function SubmitPage() {
 
   const [iconBlob, setIconBlob] = useState<Blob | null>(null);
   const [bannerBlob, setBannerBlob] = useState<Blob | null>(null);
-  const [galleryBlobs, setGalleryBlobs] = useState<Record<number, Blob | null>>({});
+  const [galleryBlobs, setGalleryBlobs] = useState<Record<string, Blob | null>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -189,7 +189,7 @@ export function SubmitPage() {
         banner_url: server.banner_url || "",
         gallery:
           Array.isArray(server.gallery) && server.gallery.length > 0
-            ? [...server.gallery]
+            ? [...server.gallery].map(url => ({ url, localId: Math.random().toString(36).substr(2, 9) }))
             : [],
         social_links: (server.social_links || []).map((link: any) => ({
           ...link,
@@ -263,7 +263,7 @@ export function SubmitPage() {
     }
 
     // Cleanup deleted or changed gallery images
-    const currentGallery = formData.gallery.filter(Boolean);
+    const currentGallery = formData.gallery.map(g => g.url).filter(Boolean);
     originalImageUrls.gallery.forEach((oldUrl) => {
       if (!currentGallery.includes(oldUrl)) {
         const path = getPath(oldUrl);
@@ -343,7 +343,7 @@ export function SubmitPage() {
 
         let finalIconUrl = formData.icon_url;
         let finalBannerUrl = formData.banner_url;
-        let finalGallery = [...formData.gallery];
+        let finalGallery: string[] = [];
 
         if (iconBlob) {
           const filePath = `${user.id}/${Math.random().toString(36).substring(2)}-${Date.now()}.webp`;
@@ -361,13 +361,16 @@ export function SubmitPage() {
           finalBannerUrl = publicUrl;
         }
 
-        for (const [index, blob] of Object.entries(galleryBlobs)) {
+        for (const item of formData.gallery) {
+          const blob = galleryBlobs[item.localId];
           if (blob) {
             const filePath = `${user.id}/${Math.random().toString(36).substring(2)}-${Date.now()}-gallery.webp`;
             const { error: uploadError } = await supabase.storage.from('server-assets').upload(filePath, blob, { contentType: 'image/webp', upsert: true, cacheControl: 'public, max-age=31536000, immutable' });
             if (uploadError) throw uploadError;
             const { data: { publicUrl } } = supabase.storage.from('server-assets').getPublicUrl(filePath);
-            finalGallery[Number(index)] = publicUrl;
+            finalGallery.push(publicUrl);
+          } else if (item.url) {
+            finalGallery.push(item.url);
           }
         }
 
@@ -375,11 +378,13 @@ export function SubmitPage() {
         const currentStatus = serverData?.server?.status || "approved";
         const iconChanged = formData.icon_url !== originalImageUrls.icon;
         const bannerChanged = formData.banner_url !== originalImageUrls.banner;
-        const currentGallery = formData.gallery.filter(Boolean);
+        const currentGallery = formData.gallery.map(g => g.url).filter(Boolean);
+        const sortedCurrentGallery = [...currentGallery].sort();
+        const sortedOriginalGallery = [...originalImageUrls.gallery].sort();
         const galleryChanged =
           currentGallery.length > 0 &&
-          JSON.stringify(currentGallery) !==
-            JSON.stringify(originalImageUrls.gallery);
+          JSON.stringify(sortedCurrentGallery) !==
+            JSON.stringify(sortedOriginalGallery);
 
         let newStatus: import("../types").ServerStatus = currentStatus;
 
@@ -1403,7 +1408,7 @@ export function SubmitPage() {
                       }
                       setFormData({
                         ...formData,
-                        gallery: [...formData.gallery, ""],
+                        gallery: [...formData.gallery, { url: "", localId: Math.random().toString(36).substr(2, 9) }],
                       })
                     }}
                     className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${formData.gallery.length >= limits.gallery ? "text-zinc-500 hover:text-zinc-400" : "text-realm-green hover:text-[#85fc7e]"} flex items-center gap-1`}
@@ -1413,43 +1418,61 @@ export function SubmitPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {formData.gallery.map((url, index) => (
-                  <div key={index} className="relative group/gallery">
+              <Reorder.Group
+                axis="x"
+                values={formData.gallery}
+                onReorder={(newGallery) => setFormData({ ...formData, gallery: newGallery })}
+                className="grid grid-cols-2 md:grid-cols-5 gap-4"
+              >
+                {formData.gallery.map((item, index) => (
+                  <Reorder.Item
+                    key={item.localId}
+                    value={item}
+                    className="relative group/gallery"
+                  >
                     <ImageUpload
                       label={`Image ${index + 1}`}
                       immediateUpload={false}
                       onUpload={(newUrl, file) => {
                         const newGallery = [...formData.gallery];
-                        newGallery[index] = newUrl;
+                        newGallery[index] = { ...newGallery[index], url: newUrl };
                         setFormData({ ...formData, gallery: newGallery });
                         
                         const newBlobs = { ...galleryBlobs };
-                        if (file) newBlobs[index] = file;
-                        else newBlobs[index] = null;
+                        if (file) newBlobs[item.localId] = file;
+                        else delete newBlobs[item.localId];
                         setGalleryBlobs(newBlobs);
                       }}
-                      value={url}
+                      value={item.url}
                       aspectRatio="square"
                     />
-                    {formData.gallery.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newGallery = formData.gallery.filter(
-                            (_, i) => i !== index,
-                          );
-                          setFormData({ ...formData, gallery: newGallery });
-                        }}
-                        className="absolute -top-2 -right-2 w-7 h-7 bg-zinc-900/90 border border-zinc-800 text-zinc-400 rounded-full flex items-center justify-center opacity-100 md:opacity-0 md:group-hover/gallery:opacity-100 transition-all shadow-xl z-20 hover:text-red-500 hover:border-red-500/50"
-                        title="Remove Slide"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
+                    
+                    <div className="absolute -top-2 -right-2 flex items-center gap-1.5 z-30 opacity-100 md:opacity-0 md:group-hover/gallery:opacity-100 transition-all">
+                      <div className="w-7 h-7 bg-zinc-900/90 border border-zinc-800 text-zinc-400 rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing shadow-xl hover:text-white hover:border-zinc-700" title="Move Slide">
+                        <GripVertical className="w-3.5 h-3.5" />
+                      </div>
+                      {formData.gallery.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newGallery = formData.gallery.filter(
+                              (g) => g.localId !== item.localId,
+                            );
+                            setFormData({ ...formData, gallery: newGallery });
+                            const newBlobs = { ...galleryBlobs };
+                            delete newBlobs[item.localId];
+                            setGalleryBlobs(newBlobs);
+                          }}
+                          className="w-7 h-7 bg-zinc-900/90 border border-zinc-800 text-zinc-400 rounded-full flex items-center justify-center shadow-xl hover:text-red-500 hover:border-red-500/50"
+                          title="Remove Slide"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  </Reorder.Item>
                 ))}
-              </div>
+              </Reorder.Group>
             </div>
           </div>
 
