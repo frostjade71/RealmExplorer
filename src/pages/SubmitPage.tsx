@@ -1470,7 +1470,7 @@ function GalleryReorderItem({ item, index, formData, setFormData, galleryBlobs, 
             type="button"
             onClick={() => {
               const newGallery = formData.gallery.filter(
-                (g) => g.localId !== item.localId,
+                (g: any) => g.localId !== item.localId,
               );
               setFormData({ ...formData, gallery: newGallery });
               const newBlobs = { ...galleryBlobs };
@@ -1538,7 +1538,7 @@ function SocialLinkReorderItem({ link, index, formData, setFormData, socialOptio
           type="button"
           onClick={() => {
             const newLinks = (formData.social_links || []).filter(
-              (_, i) => i !== index,
+              (_: any, i: number) => i !== index,
             );
             setFormData({ ...formData, social_links: newLinks });
           }}
