@@ -1458,10 +1458,7 @@ function GalleryReorderItem({ item, index, formData, setFormData, galleryBlobs, 
         <div 
           className="w-7 h-7 bg-zinc-900/90 border border-zinc-800 text-zinc-400 rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing shadow-xl hover:text-white hover:border-zinc-700 touch-none" 
           title="Move Slide"
-          onPointerDown={(e) => {
-            e.preventDefault();
-            controls.start(e);
-          }}
+          onPointerDown={(e) => controls.start(e)}
         >
           <GripVertical className="w-3.5 h-3.5" />
         </div>
@@ -1501,10 +1498,7 @@ function SocialLinkReorderItem({ link, index, formData, setFormData, socialOptio
       <div className="flex items-center gap-2 w-full sm:w-auto">
         <div 
           className="cursor-grab active:cursor-grabbing p-1.5 text-zinc-600 hover:text-zinc-400 transition-colors hidden sm:block touch-none select-none"
-          onPointerDown={(e) => {
-            e.preventDefault();
-            controls.start(e);
-          }}
+          onPointerDown={(e) => controls.start(e)}
         >
           <GripVertical className="w-4 h-4" />
         </div>
