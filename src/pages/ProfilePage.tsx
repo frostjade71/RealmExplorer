@@ -25,6 +25,7 @@ import type { SocialLink } from '../types'
 import errorImage from '../assets/error/teto-but-re.webp'
 
 import { MetaTags } from '../components/MetaTags'
+import goldFrame from '../assets/frames/gold-frame2.png'
 
 const getSocialIcon = (platform: string) => {
   switch (platform) {
@@ -329,20 +330,31 @@ export function ProfilePage() {
       <div className="w-full max-w-6xl mx-auto px-6 relative">
         {/* Profile Info Section */}
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4 -mt-12 mb-8 relative z-10 px-2 md:px-0">
-          <div 
-            className={`w-24 h-24 md:w-28 md:h-28 rounded-xl bg-zinc-900 overflow-hidden shadow-2xl relative group flex-shrink-0 ${isProfileExplorerPlus ? 'border-2 border-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.2)]' : 'border-4 border-black'}`}
-          >
-            <img 
-              src={profile.discord_avatar || ''} 
-              alt={profile.discord_username || ''} 
-              className="w-full h-full object-cover p-1"
-              fetchPriority="high"
-              decoding="sync"
-              loading="eager"
-              width={112}
-              height={112}
-            />
-            <div className={`absolute inset-0 border rounded-[20px] pointer-events-none ${isProfileExplorerPlus ? 'border-yellow-400/20' : 'border-white/10'}`} />
+          <div className="relative flex-shrink-0 z-10">
+            <div 
+              className={`w-24 h-24 md:w-28 md:h-28 rounded-xl bg-zinc-900 overflow-hidden shadow-2xl relative group ${isProfileExplorerPlus ? 'border-transparent' : 'border-4 border-black'}`}
+            >
+              <img 
+                src={profile.discord_avatar || ''} 
+                alt={profile.discord_username || ''} 
+                className="w-full h-full object-cover p-1"
+                fetchPriority="high"
+                decoding="sync"
+                loading="eager"
+                width={112}
+                height={112}
+              />
+              <div className={`absolute inset-0 border rounded-[20px] pointer-events-none ${isProfileExplorerPlus ? 'border-transparent' : 'border-white/10'}`} />
+            </div>
+            {isProfileExplorerPlus && (
+              <img 
+                src={goldFrame} 
+                alt="Frame" 
+                fetchPriority="high"
+                loading="eager"
+                className="absolute -top-[12%] -left-[12%] w-[124%] h-[124%] object-contain pointer-events-none z-20 max-w-none" 
+              />
+            )}
           </div>
 
           <div className="flex-1 w-full text-left pt-2 md:pt-12">
@@ -589,7 +601,7 @@ export function ProfilePage() {
       </div>
       
       {/* Background Decorative Element */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-realm-green/5 blur-[120px] rounded-full -z-10 pointer-events-none" />
+      <div className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] ${isProfileExplorerPlus ? 'bg-amber-400/10' : 'bg-realm-green/5'} blur-[120px] rounded-full -z-10 pointer-events-none`} />
 
       {profile && (
         <Suspense fallback={null}>

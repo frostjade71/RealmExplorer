@@ -30,7 +30,7 @@ import serverTypeIcon from '../assets/category/gif/6128-minecraft.gif'
 import realmTypeIcon from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
 
 // Frames
-const goldFrame = '/upgrades/golden-avatar.png'
+import goldFrame from '../assets/frames/gold-frame3.webp'
 const goldIngot = '/upgrades/9515-mc-gold-ingot.png'
 const goldenBg = '/upgrades/golden-bg.webp'
 
@@ -438,7 +438,7 @@ export function ServerDetailPage() {
               alt="Frame" 
               fetchPriority="high"
               loading="eager"
-              className="absolute -top-[12%] -left-[12%] w-[124%] h-[124%] object-contain pointer-events-none z-20 max-w-none" 
+              className="absolute -top-[5%] -left-[5%] w-[110%] h-[110%] object-contain pointer-events-none z-20 max-w-none" 
             />
           )}
         </div>
