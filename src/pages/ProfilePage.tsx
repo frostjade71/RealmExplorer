@@ -25,7 +25,7 @@ import type { SocialLink } from '../types'
 import errorImage from '../assets/error/teto-but-re.webp'
 
 import { MetaTags } from '../components/MetaTags'
-import goldFrame from '../assets/frames/gold-frame2.png'
+import goldFrame from '../assets/frames/gold-frame2.webp'
 
 const getSocialIcon = (platform: string) => {
   switch (platform) {
