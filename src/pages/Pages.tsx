@@ -9,7 +9,7 @@ import { BlogPage } from './BlogPage'
 import { BlogPostDetailPage } from './BlogPostDetailPage'
 import { TeamPage } from './TeamPage'
 import { AboutPage } from './AboutPage'
-import { OTMStandingsPage } from './OTMStandingsPage'
+import { OTMClosedModal } from '../components/OTMClosedModal'
 
 export {
   HomePage,
@@ -20,8 +20,19 @@ export {
   BlogPostDetailPage,
   TeamPage,
   AboutPage,
-  OTMStandingsPage
 }
+
+// OTM pages — temporarily closed (to re-enable, remove the OTMClosedModal wrapper)
+const LazyEventsPage = lazy(() => import('./EventsPage').then(m => ({ default: m.EventsPage })))
+const LazyOTMStandingsPage = lazy(() => import('./OTMStandingsPage').then(m => ({ default: m.OTMStandingsPage })))
+
+export const OTMStandingsPage = () => <OTMClosedModal><LazyOTMStandingsPage /></OTMClosedModal>
+
+// OTM voting pages — temporarily closed
+export const ROTMPage = () => <OTMClosedModal><LazyEventsPage category="realm" /></OTMClosedModal>
+export const SOTMPage = () => <OTMClosedModal><LazyEventsPage category="server" /></OTMClosedModal>
+export const BOTMPage = () => <OTMClosedModal><LazyEventsPage category="builder" /></OTMClosedModal>
+export const DOTMPage = () => <OTMClosedModal><LazyEventsPage category="developer" /></OTMClosedModal>
 
 export const WhyProjectsPage = lazy(() => import('./WhyProjectsPage').then(m => ({ default: m.WhyProjectsPage })))
 export const ProjectSubmitPage = lazy(() => import('./ProjectSubmitPage').then(m => ({ default: m.ProjectSubmitPage })))
@@ -51,13 +62,6 @@ export const AdminEditAboutPage = lazy(() => import('./AdminEditAboutPage').then
 export const AdminReportsPage = lazy(() => import('./AdminReportsPage').then(m => ({ default: m.AdminReportsPage })))
 export const AdminBadgesPage = lazy(() => import('./AdminBadgesPage').then(m => ({ default: m.AdminBadgesPage })))
 export { AuthCallbackPage } from './AuthCallbackPage'
-
-const LazyEventsPage = lazy(() => import('./EventsPage').then(m => ({ default: m.EventsPage })))
-export const ROTMPage = () => <LazyEventsPage category="realm" />
-export const SOTMPage = () => <LazyEventsPage category="server" />
-export const BOTMPage = () => <LazyEventsPage category="builder" />
-export const DOTMPage = () => <LazyEventsPage category="developer" />
-
 export function NotFoundPage() { 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
