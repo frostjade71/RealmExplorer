@@ -73,7 +73,7 @@ export function OTMClosedModal({ children }: OTMClosedModalProps) {
             >
               <Link
                 to="/"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-realm-green text-zinc-950 font-headline font-bold text-[10px] md:text-xs uppercase tracking-widest hover:bg-[#85fc7e] transition-colors duration-200 shadow-lg shadow-realm-green/20"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-realm-green text-zinc-950 font-headline font-bold text-[10px] md:text-xs uppercase tracking-widest hover:bg-[#85fc7e] transition-colors duration-200"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Return Home

@@ -17,7 +17,7 @@ const AffiliateModal = lazy(() => import('../components/AffiliateModal').then(m 
 import { useCreateCategoryRequestMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
-import heroBg from '../assets/hero/Lush Caves1.jpg'
+import heroBg from '../assets/hero/halloween.jpg'
 import ctaBg from '../assets/homepage/venture_mc.jpg'
 import mcGif from '../assets/category/gif/6128-minecraft.gif'
 import realmGif from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
@@ -86,8 +86,9 @@ export function HomePage() {
   const { data: allApprovedServers = [] } = useServers({ limit: 40 })
   const { data: stats } = useGlobalStats()
   const { data: dirStats } = useDirectoryStats()
-  const { data: introSetting } = useSiteSetting('homepage_intro')
+  const { data: introSetting, isLoading: isIntroLoading } = useSiteSetting('homepage_intro')
   const introData = introSetting?.value as {word: string, color: string}[] | undefined
+  const isIntroReady = !isIntroLoading && introSetting !== undefined
   const { data: showcaseCardsSetting } = useSiteSetting('homepage_showcase_cards')
   const showcaseCardIds = (showcaseCardsSetting?.value as string[]) || []
   const { data: manualShowcaseServers = [] } = useServersByIds(showcaseCardIds.length > 0 ? showcaseCardIds : undefined)
@@ -280,26 +281,55 @@ export function HomePage() {
         {/* Hero Text Content (Centered, Layered on Top) */}
         <div className="max-w-4xl w-full mx-auto px-6 md:px-8 relative z-30 flex flex-col items-center text-center">
           <FramerIn delay={0.1}>
-            <div className="inline-flex items-center gap-2 mb-6">
-              <img src={mcGif} alt="Minecraft Icon" width={20} height={20} fetchPriority="high" loading="eager" className="w-5 h-5 object-contain drop-shadow-md" />
-              <span className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                {introData ? (
-                  introData.map((w, i) => (
-                    <span key={i} style={{ color: w.color }} className="mr-1 last:mr-0">{w.word}</span>
-                  ))
-                ) : (
-                  <>
-                    <span className="text-[#85fc7e]">Ber</span> <span className="text-white">Months</span> <span className="text-white">yippie</span>
-                  </>
+            <motion.div 
+              layout
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="inline-flex items-center gap-2 mb-6 h-5"
+            >
+              <motion.img 
+                layout
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                src={mcGif} 
+                alt="Minecraft Icon" 
+                width={20} 
+                height={20} 
+                fetchPriority="high" 
+                loading="eager" 
+                className="w-5 h-5 object-contain drop-shadow-md shrink-0" 
+              />
+              <AnimatePresence>
+                {isIntroReady && (
+                  <motion.span 
+                    key="homepage-intro-text"
+                    initial={{ opacity: 0, x: -8, width: 0 }}
+                    animate={{ opacity: 1, x: 0, width: 'auto' }}
+                    exit={{ opacity: 0, x: -8, width: 0 }}
+                    transition={{ 
+                      duration: 0.35, 
+                      ease: [0.16, 1, 0.3, 1],
+                      opacity: { duration: 0.25, delay: 0.05 }
+                    }}
+                    className="font-pixel text-[8px] md:text-[9px] tracking-widest uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] overflow-hidden whitespace-nowrap inline-flex items-center py-0.5"
+                  >
+                    {introData && introData.length > 0 ? (
+                      introData.map((w, i) => (
+                        <span key={i} style={{ color: w.color }} className="mr-1 last:mr-0">{w.word}</span>
+                      ))
+                    ) : (
+                      <>
+                        <span className="text-[#85fc7e]">Ber</span> <span className="text-white">Months</span> <span className="text-white">yippie</span>
+                      </>
+                    )}
+                  </motion.span>
                 )}
-              </span>
-            </div>
+              </AnimatePresence>
+            </motion.div>
           </FramerIn>
           
           <FramerIn delay={0.2}>
             <h1 className="font-pixel text-white text-3xl sm:text-4xl md:text-5xl leading-tight mb-4 md:mb-6 drop-shadow-2xl">
               Explore <br />
-              <span className="text-[#4EC44E]">Every</span> Realm
+              <span className="text-[#F98128]">Every</span> Realm
             </h1>
           </FramerIn>
           
@@ -423,6 +453,7 @@ export function HomePage() {
             <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full flex justify-center">
               <DiscordInviteCard 
                 inviteCode="nVqt3z78Mw"
+                title="CommunityOne"
                 websiteUrl="https://communityone.io/"
                 className="w-full max-w-[350px] h-full justify-start hover:border-purple-500/50 transition-colors duration-300"
               />
@@ -430,6 +461,7 @@ export function HomePage() {
             <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full flex justify-center -mt-8 md:mt-0">
               <DiscordInviteCard 
                 inviteCode="realmbot"
+                title="Realm Bot"
                 websiteUrl="https://realmbot.dev/"
                 className="w-full max-w-[350px] h-full justify-start hover:border-realm-green/50 transition-colors duration-300"
               />

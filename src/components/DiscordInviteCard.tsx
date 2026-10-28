@@ -4,12 +4,14 @@ import { Globe } from 'lucide-react';
 
 export function DiscordInviteCard({ 
   inviteCode, 
+  title,
   bannerImg, 
   logoImg,
   className,
   websiteUrl
 }: { 
   inviteCode: string, 
+  title?: string,
   bannerImg?: string, 
   logoImg?: string,
   className?: string,
@@ -99,7 +101,7 @@ export function DiscordInviteCard({
           </div>
         </div>
         <div className="mt-10">
-          <h3 className="text-white font-bold text-lg mb-1 font-sans">{displayData.title}</h3>
+          <h3 className="text-white font-bold text-lg mb-1 font-sans">{title || displayData.title}</h3>
           <div className="flex items-center gap-3 text-[#b5bac1] text-sm font-sans mb-4">
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-[#23a559]"></div>
