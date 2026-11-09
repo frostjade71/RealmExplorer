@@ -10,7 +10,7 @@ import { EmptyState, LoadingSpinner } from '../components/FeedbackStates'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence, LayoutGroup, useMotionValue, useSpring } from 'framer-motion'
-import { Calendar, Server, Globe, Pencil, Mail, Heart } from 'lucide-react'
+import { Calendar, Server, Globe, Pencil, Mail, Heart, RefreshCw } from 'lucide-react'
 import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch, SiGithub, SiX, SiPatreon, SiKofi } from 'react-icons/si'
 import { RoleBadge } from '../components/RoleBadge'
 import { SponsorBadge } from '../components/SponsorBadge'
@@ -95,7 +95,8 @@ export function ProfilePage() {
   const { data: servers = [], isLoading: serversLoading } = useUserServers(profile?.id, 'approved')
   const { data: projects = [], isLoading: projectsLoading } = useUserProjects(profile?.id, 'approved')
   const { data: badges = [] } = useEntityBadges(profile?.id, 'user')
-  const { user } = useAuth()
+  const { user, syncDiscord } = useAuth()
+  const [isSyncing, setIsSyncing] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isBioModalOpen, setIsBioModalOpen] = useState(false)
   const [isBannerModalOpen, setIsBannerModalOpen] = useState(false)
@@ -120,6 +121,24 @@ export function ProfilePage() {
   const isOwnProfile = user?.id === profile?.id
   const isProfileExplorerPlus = profile?.role === 'explorer+'
   const hasSponsoredServers = servers.some(s => s.is_sponsored)
+
+  const handleSyncDiscord = async () => {
+    if (isSyncing) return
+    setIsSyncing(true)
+    try {
+      const ok = await syncDiscord()
+      if (ok) {
+        await queryClient.invalidateQueries({ queryKey: ['profile'] })
+        toast.success('Synced Discord profile & avatar decoration!')
+      } else {
+        toast.error('Could not sync with Discord. Please try again.')
+      }
+    } catch {
+      toast.error('Failed to sync Discord profile.')
+    } finally {
+      setIsSyncing(false)
+    }
+  }
 
   const isMobile = useIsMobile()
   const mouseX = useMotionValue(0)
@@ -317,13 +336,24 @@ export function ProfilePage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
         
         {isOwnProfile && (
-          <button 
-            onClick={() => setIsBannerModalOpen(true)}
-            className="absolute top-4 right-6 z-30 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-lg border border-white/10 text-white/70 hover:text-white transition-all shadow-xl group"
-            title="Update Profile Banner"
-          >
-            <Pencil className="w-4 h-4 group-hover:scale-110 transition-transform" />
-          </button>
+          <div className="absolute top-4 right-6 z-30 flex items-center gap-2">
+            <button 
+              onClick={handleSyncDiscord}
+              disabled={isSyncing}
+              className="p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-lg border border-white/10 text-white/70 hover:text-white transition-all shadow-xl group flex items-center gap-1.5 text-xs font-headline"
+              title="Sync Discord avatar, decoration, & profile"
+            >
+              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin text-[#5865F2]' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+              <span className="hidden sm:inline">{isSyncing ? 'Syncing...' : 'Sync Discord'}</span>
+            </button>
+            <button 
+              onClick={() => setIsBannerModalOpen(true)}
+              className="p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-lg border border-white/10 text-white/70 hover:text-white transition-all shadow-xl group"
+              title="Update Profile Banner"
+            >
+              <Pencil className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            </button>
+          </div>
         )}
       </div>
 
@@ -332,21 +362,29 @@ export function ProfilePage() {
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4 -mt-12 mb-8 relative z-10 px-2 md:px-0">
           <div className="relative flex-shrink-0 z-10">
             <div 
-              className={`w-24 h-24 md:w-28 md:h-28 rounded-xl bg-zinc-900 overflow-hidden shadow-2xl relative group ${isProfileExplorerPlus ? 'border-transparent' : 'border-4 border-black'}`}
+              className={`w-24 h-24 md:w-28 md:h-28 ${profile.discord_avatar_decoration ? 'rounded-full' : 'rounded-xl'} bg-zinc-900 overflow-hidden shadow-2xl relative group ${isProfileExplorerPlus && !profile.discord_avatar_decoration ? 'border-transparent' : 'border-4 border-black'}`}
             >
               <img 
-                src={profile.discord_avatar || ''} 
+                src={profile.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} 
                 alt={profile.discord_username || ''} 
-                className="w-full h-full object-cover p-1"
+                className={`w-full h-full object-cover p-1 ${profile.discord_avatar_decoration ? 'rounded-full' : ''}`}
                 fetchPriority="high"
                 decoding="sync"
                 loading="eager"
                 width={112}
                 height={112}
               />
-              <div className={`absolute inset-0 border rounded-[20px] pointer-events-none ${isProfileExplorerPlus ? 'border-transparent' : 'border-white/10'}`} />
+              <div className={`absolute inset-0 border ${profile.discord_avatar_decoration ? 'rounded-full' : 'rounded-[20px]'} pointer-events-none ${isProfileExplorerPlus && !profile.discord_avatar_decoration ? 'border-transparent' : 'border-white/10'}`} />
             </div>
-            {isProfileExplorerPlus && (
+            {profile.discord_avatar_decoration ? (
+              <img 
+                src={profile.discord_avatar_decoration} 
+                alt="Avatar Decoration" 
+                fetchPriority="high"
+                loading="eager"
+                className="absolute -top-[16%] -left-[16%] w-[132%] h-[132%] object-contain pointer-events-none z-20 max-w-none select-none" 
+              />
+            ) : isProfileExplorerPlus ? (
               <img 
                 src={goldFrame} 
                 alt="Frame" 
@@ -354,7 +392,7 @@ export function ProfilePage() {
                 loading="eager"
                 className="absolute -top-[12%] -left-[12%] w-[124%] h-[124%] object-contain pointer-events-none z-20 max-w-none" 
               />
-            )}
+            ) : null}
           </div>
 
           <div className="flex-1 w-full text-left pt-2 md:pt-12">

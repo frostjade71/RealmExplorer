@@ -313,13 +313,11 @@ export function AboutPage() {
                 </div>
               ))}
               {remainingWinnersCount > 0 && (
-                <div className="mt-8 md:mt-12 flex justify-center w-full">
-                  <div className="bg-zinc-900 rounded-full px-6 md:px-8 py-3 md:py-4 shadow-lg flex items-center justify-center gap-2.5 md:gap-3 border border-white/10">
-                    <img src="/badges/top/76245-medalla (2).gif" alt="" className="w-5 h-5 md:w-6 md:h-6 object-contain" />
-                    <p className="text-zinc-300 font-pixel text-[10px] md:text-xs uppercase tracking-[0.2em]">
-                      And {remainingWinnersCount} more winners on our site!
-                    </p>
-                  </div>
+                <div className="mt-8 md:mt-12 flex items-center justify-center gap-2.5 md:gap-3 w-full">
+                  <img src="/badges/top/76245-medalla (2).gif" alt="" className="w-5 h-5 md:w-6 md:h-6 object-contain" />
+                  <p className="text-zinc-300 font-pixel text-[10px] md:text-xs uppercase tracking-[0.2em]">
+                    And {remainingWinnersCount} more winners on our site!
+                  </p>
                 </div>
               )}
             </div>
@@ -357,7 +355,7 @@ export function AboutPage() {
             href="https://discord.gg/vcwrEznJhG"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 md:gap-3 bg-[#4EC44E] text-[#002202] px-4 md:px-8 py-2 md:py-4 rounded-md font-headline font-bold text-xs md:text-base hover:bg-[#85fc7e] hover:shadow-2xl hover:shadow-green-500/20 active:scale-95 transition-all"
+            className="inline-flex items-center gap-2 md:gap-3 bg-[#4EC44E] text-[#002202] px-4 md:px-8 py-2 md:py-4 rounded-md font-headline font-bold text-xs md:text-base hover:bg-[#85fc7e] active:scale-95 transition-all"
           >
             Join us Today!
             <span className="material-symbols-outlined text-xs md:text-sm font-bold">arrow_forward</span>

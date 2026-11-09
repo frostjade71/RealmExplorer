@@ -668,7 +668,7 @@ export function AdminOverviewPage() {
             },
             {
               label: 'System Version',
-              value: 'v2.0.0',
+              value: 'v2.0.7',
               icon: 'info',
               valueClass: 'text-realm-green',
             },

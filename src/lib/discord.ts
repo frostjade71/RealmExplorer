@@ -183,3 +183,25 @@ export async function sendBlogPublishNotification(params: {
     console.error('Failed to send blog publish notification:', error);
   }
 }
+
+export async function syncDiscordProfile(params?: {
+  userId?: string;
+  discordId?: string;
+  providerToken?: string;
+}) {
+  try {
+    const { data, error } = await supabase.functions.invoke('sync-discord-profile', {
+      body: {
+        user_id: params?.userId,
+        discord_id: params?.discordId,
+        provider_token: params?.providerToken,
+      }
+    });
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Failed to sync Discord profile:', error);
+    return { success: false, error };
+  }
+}

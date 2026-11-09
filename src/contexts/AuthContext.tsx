@@ -15,6 +15,7 @@ interface AuthContextType {
   isExplorerPlus: boolean
   hasPremiumPerks: boolean
   refreshProfile: () => Promise<void>
+  syncDiscord: () => Promise<boolean>
   shuffleCooldown: number
   startShuffleCooldown: () => void
 }
@@ -105,6 +106,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const syncDiscord = async (): Promise<boolean> => {
+    const userId = session?.user?.id
+    if (!userId) return false
+    try {
+      const { syncDiscordProfile } = await import('../lib/discord')
+      const result = await syncDiscordProfile({
+        userId,
+        discordId: profile?.discord_id || undefined,
+        providerToken: (session as any)?.provider_token,
+      })
+      if (result?.success) {
+        await refreshProfile()
+        return true
+      }
+      return false
+    } catch (e) {
+      console.error('Failed to sync discord profile:', e)
+      return false
+    }
+  }
+
   async function signInWithDiscord(redirectToPath?: string) {
     // Determine the base site URL for redirects. Use env var if set (for production),
     // otherwise fallback to current origin (useful for local dev and preview deployments).
@@ -180,6 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isExplorerPlus: profile?.role === 'explorer+',
       hasPremiumPerks: profile?.role === 'explorer+' || profile?.role === 'admin',
       refreshProfile,
+      syncDiscord,
       shuffleCooldown,
       startShuffleCooldown
     }}>

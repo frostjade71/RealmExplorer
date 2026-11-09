@@ -21,6 +21,13 @@ export function AuthCallbackPage() {
         import('../lib/audit').then(({ logAction }) => {
           logAction('LOGIN', { method: 'oauth' }, session.user.id, null).catch(() => {})
         }).catch(() => {})
+
+        import('../lib/discord').then(({ syncDiscordProfile }) => {
+          syncDiscordProfile({
+            userId: session.user.id,
+            providerToken: (session as any).provider_token,
+          }).catch((err) => console.error('Failed to sync Discord profile on auth callback:', err))
+        }).catch(() => {})
       }
       const storedNext = localStorage.getItem('authRedirectPath')
       const queryNext = new URLSearchParams(window.location.search).get('next')

@@ -7,6 +7,7 @@ export interface Profile {
   id: string
   discord_username: string | null
   discord_avatar: string | null
+  discord_avatar_decoration?: string | null
   discord_banner: string | null
   discord_id: string | null
   role: UserRole
