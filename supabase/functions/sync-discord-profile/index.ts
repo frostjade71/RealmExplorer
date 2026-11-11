@@ -73,6 +73,16 @@ serve(async (req) => {
       }
     }
 
+    if (currentProfile?.updated_at) {
+      const lastSync = new Date(currentProfile.updated_at).getTime()
+      if (Date.now() - lastSync < 60_000) {
+        return new Response(
+          JSON.stringify({ success: true, profile: currentProfile, cached: true }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    }
+
     let discordUser: any = null
 
     if (providerToken) {

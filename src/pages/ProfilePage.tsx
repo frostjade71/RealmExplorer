@@ -14,7 +14,7 @@ import { Calendar, Server, Globe, Pencil, Mail, Heart, RefreshCw } from 'lucide-
 import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch, SiGithub, SiX, SiPatreon, SiKofi } from 'react-icons/si'
 import { RoleBadge } from '../components/RoleBadge'
 import { SponsorBadge } from '../components/SponsorBadge'
-import { useState, useEffect, lazy, Suspense, useMemo } from 'react'
+import { useState, useEffect, lazy, Suspense, useMemo, useRef, useCallback } from 'react'
 
 const EditProfileModal = lazy(() => import('../components/EditProfileModal').then(m => ({ default: m.EditProfileModal })))
 const EditBioModal = lazy(() => import('../components/EditBioModal').then(m => ({ default: m.EditBioModal })))
@@ -121,6 +121,50 @@ export function ProfilePage() {
   const isOwnProfile = user?.id === profile?.id
   const isProfileExplorerPlus = profile?.role === 'explorer+'
   const hasSponsoredServers = servers.some(s => s.is_sponsored)
+
+  // auto-sync
+  const syncAttemptedRef = useRef<string | null>(null)
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(null)
+  const [decorationHidden, setDecorationHidden] = useState(false)
+
+  useEffect(() => {
+    setAvatarSrc(null)
+    setDecorationHidden(false)
+    syncAttemptedRef.current = null
+  }, [username])
+
+  const triggerBackgroundSync = useCallback(async () => {
+    if (!profile?.id || !profile?.discord_id || syncAttemptedRef.current === profile.id) return
+    syncAttemptedRef.current = profile.id
+
+    try {
+      const { syncDiscordProfile } = await import('../lib/discord')
+      const res = await syncDiscordProfile({
+        userId: profile.id,
+        discordId: profile.discord_id,
+      })
+      if (res?.success && res.data?.profile) {
+        queryClient.setQueryData(['profile', username], (old: any) => ({
+          ...old,
+          ...res.data.profile,
+        }))
+        if (res.data.profile.discord_avatar) {
+          setAvatarSrc(res.data.profile.discord_avatar)
+        }
+      }
+    } catch {
+
+    }
+  }, [profile?.id, profile?.discord_id, username, queryClient])
+
+  useEffect(() => {
+    if (!profile?.id || !profile?.discord_id || !profile?.updated_at) return
+    const lastUpdated = new Date(profile.updated_at).getTime()
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+    if (lastUpdated < sevenDaysAgo) {
+      triggerBackgroundSync()
+    }
+  }, [profile?.id, profile?.discord_id, profile?.updated_at, triggerBackgroundSync])
 
   const handleSyncDiscord = async () => {
     if (isSyncing) return
@@ -362,27 +406,37 @@ export function ProfilePage() {
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4 -mt-12 mb-8 relative z-10 px-2 md:px-0">
           <div className="relative flex-shrink-0 z-10">
             <div 
-              className={`w-24 h-24 md:w-28 md:h-28 ${profile.discord_avatar_decoration ? 'rounded-full' : 'rounded-xl'} bg-zinc-900 overflow-hidden shadow-2xl relative group ${isProfileExplorerPlus && !profile.discord_avatar_decoration ? 'border-transparent' : 'border-4 border-black'}`}
+              className={`w-24 h-24 md:w-28 md:h-28 ${profile.discord_avatar_decoration && !decorationHidden ? 'rounded-full' : 'rounded-xl'} bg-zinc-900 overflow-hidden shadow-2xl relative group ${isProfileExplorerPlus && (!profile.discord_avatar_decoration || decorationHidden) ? 'border-transparent' : 'border-4 border-black'}`}
             >
               <img 
-                src={profile.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} 
+                src={avatarSrc || profile.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} 
                 alt={profile.discord_username || ''} 
-                className={`w-full h-full object-cover p-1 ${profile.discord_avatar_decoration ? 'rounded-full' : ''}`}
+                className={`w-full h-full object-cover p-1 ${profile.discord_avatar_decoration && !decorationHidden ? 'rounded-full' : ''}`}
                 fetchPriority="high"
                 decoding="sync"
                 loading="eager"
                 width={112}
                 height={112}
+                onError={(e) => {
+                  e.currentTarget.onerror = null
+                  e.currentTarget.src = 'https://cdn.discordapp.com/embed/avatars/0.png'
+                  triggerBackgroundSync()
+                }}
               />
-              <div className={`absolute inset-0 border ${profile.discord_avatar_decoration ? 'rounded-full' : 'rounded-[20px]'} pointer-events-none ${isProfileExplorerPlus && !profile.discord_avatar_decoration ? 'border-transparent' : 'border-white/10'}`} />
+              <div className={`absolute inset-0 border ${profile.discord_avatar_decoration && !decorationHidden ? 'rounded-full' : 'rounded-[20px]'} pointer-events-none ${isProfileExplorerPlus && (!profile.discord_avatar_decoration || decorationHidden) ? 'border-transparent' : 'border-white/10'}`} />
             </div>
-            {profile.discord_avatar_decoration ? (
+            {profile.discord_avatar_decoration && !decorationHidden ? (
               <img 
                 src={profile.discord_avatar_decoration} 
                 alt="Avatar Decoration" 
                 fetchPriority="high"
                 loading="eager"
                 className="absolute -top-[16%] -left-[16%] w-[132%] h-[132%] object-contain pointer-events-none z-20 max-w-none select-none" 
+                onError={(e) => {
+                  e.currentTarget.onerror = null
+                  setDecorationHidden(true)
+                  triggerBackgroundSync()
+                }}
               />
             ) : isProfileExplorerPlus ? (
               <img 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, Suspense, lazy } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useProject, useProjectLikes, useProjectSaves, useProjectReviews } from '../hooks/queries'
 import { useIncrementProjectDownloadMutation, useToggleProjectLikeMutation, useToggleProjectSaveMutation, useSubmitProjectReviewMutation, useDeleteProjectRatingMutation, useSubmitReportMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
@@ -8,7 +9,7 @@ import errorImage from '../assets/error/teto-but-re.webp'
 import { RatingModal } from '../components/RatingModal'
 import { LicenseModal } from '../components/LicenseModal'
 import { ReportModal } from '../components/ReportModal'
-import { Download, Heart, Clock, Calendar, CheckCircle, XCircle, Share2, Edit3, Upload, Bookmark, BookmarkMinus, Flag, Package, PackageOpen, Braces, Glasses, Hammer, PlusCircle, Paintbrush, Activity, Layers, Star, Users, Scale, Globe, Mail, Maximize2, ChevronLeft, ChevronRight, Plug } from 'lucide-react'
+import { Download, Heart, Clock, Calendar, CheckCircle, XCircle, Share2, Edit3, Upload, Bookmark, BookmarkMinus, Flag, Package, PackageOpen, Braces, Glasses, Hammer, PlusCircle, Paintbrush, Activity, Layers, Star, Scale, Globe, Mail, Maximize2, ChevronLeft, ChevronRight, Plug } from 'lucide-react'
 import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch, SiGithub, SiX, SiPatreon, SiKofi } from 'react-icons/si'
 
 import { AnimatedPage } from '../components/AnimatedPage'
@@ -21,10 +22,12 @@ import { toast } from 'sonner'
 import { RichText } from '../components/RichText'
 import { supabase } from '../lib/supabase'
 import { FabricIcon, ForgeIcon, QuiltIcon, NeoForgeIcon, VanillaIcon, PaperIcon, SpigotIcon, PurpurIcon, BukkitIcon } from '../components/icons/PlatformIcons'
+import { toStaticDiscordUrl } from '../components/DiscordAvatar'
 
 export function ProjectDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   
   const { user, isAdmin, isModerator } = useAuth()
   const { data: project, isLoading } = useProject(slug)
@@ -718,23 +721,43 @@ export function ProjectDetailPage() {
                     {projectReviews.map((review) => (
                       <div key={review.id} className="bg-zinc-950 p-4 rounded-xl border border-zinc-800/50">
                         <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-3">
-                            {review.profiles?.discord_avatar ? (
-                              <img src={review.profiles.discord_avatar} alt="" className="w-8 h-8 rounded-full bg-zinc-800" />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center">
-                                <Users className="w-4 h-4 text-zinc-500" />
-                              </div>
-                            )}
+                          <Link 
+                            to={`/profile/${review.profiles?.discord_username || ''}`}
+                            className="flex items-center gap-3 group/reviewer cursor-pointer"
+                          >
+                            <img 
+                              src={toStaticDiscordUrl(review.profiles?.discord_avatar) || `https://ui-avatars.com/api/?name=${review.profiles?.discord_username || 'Anonymous'}&background=random`} 
+                              alt={review.profiles?.discord_username || 'Avatar'} 
+                              className="w-8 h-8 rounded-full border border-zinc-700 bg-zinc-900 object-cover" 
+                              loading="lazy"
+                              decoding="async"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null
+                                e.currentTarget.src = 'https://cdn.discordapp.com/embed/avatars/0.png'
+                                if (review.user_id && review.profiles?.discord_id) {
+                                  const discordId = review.profiles.discord_id
+                                  import('../lib/discord').then(({ syncDiscordProfile }) => {
+                                    syncDiscordProfile({
+                                      userId: review.user_id,
+                                      discordId: discordId || undefined,
+                                    }).then((res) => {
+                                      if (res?.success) {
+                                        queryClient.invalidateQueries({ queryKey: ['projectRatings', project?.id] })
+                                      }
+                                    })
+                                  })
+                                }
+                              }}
+                            />
                             <div>
-                              <div className="text-white text-sm font-bold flex items-center gap-2">
+                              <div className="text-white text-sm font-bold flex items-center gap-2 group-hover/reviewer:text-realm-green transition-colors">
                                 {review.profiles?.discord_username || 'Anonymous'}
                               </div>
                               <div className="text-zinc-500 text-[10px] font-headline uppercase tracking-wider">
                                 {new Date(review.created_at).toLocaleDateString()}
                               </div>
                             </div>
-                          </div>
+                          </Link>
                           <div className="flex items-center gap-0.5">
                             {[1, 2, 3, 4, 5].map((star) => (
                               <Star 
@@ -879,7 +902,30 @@ export function ProjectDetailPage() {
                     to={`/profile/${project.profiles.discord_username || ''}`}
                     className="pt-4 mt-1 border-t border-zinc-800/50 flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group transition-all duration-300"
                   >
-                    <img src={project.profiles.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-zinc-700 object-cover" alt="Owner" />
+                    <img 
+                      src={toStaticDiscordUrl(project.profiles.discord_avatar) || 'https://cdn.discordapp.com/embed/avatars/0.png'} 
+                      className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-zinc-700 object-cover" 
+                      alt="Owner"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null
+                        e.currentTarget.src = 'https://cdn.discordapp.com/embed/avatars/0.png'
+                        if (project.owner_id && project.profiles?.discord_id) {
+                          const discordId = project.profiles.discord_id
+                          import('../lib/discord').then(({ syncDiscordProfile }) => {
+                            syncDiscordProfile({
+                              userId: project.owner_id,
+                              discordId: discordId || undefined,
+                            }).then((res) => {
+                              if (res?.success) {
+                                queryClient.invalidateQueries({ queryKey: ['project', slug] })
+                              }
+                            })
+                          })
+                        }
+                      }}
+                    />
                     <div className="flex-1">
                       <p className="text-white text-xs md:text-sm leading-tight flex items-center gap-1.5">
                         {project.profiles.discord_username || 'Unknown User'}

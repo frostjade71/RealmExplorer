@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext'
 import { useServer, useUserVoteStatus, useServerRatings, useEntityBadges, useServerStaff, useLiveServerStatus, useTopVoters, useRecentVoters, useServerRank, useServerPlayerHistory, useServerSaves } from '../hooks/queries'
 import { useVoteMutation, useSubmitRatingMutation, useSubmitReportMutation, useDeleteRatingMutation, useToggleServerSaveMutation } from '../hooks/mutations'
@@ -15,6 +16,7 @@ import { FramerIn } from '../components/FramerIn'
 import { PlayerAvatar } from '../components/PlayerAvatar'
 import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion'
 import { Suspense, lazy } from 'react'
+import { toStaticDiscordUrl } from '../components/DiscordAvatar'
 
 const VoteTimer = lazy(() => import('../components/VoteTimer').then(module => ({ default: module.VoteTimer })))
 const RatingModal = lazy(() => import('../components/RatingModal').then(module => ({ default: module.RatingModal })))
@@ -40,6 +42,7 @@ export function ServerDetailPage() {
   const isMobile = useIsMobile()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { user, isAdmin, isModerator, signInWithDiscord } = useAuth()
   
   const { data, isLoading: loading, refetch: refetchServer } = useServer(slug)
@@ -1024,7 +1027,30 @@ export function ServerDetailPage() {
                       to={`/profile/${owner.discord_username}`}
                       className="flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group transition-all duration-300"
                     >
-                      <img src={owner.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} className={`w-8 h-8 md:w-10 md:h-10 rounded-full border bg-zinc-800 object-cover ${isPremium ? 'border-[#f2a929]' : 'border-zinc-700'}`} alt="Owner" />
+                      <img 
+                        src={toStaticDiscordUrl(owner.discord_avatar) || 'https://cdn.discordapp.com/embed/avatars/0.png'} 
+                        className={`w-8 h-8 md:w-10 md:h-10 rounded-full border bg-zinc-800 object-cover ${isPremium ? 'border-[#f2a929]' : 'border-zinc-700'}`} 
+                        alt="Owner"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null
+                          e.currentTarget.src = 'https://cdn.discordapp.com/embed/avatars/0.png'
+                          if (owner?.id && owner?.discord_id) {
+                            const discordId = owner.discord_id
+                            import('../lib/discord').then(({ syncDiscordProfile }) => {
+                              syncDiscordProfile({
+                                userId: owner.id,
+                                discordId: discordId || undefined,
+                              }).then((res) => {
+                                if (res?.success) {
+                                  queryClient.invalidateQueries({ queryKey: ['server', slug] })
+                                }
+                              })
+                            })
+                          }
+                        }}
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="text-white text-xs md:text-sm leading-tight truncate flex items-center gap-1.5">
                           {owner.discord_username}
@@ -1061,9 +1087,28 @@ export function ServerDetailPage() {
                           className="flex items-center gap-3 md:gap-4 -mx-5 md:-mx-6 px-5 md:px-6 group transition-all duration-300"
                         >
                           <img 
-                            src={member.profiles?.discord_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'} 
+                            src={toStaticDiscordUrl(member.profiles?.discord_avatar) || 'https://cdn.discordapp.com/embed/avatars/0.png'} 
                             className={`w-8 h-8 md:w-10 md:h-10 rounded-full border bg-zinc-800 object-cover ${isStaffPremium ? 'border-[#f2a929]' : 'border-zinc-700'}`} 
                             alt={member.profiles?.discord_username || 'Staff member'} 
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null
+                              e.currentTarget.src = 'https://cdn.discordapp.com/embed/avatars/0.png'
+                              if (member.profiles?.id && member.profiles?.discord_id) {
+                                const discordId = member.profiles.discord_id
+                                import('../lib/discord').then(({ syncDiscordProfile }) => {
+                                  syncDiscordProfile({
+                                    userId: member.profiles.id,
+                                    discordId: discordId || undefined,
+                                  }).then((res) => {
+                                    if (res?.success) {
+                                      queryClient.invalidateQueries({ queryKey: ['serverStaff', server?.id] })
+                                    }
+                                  })
+                                })
+                              }
+                            }}
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-white text-xs md:text-sm leading-tight truncate flex items-center gap-1.5">
@@ -1202,9 +1247,28 @@ export function ServerDetailPage() {
                           onClick={(e) => e.stopPropagation()}
                         >
                           <img 
-                            src={rating.profiles?.discord_avatar || `https://ui-avatars.com/api/?name=${rating.profiles?.discord_username || 'Anonymous'}&background=random`} 
+                            src={toStaticDiscordUrl(rating.profiles?.discord_avatar) || `https://ui-avatars.com/api/?name=${rating.profiles?.discord_username || 'Anonymous'}&background=random`} 
                             alt="Avatar" 
-                            className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 bg-zinc-900"
+                            className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-zinc-700 bg-zinc-900 object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null
+                              e.currentTarget.src = 'https://cdn.discordapp.com/embed/avatars/0.png'
+                              if (rating.user_id && rating.profiles?.discord_id) {
+                                const discordId = rating.profiles.discord_id
+                                import('../lib/discord').then(({ syncDiscordProfile }) => {
+                                  syncDiscordProfile({
+                                    userId: rating.user_id,
+                                    discordId: discordId || undefined,
+                                  }).then((res) => {
+                                    if (res?.success) {
+                                      queryClient.invalidateQueries({ queryKey: ['serverRatings', server?.id] })
+                                    }
+                                  })
+                                })
+                              }
+                            }}
                           />
                           <div>
                             <p className="text-zinc-200 font-bold text-xs md:text-sm leading-none group-hover/reviewer:text-realm-green transition-colors">{rating.profiles?.discord_username || 'Anonymous'}</p>

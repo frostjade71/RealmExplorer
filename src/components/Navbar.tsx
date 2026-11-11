@@ -207,6 +207,19 @@ export function Navbar() {
             ) : (
               <div className="flex items-center gap-3">
                 <NotificationDropdown />
+                <Link 
+                  to={profile?.discord_username ? `/profile/${profile.discord_username}` : '/dashboard'}
+                  className="md:hidden relative flex items-center justify-center p-0.5 rounded-full hover:ring-2 hover:ring-white/20 active:scale-95 transition-all focus:outline-none"
+                  aria-label="Your profile"
+                >
+                  <DiscordAvatar 
+                    src={profile?.discord_avatar || (user.user_metadata?.avatar_url as string | undefined)} 
+                    decorationUrl={profile?.discord_avatar_decoration}
+                    alt={profile?.discord_username || 'User avatar'} 
+                    sizeClassName="w-8 h-8"
+                    avatarClassName="rounded-full bg-zinc-800"
+                  />
+                </Link>
                 <div className="relative hidden md:block" ref={accountMenuRef}>
                   <motion.button 
                     whileTap={{ scale: 0.95 }}
@@ -293,12 +306,14 @@ export function Navbar() {
                 </div>
               </div>
             )}
-            <button 
+            <motion.button 
+              whileTap={{ scale: 0.95 }}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden text-white ml-2 p-2 rounded hover:bg-white/10 transition-colors"
+              className="md:hidden text-white ml-1 p-2 rounded hover:bg-white/10 transition-colors flex items-center justify-center focus:outline-none"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               <Menu className="w-6 h-6" />
-            </button>
+            </motion.button>
           </div>
         </div>
       </nav>

@@ -236,7 +236,7 @@ export function AdminLayout() {
           <div className="px-3 py-2 bg-white/[0.03] border border-white/5 rounded-lg flex items-center justify-between">
             <div>
               <p className="text-[9px] font-pixel text-white/20 uppercase tracking-widest">Version</p>
-              <p className="text-[10px] font-headline font-bold text-realm-green mt-0.5">v2.0.7</p>
+              <p className="text-[10px] font-headline font-bold text-realm-green mt-0.5">v2.0.8</p>
             </div>
             <LiveClock />
           </div>

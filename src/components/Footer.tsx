@@ -43,7 +43,7 @@ export function Footer() {
             </a>
           </div>
           <p className="font-body text-[10px] md:text-xs text-white/40">
-            v2.0.7 | © 2026 Realm Explorer
+            v2.0.8 | © 2026 Realm Explorer
           </p>
         </div>
         
