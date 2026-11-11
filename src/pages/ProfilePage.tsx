@@ -27,56 +27,20 @@ import errorImage from '../assets/error/teto-but-re.webp'
 import { MetaTags } from '../components/MetaTags'
 import goldFrame from '../assets/frames/gold-frame2.webp'
 
-const getSocialIcon = (platform: string) => {
+const getSocialIcon = (platform: string, className = "w-5 h-5") => {
   switch (platform) {
-    case 'discord': return <SiDiscord className="w-4 h-4" />
-    case 'instagram': return <SiInstagram className="w-4 h-4" />
-    case 'youtube': return <SiYoutube className="w-4 h-4" />
-    case 'tiktok': return <SiTiktok className="w-4 h-4" />
-    case 'facebook': return <SiFacebook className="w-4 h-4" />
-    case 'twitch': return <SiTwitch className="w-4 h-4" />
-    case 'github': return <SiGithub className="w-4 h-4" />
-    case 'x': return <SiX className="w-4 h-4" />
-    case 'patreon': return <SiPatreon className="w-4 h-4" />
-    case 'kofi': return <SiKofi className="w-4 h-4" />
-    case 'email': return <Mail className="w-4 h-4" />
-    default: return <Globe className="w-4 h-4" />
-  }
-}
-
-const getPlatformColor = (platform: string) => {
-  switch (platform) {
-    case 'discord': return 'text-[#5865F2]'
-    case 'instagram': return 'text-[#E4405F]'
-    case 'youtube': return 'text-[#FF0000]'
-    case 'tiktok': return 'text-white' 
-    case 'facebook': return 'text-[#1877F2]'
-    case 'twitch': return 'text-[#9146FF]'
-    case 'github': return 'text-white'
-    case 'x': return 'text-white'
-    case 'patreon': return 'text-[#FF424D]'
-    case 'kofi': return 'text-[#FF5E5B]'
-    case 'email': return 'text-white'
-    case 'website': return 'text-blue-400'
-    default: return 'text-zinc-400'
-  }
-}
-
-const getPlatformBorderColor = (platform: string) => {
-  switch (platform) {
-    case 'discord': return 'border-[#5865F2]/20 hover:border-[#5865F2]/40'
-    case 'instagram': return 'border-[#E4405F]/20 hover:border-[#E4405F]/40'
-    case 'youtube': return 'border-[#FF0000]/20 hover:border-[#FF0000]/40'
-    case 'tiktok': return 'border-white/20 hover:border-white/40'
-    case 'facebook': return 'border-[#1877F2]/20 hover:border-[#1877F2]/40'
-    case 'twitch': return 'border-[#9146FF]/20 hover:border-[#9146FF]/40'
-    case 'github': return 'border-white/20 hover:border-white/40'
-    case 'x': return 'border-white/20 hover:border-white/40'
-    case 'patreon': return 'border-[#FF424D]/20 hover:border-[#FF424D]/40'
-    case 'kofi': return 'border-[#FF5E5B]/20 hover:border-[#FF5E5B]/40'
-    case 'email': return 'border-white/10 hover:border-white/20'
-    case 'website': return 'border-blue-400/20 hover:border-blue-400/40'
-    default: return 'border-white/5 hover:border-white/10'
+    case 'discord': return <SiDiscord className={className} />
+    case 'instagram': return <SiInstagram className={className} />
+    case 'youtube': return <SiYoutube className={className} />
+    case 'tiktok': return <SiTiktok className={className} />
+    case 'facebook': return <SiFacebook className={className} />
+    case 'twitch': return <SiTwitch className={className} />
+    case 'github': return <SiGithub className={className} />
+    case 'x': return <SiX className={className} />
+    case 'patreon': return <SiPatreon className={className} />
+    case 'kofi': return <SiKofi className={className} />
+    case 'email': return <Mail className={className} />
+    default: return <Globe className={className} />
   }
 }
 
@@ -104,7 +68,20 @@ export function ProfilePage() {
   const [isFilterMounted, setIsFilterMounted] = useState(false)
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+    const root = document.getElementById('root')
+    if (root) root.scrollTop = 0
+  }, [username])
+
+  useEffect(() => {
     if (!profileLoading) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+      const root = document.getElementById('root')
+      if (root) root.scrollTop = 0
       const raf = requestAnimationFrame(() => {
         setIsFilterMounted(true)
       })
@@ -550,7 +527,7 @@ export function ProfilePage() {
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-4">
             {/* Bio Section */}
-            <div className="group/bio px-2">
+            <div className="px-2">
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="font-pixel text-[8px] text-white uppercase tracking-widest">
                   Bio
@@ -558,7 +535,7 @@ export function ProfilePage() {
                 {isOwnProfile && (
                   <button 
                     onClick={() => setIsBioModalOpen(true)}
-                    className="p-1 text-zinc-600 hover:text-white transition-colors opacity-0 group-hover/bio:opacity-100"
+                    className="p-1 text-zinc-500 hover:text-white transition-colors"
                     title="Edit Bio"
                   >
                     <Pencil className="w-2.5 h-2.5" />
@@ -583,38 +560,47 @@ export function ProfilePage() {
               )}
             </div>
 
-            {/* Links Section as Icon Buttons below Bio */}
+            {/* Links Section */}
             {((profile.social_links && profile.social_links.length > 0) || isOwnProfile) && (
               <div className="px-2">
-                <div className="mb-2">
+                <div className="flex items-center gap-2 mb-2">
                   <h3 className="font-pixel text-[8px] text-white uppercase tracking-widest">
                     Links
                   </h3>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {profile.social_links?.map((link: SocialLink, i: number) => (
-                    <a 
-                      key={i}
-                      href={link.platform === 'email' ? `mailto:${link.url}` : link.url}
-                      onClick={(e) => link.platform === 'email' && handleEmailClick(e, link.url)}
-                      target={link.platform === 'email' ? undefined : "_blank"}
-                      rel={link.platform === 'email' ? undefined : "noopener noreferrer"}
-                      title={link.platform === 'email' ? link.url : getPlatformName(link.platform)}
-                      className={`w-9 h-9 rounded-lg bg-zinc-900/80 border transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm ${getPlatformBorderColor(link.platform)} ${getPlatformColor(link.platform)}`}
-                    >
-                      {getSocialIcon(link.platform)}
-                    </a>
-                  ))}
                   {isOwnProfile && (
                     <button 
                       onClick={() => setIsEditModalOpen(true)}
-                      className="w-9 h-9 rounded-lg bg-zinc-900/50 border border-dashed border-white/10 hover:border-white/25 text-zinc-500 hover:text-white transition-all flex items-center justify-center hover:scale-105 active:scale-95"
+                      className="p-1 text-zinc-500 hover:text-white transition-colors"
                       title={profile.social_links && profile.social_links.length > 0 ? "Edit Links" : "Add Links"}
                     >
-                      <Pencil className="w-3.5 h-3.5" />
+                      <Pencil className="w-2.5 h-2.5" />
                     </button>
                   )}
                 </div>
+                {profile.social_links && profile.social_links.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-3">
+                    {profile.social_links.map((link: SocialLink, i: number) => (
+                      <a 
+                        key={i}
+                        href={link.platform === 'email' ? `mailto:${link.url}` : link.url}
+                        onClick={(e) => link.platform === 'email' && handleEmailClick(e, link.url)}
+                        target={link.platform === 'email' ? undefined : "_blank"}
+                        rel={link.platform === 'email' ? undefined : "noopener noreferrer"}
+                        title={link.platform === 'email' ? link.url : getPlatformName(link.platform)}
+                        className="text-white hover:text-zinc-300 transition-colors hover:scale-110 active:scale-95 flex items-center justify-center p-0.5"
+                      >
+                        {getSocialIcon(link.platform)}
+                      </a>
+                    ))}
+                  </div>
+                ) : isOwnProfile ? (
+                  <button 
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="text-zinc-500 font-headline text-xs italic hover:text-zinc-300 transition-colors text-left"
+                  >
+                    No links added yet (add links)
+                  </button>
+                ) : null}
               </div>
             )}
           </div>
@@ -693,7 +679,7 @@ export function ProfilePage() {
       </div>
       
       {/* Background Decorative Element */}
-      <div className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] ${isProfileExplorerPlus ? 'bg-amber-400/10' : 'bg-realm-green/5'} blur-[120px] rounded-full -z-10 pointer-events-none`} />
+      <div className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] ${isProfileExplorerPlus ? 'bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.06)_0%,rgba(251,191,36,0.02)_40%,transparent_70%)]' : 'bg-[radial-gradient(circle_at_center,rgba(78,196,78,0.045)_0%,rgba(78,196,78,0.015)_40%,transparent_70%)]'} -z-10 pointer-events-none`} />
 
       {profile && (
         <Suspense fallback={null}>
