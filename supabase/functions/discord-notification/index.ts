@@ -38,28 +38,41 @@ Deno.serve(async (req: Request) => {
         };
       }
     } else {
-      // It's a frontend request - verify JWT and Role
-      const authHeader = req.headers.get('Authorization');
-      if (!authHeader) {
-        return new Response(JSON.stringify({ error: 'Unauthorized: Missing token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
+      const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+      const apikeyHeader = req.headers.get('apikey');
+      const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY') || '';
 
-      const supabaseClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-        { global: { headers: { Authorization: authHeader } } }
+      const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader?.trim();
+      const isServiceRole = Boolean(
+        SERVICE_ROLE_KEY && (
+          bearerToken === SERVICE_ROLE_KEY ||
+          apikeyHeader === SERVICE_ROLE_KEY
+        )
       );
 
-      const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-      if (userError || !user) {
-        return new Response(JSON.stringify({ error: 'Unauthorized: Invalid token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
+      if (!isServiceRole) {
+        // It's a frontend request - verify JWT and Role
+        if (!authHeader) {
+          return new Response(JSON.stringify({ error: 'Unauthorized: Missing token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
 
-      const adminTypes = ['approval', 'log', 'appeal_log', 'unban', 'submission_log', 'blog_publish'];
-      if (adminTypes.includes(type)) {
-        const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
-        if (!profile || (profile.role !== 'admin' && profile.role !== 'moderator')) {
-          return new Response(JSON.stringify({ error: 'Forbidden: Requires Admin or Moderator role' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        const supabaseClient = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+          { global: { headers: { Authorization: authHeader } } }
+        );
+
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        if (userError || !user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized: Invalid token' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+
+        const adminTypes = ['approval', 'log', 'appeal_log', 'unban', 'submission_log', 'blog_publish'];
+        if (adminTypes.includes(type) || type === 'payment') {
+          const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', user.id).single();
+          if (!profile || (profile.role !== 'admin' && profile.role !== 'moderator')) {
+            return new Response(JSON.stringify({ error: 'Forbidden: Requires Admin or Moderator role' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          }
         }
       }
     }

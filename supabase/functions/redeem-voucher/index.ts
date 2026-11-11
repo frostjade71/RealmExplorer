@@ -137,7 +137,7 @@ Deno.serve(async (req: Request) => {
         console.log(`Invoking send-discord-dm for ${profile.discord_id}...`)
         const { data: dmData, error: dmError } = await supabaseClient.functions.invoke('send-discord-dm', {
           headers: {
-            'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            'apikey': SERVICE_ROLE_KEY
           },
           body: {
             discord_id: profile.discord_id,
@@ -158,7 +158,7 @@ Deno.serve(async (req: Request) => {
       console.log('Invoking discord-notification...')
       const { data: logData, error: logError } = await supabaseClient.functions.invoke('discord-notification', {
         headers: {
-          'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+          'apikey': SERVICE_ROLE_KEY
         },
         body: {
           type: 'payment',
