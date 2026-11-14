@@ -2,25 +2,17 @@ import { lazy } from 'react'
 import { Link } from 'react-router-dom'
 import errorImage from '../assets/error/teto-but-re.webp'
 import { HomePage } from './HomePage'
-import { ServerDetailPage } from './ServerDetailPage'
-import { DirectoryPage as ServersPage } from './DirectoryPage'
-import { ProjectsPage } from './ProjectsPage'
-import { BlogPage } from './BlogPage'
-import { BlogPostDetailPage } from './BlogPostDetailPage'
-import { TeamPage } from './TeamPage'
-import { AboutPage } from './AboutPage'
 import { OTMClosedModal } from '../components/OTMClosedModal'
 
-export {
-  HomePage,
-  ServerDetailPage,
-  ServersPage,
-  ProjectsPage,
-  BlogPage,
-  BlogPostDetailPage,
-  TeamPage,
-  AboutPage,
-}
+export { HomePage }
+
+export const ServerDetailPage = lazy(() => import('./ServerDetailPage').then(m => ({ default: m.ServerDetailPage })))
+export const ServersPage = lazy(() => import('./DirectoryPage').then(m => ({ default: m.DirectoryPage })))
+export const ProjectsPage = lazy(() => import('./ProjectsPage').then(m => ({ default: m.ProjectsPage })))
+export const BlogPage = lazy(() => import('./BlogPage').then(m => ({ default: m.BlogPage })))
+export const BlogPostDetailPage = lazy(() => import('./BlogPostDetailPage').then(m => ({ default: m.BlogPostDetailPage })))
+export const TeamPage = lazy(() => import('./TeamPage').then(m => ({ default: m.TeamPage })))
+export const AboutPage = lazy(() => import('./AboutPage').then(m => ({ default: m.AboutPage })))
 
 // OTM pages — temporarily closed (to re-enable, remove the OTMClosedModal wrapper)
 const LazyEventsPage = lazy(() => import('./EventsPage').then(m => ({ default: m.EventsPage })))
@@ -50,6 +42,7 @@ export const ApiDocsPage = lazy(() => import('./ApiDocsPage').then(m => ({ defau
 export const UpgradePage = lazy(() => import('./UpgradePage').then(m => ({ default: m.UpgradePage })))
 export const AppealPage = lazy(() => import('./AppealPage').then(m => ({ default: m.AppealPage })))
 export const AdminAppealsPage = lazy(() => import('./AdminAppealsPage').then(m => ({ default: m.AdminAppealsPage })))
+export const AdminTicketsPage = lazy(() => import('./AdminTicketsPage').then(m => ({ default: m.AdminTicketsPage })))
 export const AdminServersPage = lazy(() => import('./AdminServersPage').then(m => ({ default: m.AdminServersPage })))
 export const AdminProjectsPage = lazy(() => import('./AdminProjectsPage').then(m => ({ default: m.AdminProjectsPage })))
 export const AdminUsersPage = lazy(() => import('./AdminUsersPage').then(m => ({ default: m.AdminUsersPage })))

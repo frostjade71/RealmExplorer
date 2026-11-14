@@ -83,6 +83,7 @@ export function AdminLayout() {
           indicatorCount: banAppeals.length
         },
         { to: '/admin/blog', label: 'Manage Blog', icon: 'article' },
+        { to: '/admin/tickets', label: 'Manage Tickets', icon: 'confirmation_number' },
       ]
     },
     ...(isAdmin ? [{
@@ -201,9 +202,7 @@ export function AdminLayout() {
                       </span>
                       <span className="font-headline text-[12px] font-bold tracking-tight truncate flex-1">{item.label}</span>
                       {indicatorCount && indicatorCount > 0 ? (
-                        <span className="shrink-0 bg-orange-500 text-zinc-950 text-[9px] font-pixel px-1.5 py-0.5 rounded-md shadow-lg">
-                          {indicatorCount}
-                        </span>
+                        <span className="shrink-0 w-2 h-2 rounded-full bg-orange-500" />
                       ) : null}
                     </Link>
                   )
@@ -217,9 +216,9 @@ export function AdminLayout() {
         <div className="pt-5 border-t border-white/5 mt-4">
           {/* Pending queue summary */}
           {totalPending > 0 && (
-            <div className="mb-3 px-3 py-2 bg-orange-500/10 border border-orange-500/20 rounded-lg flex items-center gap-2">
+            <div className="mb-3 px-3 py-2 bg-white/[0.03] border border-white/5 rounded-lg flex items-center gap-2">
               <span className="material-symbols-outlined text-orange-500 text-[14px]">priority_high</span>
-              <span className="text-[10px] font-headline font-bold text-orange-400">
+              <span className="text-[10px] font-headline font-bold text-white/60">
                 {totalPending} item{totalPending !== 1 ? 's' : ''} need attention
               </span>
             </div>
@@ -236,7 +235,7 @@ export function AdminLayout() {
           <div className="px-3 py-2 bg-white/[0.03] border border-white/5 rounded-lg flex items-center justify-between">
             <div>
               <p className="text-[9px] font-pixel text-white/20 uppercase tracking-widest">Version</p>
-              <p className="text-[10px] font-headline font-bold text-realm-green mt-0.5">v2.0.8</p>
+              <p className="text-[10px] font-headline font-bold text-realm-green mt-0.5">v2.0.87</p>
             </div>
             <LiveClock />
           </div>

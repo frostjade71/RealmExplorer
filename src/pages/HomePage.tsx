@@ -6,7 +6,7 @@ import { AnimatedPage } from '../components/AnimatedPage'
 import { DiscordInviteCard } from '../components/DiscordInviteCard'
 import { FramerIn, FramerInList } from '../components/FramerIn'
 import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion'
-import { useState, useMemo, lazy, Suspense } from 'react'
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { ArcFlowCarousel, fallbackServers } from '../components/ArcFlowCarousel'
 import type { Server } from '../types'
@@ -17,7 +17,7 @@ const AffiliateModal = lazy(() => import('../components/AffiliateModal').then(m 
 import { useCreateCategoryRequestMutation } from '../hooks/mutations'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from 'sonner'
-import heroBg from '../assets/hero/halloween.jpg'
+import heroBg from '../assets/hero/Lush Caves1.jpg'
 import ctaBg from '../assets/homepage/venture_mc.jpg'
 import mcGif from '../assets/category/gif/6128-minecraft.gif'
 import realmGif from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
@@ -53,7 +53,7 @@ function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toSt
 }) {
   return (
     <div className={`flex flex-col ${align === 'left' ? 'items-start text-left' : 'items-center text-center'} shrink-0`}>
-      <span className="text-[#85fc7e] font-pixel text-base xs:text-xl md:text-2xl mb-1.5 md:mb-2 [text-shadow:0_2px_4px_rgba(0,0,0,0.85)] drop-shadow-md min-h-[24px] md:min-h-[32px] flex items-center">
+      <span className={`text-[#85fc7e] font-pixel text-base xs:text-xl md:text-2xl mb-1.5 md:mb-2 [text-shadow:0_2px_4px_rgba(0,0,0,0.85)] drop-shadow-md min-h-[24px] md:min-h-[32px] flex items-center ${align === 'left' ? 'justify-start' : 'justify-center'}`}>
         {value === undefined ? (
           <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-[#85fc7e]/30 border-t-[#85fc7e] rounded-full animate-spin"></div>
         ) : (
@@ -81,8 +81,8 @@ const categories = [
 export function HomePage() {
   const isMobile = useIsMobile()
   const { data: featured = [], isLoading: isFeaturedLoading } = useServers({ featured: true, limit: 4 })
-  const { data: topVotedServers = [] } = useServers({ sortBy: 'votes', limit: 20 })
-  const { data: otmWinners = [] } = useOTMWinners()
+  const { data: topVotedServers = [], isLoading: isTopVotedLoading } = useServers({ sortBy: 'votes', limit: 20 })
+  const { data: otmWinners = [], isLoading: isOtmLoading } = useOTMWinners()
   const { data: allApprovedServers = [] } = useServers({ limit: 40 })
   const { data: stats } = useGlobalStats()
   const { data: dirStats } = useDirectoryStats()
@@ -92,6 +92,54 @@ export function HomePage() {
   const { data: showcaseCardsSetting } = useSiteSetting('homepage_showcase_cards')
   const showcaseCardIds = (showcaseCardsSetting?.value as string[]) || []
   const { data: manualShowcaseServers = [] } = useServersByIds(showcaseCardIds.length > 0 ? showcaseCardIds : undefined)
+
+  // local cache and background revalidation
+  const { data: coverSetting } = useSiteSetting('homepage_cover')
+  const [activeCoverUrl, setActiveCoverUrl] = useState<string | null>(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('homepage_cover_url') : null
+  })
+  const [isCoverLoaded, setIsCoverLoaded] = useState(false)
+
+  useEffect(() => {
+    if (coverSetting !== undefined) {
+      const serverUrl = coverSetting?.value
+        ? (typeof coverSetting.value === 'string' ? coverSetting.value : coverSetting.value.url)
+        : null
+
+      if (serverUrl) {
+        setActiveCoverUrl(serverUrl)
+        localStorage.setItem('homepage_cover_url', serverUrl)
+      } else {
+        setActiveCoverUrl(null)
+        localStorage.removeItem('homepage_cover_url')
+      }
+    }
+  }, [coverSetting])
+
+  useEffect(() => {
+    if (!activeCoverUrl) {
+      setIsCoverLoaded(false)
+      return
+    }
+
+    let isMounted = true
+    const img = new Image()
+    img.src = activeCoverUrl
+    if (img.complete) {
+      setIsCoverLoaded(true)
+    } else {
+      img.onload = () => {
+        if (isMounted) setIsCoverLoaded(true)
+      }
+      img.onerror = () => {
+        if (isMounted) setIsCoverLoaded(false)
+      }
+    }
+
+    return () => {
+      isMounted = false
+    }
+  }, [activeCoverUrl])
 
   const { user, signInWithDiscord } = useAuth()
   const navigate = useNavigate()
@@ -120,11 +168,17 @@ export function HomePage() {
     mouseY.set(0)
   }
 
+  const isCarouselDataReady = !isTopVotedLoading && !isOtmLoading
+
   // 6 carousel cards composed of:
   // - Top 3 main votes
   // - Recent OTM (server/realm) winners
   // - Remaining slots randomly picked from the top 20 main votes
   const carouselServers = useMemo(() => {
+    if (!isCarouselDataReady && showcaseCardIds.length === 0) {
+      return []
+    }
+
     if (showcaseCardIds.length > 0 && manualShowcaseServers.length > 0) {
       const selectedManual = showcaseCardIds.map(id => manualShowcaseServers.find(s => s.id === id)).filter(Boolean) as Server[]
       if (selectedManual.length > 0) {
@@ -229,7 +283,7 @@ export function HomePage() {
     }
 
     return selected
-  }, [topVotedServers, otmWinners, allApprovedServers, showcaseCardIds, manualShowcaseServers])
+  }, [topVotedServers, otmWinners, allApprovedServers, showcaseCardIds, manualShowcaseServers, isCarouselDataReady])
 
   const handleRequestSubmit = async (subject: string, description: string) => {
     if (!user) return
@@ -262,21 +316,44 @@ export function HomePage() {
         onMouseLeave={handleMouseLeave}
         className="pt-20 sm:pt-24 md:pt-28 pb-0 relative overflow-hidden flex flex-col items-center justify-start bg-zinc-950"
       >
-        {/* Cinematic Background Image */}
+        {/* Cinematic Background Image: Base Fallback Layer */}
         <motion.img 
-          initial={isMobile ? { opacity: 0.45 } : { scale: 1.05, opacity: 0 }}
-          animate={isMobile ? { opacity: 0.45 } : { scale: 1.1, opacity: 0.45 }}
+          initial={isMobile ? { opacity: activeCoverUrl ? 0 : 0.45 } : { scale: 1.05, opacity: activeCoverUrl ? 0 : 0.45 }}
+          animate={
+            isMobile 
+              ? { opacity: activeCoverUrl && isCoverLoaded ? 0 : 0.45 } 
+              : { scale: 1.1, opacity: activeCoverUrl && isCoverLoaded ? 0 : 0.45 }
+          }
           style={isMobile ? undefined : { x: springX, y: springY }}
           transition={{ duration: 1.2, ease: "easeOut" }}
           src={heroBg} 
           alt="Hero Background"
-          fetchPriority="high"
+          fetchPriority={!activeCoverUrl ? "high" : "low"}
           loading="eager"
           decoding="sync"
           className="absolute inset-0 w-full h-full object-cover object-[38%_center] z-0 block will-change-[opacity,transform]"
         />
+
+        <AnimatePresence>
+          {activeCoverUrl && isCoverLoaded && (
+            <motion.img
+              key={activeCoverUrl}
+              initial={isMobile ? { opacity: 0 } : { opacity: 0, scale: 1.08 }}
+              animate={isMobile ? { opacity: 1 } : { opacity: 1, scale: 1.1 }}
+              exit={{ opacity: 0 }}
+              style={isMobile ? undefined : { x: springX, y: springY }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              src={activeCoverUrl}
+              alt="Custom Hero Background"
+              fetchPriority="high"
+              loading="eager"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover object-[38%_center] z-0 block will-change-[opacity,transform] brightness-[0.7]"
+            />
+          )}
+        </AnimatePresence>
         {/* Dark Radial Gradient Overlay for focus and legibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/60 to-green-950/90 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/60 to-green-950/90 z-10 pointer-events-none"></div>
         
         {/* Hero Text Content (Centered, Layered on Top) */}
         <div className="max-w-4xl w-full mx-auto px-6 md:px-8 relative z-30 flex flex-col items-center text-center">
@@ -329,7 +406,7 @@ export function HomePage() {
           <FramerIn delay={0.2}>
             <h1 className="font-pixel text-white text-3xl sm:text-4xl md:text-5xl leading-tight mb-4 md:mb-6 drop-shadow-2xl">
               Explore <br />
-              <span className="text-[#F98128]">Every</span> Realm
+              <span className="text-[#4EC44E]">Every</span> Realm
             </h1>
           </FramerIn>
           
@@ -365,7 +442,7 @@ export function HomePage() {
             <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-md mx-auto">
               <StatItem 
                 value={stats?.servers} 
-                label="Servers" 
+                label="Listed Servers" 
                 align="center"
               />
               <StatItem 
@@ -480,7 +557,22 @@ export function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {isFeaturedLoading ? (
                 [1, 2, 3, 4].map((i) => (
-                  <div key={i} className="min-h-[350px] md:min-h-[380px]" />
+                  <div key={i} className="min-h-[350px] md:min-h-[380px] bg-surface border border-outline-variant/30 rounded-xl overflow-hidden animate-pulse flex flex-col">
+                    <div className="h-24 md:h-28 bg-zinc-800/60 w-full" />
+                    <div className="p-4 md:p-5 pt-0 flex flex-col flex-grow">
+                      <div className="w-14 h-14 md:w-16 md:h-16 -mt-7 md:-mt-8 mb-3 bg-zinc-800 rounded-xl border-2 border-zinc-800" />
+                      <div className="h-4 bg-zinc-800 rounded w-3/4 mb-3" />
+                      <div className="flex gap-1.5 mb-4">
+                        <div className="h-4 bg-zinc-800/50 rounded w-14" />
+                        <div className="h-4 bg-zinc-800/50 rounded w-10" />
+                      </div>
+                      <div className="space-y-2 flex-grow">
+                        <div className="h-3 bg-zinc-800/40 rounded w-full" />
+                        <div className="h-3 bg-zinc-800/40 rounded w-5/6" />
+                        <div className="h-3 bg-zinc-800/40 rounded w-2/3" />
+                      </div>
+                    </div>
+                  </div>
                 ))
               ) : (
                 featured.map((server, i) => (

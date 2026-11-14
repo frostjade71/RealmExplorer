@@ -273,7 +273,7 @@ export function AdminEventsPage() {
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-white/40 text-base">military_tech</span>
-            <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Event Management</span>
+            <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">OTM Management</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">OTM Control Center</h1>
           <p className="text-white/40 font-headline text-sm max-w-xl">

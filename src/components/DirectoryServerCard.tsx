@@ -91,6 +91,10 @@ export function DirectoryServerCard({
             fetchPriority={priority ? 'high' : 'auto'}
             width={400}
             height={128}
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (img.src !== directoryHero) img.src = directoryHero;
+            }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/40 to-transparent pointer-events-none" />
@@ -139,12 +143,21 @@ export function DirectoryServerCard({
             }}
           >
             {server.icon_url ? (
-              <img src={server.icon_url} alt={server.name} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'sync' : 'async'} fetchPriority={priority ? 'high' : 'auto'} width={64} height={64} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-zinc-500 font-pixel text-xs">
-                {server.name.substring(0, 2).toUpperCase()}
-              </div>
-            )}
+              <img src={server.icon_url} alt={server.name} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'sync' : 'async'} fetchPriority={priority ? 'high' : 'auto'} width={64} height={64} className="w-full h-full object-cover"
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  const fallback = img.nextElementSibling as HTMLElement | null;
+                  img.style.display = 'none';
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div
+              className="w-full h-full flex items-center justify-center text-zinc-500 font-pixel text-xs"
+              style={{ display: server.icon_url ? 'none' : 'flex' }}
+            >
+              {server.name.substring(0, 2).toUpperCase()}
+            </div>
           </div>
 
           {/* Title & Badges */}

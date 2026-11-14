@@ -175,7 +175,7 @@ export function AdminEditAboutPage() {
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-white/40 text-base">edit_note</span>
-            <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Site Content</span>
+            <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold text-sm">Team Content</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">Team & About Directory</h1>
           <p className="text-white/40 font-headline text-sm max-w-xl">

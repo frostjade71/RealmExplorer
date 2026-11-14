@@ -520,6 +520,7 @@ export function DocsPage() {
       <MetaTags 
         title="Documentation - Realm Explorer"
         description="Learn how to use Realm Explorer, list your servers, and explore the community."
+        image="/meta-preview/RE-docs.webp"
         url="/docs"
       />
       

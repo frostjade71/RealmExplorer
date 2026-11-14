@@ -50,7 +50,8 @@ import {
   ApiDocsPage,
   UpgradePage,
   AppealPage,
-  AdminAppealsPage
+  AdminAppealsPage,
+  AdminTicketsPage
 } from './pages/Pages'
 
 export const router = createBrowserRouter([
@@ -217,6 +218,10 @@ export const router = createBrowserRouter([
           {
             path: 'appeals',
             element: <AdminAppealsPage />,
+          },
+          {
+            path: 'tickets',
+            element: <AdminTicketsPage />,
           },
           // All below require Admin role
           {

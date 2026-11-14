@@ -421,6 +421,7 @@ export function ApiDocsPage() {
       <MetaTags 
         title="API Documentation - Realm Explorer"
         description="Integrate Realm Explorer's server directory into your own website or tools. Free, open, no API key required."
+        image="/meta-preview/RE-docs.webp"
         url="/api-docs"
       />
       

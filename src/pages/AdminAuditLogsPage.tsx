@@ -104,6 +104,7 @@ export function AdminAuditLogsPage() {
     if (action.includes('REJECTED') || action.includes('RESET') || action.includes('CLEARED') || action === 'OTM_UNVOTE') return 'text-red-500 bg-red-500/10 border-red-500/20'
     if (action.includes('LOGIN')) return 'text-blue-400 bg-blue-400/10 border-blue-400/20'
     if (action.includes('ROLE')) return 'text-purple-400 bg-purple-400/10 border-purple-400/20'
+    if (action.includes('COVER') || action.includes('SETTING')) return 'text-amber-400 bg-amber-400/10 border-amber-400/20'
     return 'text-white/40 bg-white/5 border-white/10'
   }
 
@@ -134,7 +135,7 @@ export function AdminAuditLogsPage() {
         <FramerIn>
           <div className="flex items-center gap-2 mb-2">
             <span className="material-symbols-outlined text-white/40 text-base">history</span>
-            <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold">System Integrity</span>
+            <span className="text-white/40 font-headline text-[10px] tracking-[0.2em] uppercase font-bold">System Logs</span>
           </div>
           <h1 className="text-3xl font-pixel text-white mb-2">Logs & Activity</h1>
           <p className="text-white/40 font-headline text-sm max-w-xl">Review staff actions and community voting records.</p>

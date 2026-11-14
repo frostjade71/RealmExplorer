@@ -1,7 +1,7 @@
 {
   "name": "re-realmexplorer",
   "private": true,
-  "version": "2.0.8",
+  "version": "2.0.87",
   "type": "module",
   "scripts": {
     "dev": "vite",

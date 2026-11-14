@@ -71,6 +71,7 @@ export function useServersByIds(ids: string[] | undefined) {
         .from('public_servers')
         .select('*, profiles(*)')
         .in('id', ids!)
+        .eq('status', 'approved')
       
       if (error) throw error
       return data as unknown as Server[]
@@ -555,7 +556,7 @@ export function useTeamMembers() {
   })
 }
 
-export function useSiteSetting(key: string) {
+export function useSiteSetting(key: string, options?: { staleTime?: number }) {
   return useQuery({
     queryKey: ['siteSetting', key],
     queryFn: async () => {
@@ -567,7 +568,8 @@ export function useSiteSetting(key: string) {
       
       if (error || !data) return null
       return data as unknown as SiteSetting
-    }
+    },
+    staleTime: options?.staleTime ?? 1000 * 60 * 5, // 5 minutes default cache to avoid repeated DB queries
   })
 }
 

@@ -1292,16 +1292,30 @@ export function useUpdateSiteSettingMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ key, value, adminId, adminName }: { key: string, value: any, adminId?: string | null, adminName?: string | null }) => {
-      const { error } = await supabase.from('site_settings').upsert({ key, value }, { onConflict: 'key' })
-      if (error) throw error
+      if (value === null || value === undefined) {
+        const { error } = await supabase.from('site_settings').delete().eq('key', key)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('site_settings').upsert({ key, value }, { onConflict: 'key' })
+        if (error) throw error
+      }
       
-      await logAction('SITE_SETTING_UPDATED', { key }, adminId, adminName)
+      await logAction(
+        key === 'homepage_cover' ? 'HOMEPAGE_COVER_UPDATED' : 'SITE_SETTING_UPDATED',
+        key === 'homepage_cover' 
+          ? { key, change: value ? 'Updated custom cover image' : 'Reverted cover to default' } 
+          : { key },
+        adminId, 
+        adminName
+      )
 
       await sendLogNotification({
-        action: key === 'homepage_intro' ? '⚙️ Intro Updated' : '⚙️ Site Setting Updated',
+        action: key === 'homepage_intro' ? '⚙️ Intro Updated' : key === 'homepage_cover' ? '🖼️ Cover Updated' : '⚙️ Site Setting Updated',
         adminName: adminName,
         details: key === 'homepage_intro' 
           ? 'The Homepage intro was updated.' 
+          : key === 'homepage_cover'
+          ? (value ? 'The homepage hero cover image was updated with a new custom image.' : 'The homepage hero cover was reverted to the default image.')
           : `The global setting **${key}** was updated.`,
         color: 0x3498db
       })

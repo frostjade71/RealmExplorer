@@ -9,6 +9,18 @@ export default async function handler(req: Request) {
   const type = url.searchParams.get('type')
   const slug = url.searchParams.get('slug')
 
+  if (type === 'docs') {
+    const ua = req.headers.get('user-agent') || ''
+    const isBot = /bot|discord|twitter|facebook|slack|telegram|whatsapp|skype/i.test(ua)
+    if (!isBot) return fetch(new URL('/index.html', req.url))
+    return ogResponse({
+      title: 'Documentation — Realm Explorer',
+      description: 'Learn how to use Realm Explorer, list your servers, and explore the community.',
+      image: 'https://realmexplorer.xyz/meta-preview/RE-docs.webp',
+      url: 'https://realmexplorer.xyz/docs'
+    })
+  }
+
   if (type === 'api-docs') {
     const ua = req.headers.get('user-agent') || ''
     const isBot = /bot|discord|twitter|facebook|slack|telegram|whatsapp|skype/i.test(ua)
@@ -16,7 +28,7 @@ export default async function handler(req: Request) {
     return ogResponse({
       title: 'Public API (Beta) — Realm Explorer',
       description: 'Integrate Realm Explorer\'s server directory into your website. Free, open, no API key required. Supports filtering, sorting, and pagination.',
-      image: 'https://realmexplorer.xyz/meta-preview/RE-Banned_EAA0FDC.webp',
+      image: 'https://realmexplorer.xyz/meta-preview/RE-docs.webp',
       url: 'https://realmexplorer.xyz/api-docs'
     })
   }
@@ -152,7 +164,7 @@ function ogResponse({ title, description, image, url }: { title: string; descrip
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(description)}" />
     <meta property="og:image" content="${esc(image)}" />
-    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="${esc(url)}" />
     <meta property="twitter:title" content="${esc(title)}" />
     <meta property="twitter:description" content="${esc(description)}" />

@@ -8,9 +8,10 @@ import { ConfirmationModal } from '../components/ConfirmationModal'
 import { useAuth } from '../contexts/AuthContext'
 import { logAction } from '../lib/audit'
 import { useResetOTMVotesMutation, useResetOTMCooldownsMutation } from '../hooks/mutations'
-import { RotateCcw, Trash2, Clock, AlertTriangle, Type, MonitorPlay } from 'lucide-react'
+import { RotateCcw, Trash2, Clock, AlertTriangle, Type, MonitorPlay, Image as ImageIcon } from 'lucide-react'
 import { HomepageIntroModal } from '../components/HomepageIntroModal'
 import { ShowcaseCardsModal } from '../components/ShowcaseCardsModal'
+import { HomepageCoverModal } from '../components/HomepageCoverModal'
 export function AdminSettingsPage() {
   const [loading, setLoading] = useState(false)
   const [loadingOTM, setLoadingOTM] = useState(false)
@@ -21,6 +22,7 @@ export function AdminSettingsPage() {
   const [loadingOTMCooldown, setLoadingOTMCooldown] = useState(false)
   const [showIntroModal, setShowIntroModal] = useState(false)
   const [showShowcaseModal, setShowShowcaseModal] = useState(false)
+  const [showCoverModal, setShowCoverModal] = useState(false)
   const { profile } = useAuth()
   const queryClient = useQueryClient()
   const resetOTMVotes = useResetOTMVotesMutation()
@@ -109,11 +111,10 @@ export function AdminSettingsPage() {
         </FramerIn>
       </div>
 
-      {/* 4 Compact Settings Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl">
         {/* Card 1: Server Vote Cooldowns */}
         <FramerIn delay={0.1}>
-          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-2xl p-5 flex flex-col justify-between h-full hover:border-white/20 transition-all group">
+          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-xl p-5 flex flex-col justify-between h-full hover:border-white/20 transition-all group">
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 shrink-0">
@@ -156,7 +157,7 @@ export function AdminSettingsPage() {
 
         {/* Card 2: Wipe OTM Votes */}
         <FramerIn delay={0.15}>
-          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-2xl p-5 flex flex-col justify-between h-full hover:border-white/20 transition-all group">
+          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-xl p-5 flex flex-col justify-between h-full hover:border-white/20 transition-all group">
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 shrink-0">
@@ -192,7 +193,7 @@ export function AdminSettingsPage() {
 
         {/* Card 3: Reset OTM Cooldowns */}
         <FramerIn delay={0.2}>
-          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-2xl p-5 flex flex-col justify-between h-full hover:border-white/20 transition-all group">
+          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-xl p-5 flex flex-col justify-between h-full hover:border-white/20 transition-all group">
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 shrink-0">
@@ -227,7 +228,7 @@ export function AdminSettingsPage() {
         </FramerIn>
         {/* Card 4: Homepage Intro */}
         <FramerIn delay={0.25}>
-          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-2xl p-5 flex flex-col justify-between h-full hover:border-white/20 transition-all group">
+          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-xl p-5 flex flex-col justify-between h-full hover:border-white/20 transition-all group">
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 shrink-0">
@@ -262,7 +263,7 @@ export function AdminSettingsPage() {
 
         {/* Card 5: Showcase Cards */}
         <FramerIn delay={0.3}>
-          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-2xl p-5 flex flex-col justify-between h-full hover:border-white/20 transition-all group">
+          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-xl p-5 flex flex-col justify-between h-full hover:border-white/20 transition-all group">
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 shrink-0">
@@ -290,6 +291,41 @@ export function AdminSettingsPage() {
               >
                 <MonitorPlay className="w-3.5 h-3.5" />
                 Select Servers
+              </button>
+            </div>
+          </div>
+        </FramerIn>
+
+        {/* Card 6: Homepage Cover */}
+        <FramerIn delay={0.35}>
+          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-xl p-5 flex flex-col justify-between h-full hover:border-white/20 transition-all group">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70 shrink-0">
+                  <ImageIcon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-headline font-bold text-white text-sm leading-tight truncate">
+                    Homepage Cover
+                  </h3>
+                  <span className="text-[9px] font-headline text-realm-green uppercase tracking-wider font-bold">
+                    Hero Background
+                  </span>
+                </div>
+              </div>
+              
+              <p className="text-white/40 font-body text-[11px] leading-relaxed mb-4">
+                Change the homepage hero section cover image. Automatically optimized to WebP and stored safely.
+              </p>
+            </div>
+
+            <div>
+              <button
+                onClick={() => setShowCoverModal(true)}
+                className="w-full py-2.5 px-4 rounded-md font-headline font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all bg-white/[0.03] hover:bg-realm-green hover:text-zinc-950 border border-white/10 hover:border-realm-green text-white/80"
+              >
+                <ImageIcon className="w-3.5 h-3.5" />
+                Edit Cover
               </button>
             </div>
           </div>
@@ -344,6 +380,11 @@ export function AdminSettingsPage() {
       <ShowcaseCardsModal
         isOpen={showShowcaseModal}
         onClose={() => setShowShowcaseModal(false)}
+      />
+
+      <HomepageCoverModal
+        isOpen={showCoverModal}
+        onClose={() => setShowCoverModal(false)}
       />
     </AnimatedPage>
   )

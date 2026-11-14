@@ -5,6 +5,18 @@ import type { Server } from "../types";
 import { slugify } from "../lib/urlUtils";
 import directoryHero from "../assets/hero/directoryhero.jpg";
 
+function useImageErrorHandler(fallbackSrc: string) {
+  return useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      const img = e.currentTarget;
+      if (img.src !== fallbackSrc) {
+        img.src = fallbackSrc;
+      }
+    },
+    [fallbackSrc],
+  );
+}
+
 function usePrefersReducedMotion() {
   return useSyncExternalStore(
     (callback) => {
@@ -274,6 +286,8 @@ export function ArcFlowCarousel({
   const activeServers = servers && servers.length > 0 ? servers : fallbackServers;
   const isServerMode = Boolean(servers || !items);
   const total = isServerMode ? activeServers.length : (items?.length ?? 0);
+
+  const handleBannerError = useImageErrorHandler(directoryHero);
 
   const [slotCount, setSlotCount] = useState(() => Math.max(total, 12));
 
@@ -590,7 +604,7 @@ export function ArcFlowCarousel({
 
   return (
     <section
-      className={`relative w-full h-[460px] sm:h-[500px] lg:h-[540px] overflow-visible select-none ${className}`}
+      className={`relative w-full h-[480px] sm:h-[540px] md:h-[580px] overflow-visible select-none ${className}`}
       style={{ backgroundColor: surfaceColor }}
     >
       <div
@@ -669,8 +683,10 @@ export function ArcFlowCarousel({
                         src={server.banner_url || directoryHero}
                         alt={`${server.name} cover`}
                         draggable={false}
-                        loading="lazy"
+                        loading="eager"
                         decoding="async"
+                        fetchPriority={i < 3 ? "high" : "auto"}
+                        onError={handleBannerError}
                         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                       />
 
@@ -695,12 +711,20 @@ export function ArcFlowCarousel({
                               alt={server.name}
                               draggable={false}
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const img = e.currentTarget;
+                                const fallback = img.nextElementSibling as HTMLElement | null;
+                                img.style.display = 'none';
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
                             />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-zinc-400 font-pixel text-xs bg-zinc-900">
-                              {server.name.substring(0, 2).toUpperCase()}
-                            </div>
-                          )}
+                          ) : null}
+                          <div
+                            className="w-full h-full flex items-center justify-center text-zinc-400 font-pixel text-xs bg-zinc-900"
+                            style={{ display: server.icon_url ? 'none' : 'flex' }}
+                          >
+                            {server.name.substring(0, 2).toUpperCase()}
+                          </div>
                         </div>
 
                         {/* Server Name below the icon — Minecraft font, clean white with no green hover */}

@@ -119,6 +119,10 @@ export function SponsorServerCard({
             loading={priority ? 'eager' : 'lazy'}
             decoding={priority ? 'sync' : 'async'}
             fetchPriority={priority ? 'high' : 'auto'}
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (img.src !== directoryHero) img.src = directoryHero;
+            }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-black/20 to-transparent pointer-events-none" />
@@ -155,12 +159,21 @@ export function SponsorServerCard({
             className={`w-14 h-14 md:w-16 md:h-16 -mt-7 md:-mt-8 mb-3 bg-zinc-900 rounded-xl overflow-hidden flex-shrink-0 border-2 shadow-lg z-20 ${theme.borderAccent}`}
           >
             {server.icon_url ? (
-              <img src={server.icon_url} alt={server.name} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'sync' : 'async'} fetchPriority={priority ? 'high' : 'auto'} className="w-full h-full object-cover" />
-            ) : (
-              <div className={`w-full h-full flex items-center justify-center ${theme.accent} font-pixel text-xs`}>
-                {server.name.substring(0, 2).toUpperCase()}
-              </div>
-            )}
+              <img src={server.icon_url} alt={server.name} loading={priority ? 'eager' : 'lazy'} decoding={priority ? 'sync' : 'async'} fetchPriority={priority ? 'high' : 'auto'} className="w-full h-full object-cover"
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  const fallback = img.nextElementSibling as HTMLElement | null;
+                  img.style.display = 'none';
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div
+              className={`w-full h-full flex items-center justify-center ${theme.accent} font-pixel text-xs`}
+              style={{ display: server.icon_url ? 'none' : 'flex' }}
+            >
+              {server.name.substring(0, 2).toUpperCase()}
+            </div>
           </div>
 
           {/* Title & Badges area */}

@@ -88,6 +88,12 @@ export function ServerCard({
             decoding="async"
             width={400}
             height={112}
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (img.src !== directoryHero) {
+                img.src = directoryHero;
+              }
+            }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
@@ -150,12 +156,28 @@ export function ServerCard({
             }`}
           >
             {server.icon_url ? (
-              <img src={server.icon_url} alt={server.name} loading="lazy" decoding="async" width={64} height={64} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-zinc-600 font-pixel text-xs">
-                {server.name.substring(0, 2).toUpperCase()}
-              </div>
-            )}
+              <img
+                src={server.icon_url}
+                alt={server.name}
+                loading="lazy"
+                decoding="async"
+                width={64}
+                height={64}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  const fallback = img.nextElementSibling as HTMLElement | null;
+                  img.style.display = 'none';
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div
+              className="w-full h-full flex items-center justify-center text-zinc-600 font-pixel text-xs"
+              style={{ display: server.icon_url ? 'none' : 'flex' }}
+            >
+              {server.name.substring(0, 2).toUpperCase()}
+            </div>
           </div>
 
           {/* Title & Badges area */}
