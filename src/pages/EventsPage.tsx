@@ -316,11 +316,18 @@ export function EventsPage({ category }: EventsPageProps) {
                                 className="flex flex-col md:flex-row items-center gap-6 mb-8 cursor-pointer"
                               >
                                 <img 
-                                  src={winner.winner_image_url || winner.servers?.icon_url || "/logoRE.png"} 
+                                  src={(isPerson ? winner.profiles?.discord_avatar : winner.servers?.icon_url) || winner.winner_image_url || "/logoRE.png"} 
                                   alt="Winner" 
                                   loading="eager"
                                   fetchPriority="high"
                                   className="w-16 h-16 rounded-xl object-cover border-2 border-yellow-400 shadow-2xl shadow-yellow-400/20 group-hover:border-white transition-colors"
+                                  onError={(e) => {
+                                    const target = e.currentTarget
+                                    const fallback = isPerson ? 'https://cdn.discordapp.com/embed/avatars/0.png' : '/logoRE.png'
+                                    if (target.src !== fallback) {
+                                      target.src = fallback
+                                    }
+                                  }}
                                 />
                                 <div className="text-center md:text-left">
                                   <h2 className="text-xl md:text-2xl font-pixel text-white drop-shadow-lg transition-colors">

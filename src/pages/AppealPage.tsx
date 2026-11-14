@@ -98,7 +98,7 @@ export function AppealPage() {
               </p>
               <button
                 onClick={handleLogin}
-                className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-5 py-2.5 md:px-6 md:py-3 rounded-lg font-headline transition-colors inline-flex items-center gap-2 text-sm md:text-base"
+                className="bg-[#4752c4] hover:bg-[#5865f2] active:bg-[#3c45a5] border-2 border-t-[#7983f5]/60 border-l-[#7983f5]/60 border-b-black/90 border-r-black/90 text-white font-pixel text-[9px] sm:text-xs uppercase tracking-wider px-5 py-2.5 rounded-none shadow-[2px_2px_0_rgba(0,0,0,0.6)] active:translate-y-0.5 active:shadow-none inline-flex items-center gap-2 transition-all drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]"
               >
                 Login with Discord
               </button>

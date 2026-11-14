@@ -22,6 +22,8 @@ import ctaBg from '../assets/homepage/venture_mc.jpg'
 import mcGif from '../assets/category/gif/6128-minecraft.gif'
 import realmGif from '../assets/category/gif/9677-minecraftnetherportalblock (2).gif'
 import { Folder, ChevronDown } from 'lucide-react'
+import { FeaturedSpotlightToast } from '../components/FeaturedSpotlightToast'
+import mcWorldIcon from '../assets/homepage/mcworld.webp'
 
 
 // Category Icons
@@ -418,9 +420,17 @@ export function HomePage() {
           
           <FramerIn delay={0.4}>
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-8 sm:mb-10 w-full sm:w-auto">
-              <Link to="/servers" className="bg-[#4EC44E] hover:bg-[#5cd45c] text-zinc-950 px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg font-headline font-bold transition-colors flex items-center justify-center gap-2.5 group shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] border-b-[4px] border-[#3da53d] active:border-b-0 active:border-t-[4px] active:border-t-transparent text-xs sm:text-sm">
-                Browse Servers
-                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform text-sm">arrow_forward</span>
+              <Link 
+                to="/servers" 
+                className="bg-[#206324] hover:bg-[#28792d] active:bg-[#1a521e] border-2 border-t-[#6be377]/50 border-l-[#6be377]/50 border-b-black/90 border-r-black/90 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-none font-pixel uppercase tracking-wider text-[10px] sm:text-[11px] shadow-[2px_2px_0_rgba(0,0,0,0.6)] active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2 group transition-all drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]"
+              >
+                <img 
+                  src={mcWorldIcon} 
+                  alt="Earth" 
+                  className="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain shrink-0 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" 
+                />
+                <span>Browse Servers</span>
+                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform text-xs sm:text-sm text-white">arrow_forward</span>
               </Link>
               <button 
                 onClick={() => {
@@ -430,10 +440,10 @@ export function HomePage() {
                     signInWithDiscord()
                   }
                 }}
-                className="bg-zinc-900/90 hover:bg-zinc-800/90 border-b-[4px] border-zinc-950 active:border-b-0 active:border-t-[4px] active:border-t-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-sm text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg font-headline font-bold transition-colors text-xs sm:text-sm flex items-center justify-center gap-2 group"
+                className="bg-[#2b2b2b] hover:bg-[#383838] active:bg-[#202020] border-2 border-t-white/30 border-l-white/30 border-b-black/90 border-r-black/90 text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-none font-pixel uppercase tracking-wider text-[9px] sm:text-[10px] shadow-[2px_2px_0_rgba(0,0,0,0.6)] active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2 group transition-all drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]"
               >
-                List your Server
-                <span className="material-symbols-outlined text-[16px] md:text-[18px] group-hover:scale-110 transition-transform">add_circle</span>
+                <span>List your Server</span>
+                <span className="material-symbols-outlined text-[14px] md:text-[15px] group-hover:scale-110 transition-transform text-white">add_circle</span>
               </button>
             </div>
           </FramerIn>
@@ -737,6 +747,8 @@ export function HomePage() {
           logoUrl={affiliateModal.logoUrl}
         />
       </Suspense>
+
+      <FeaturedSpotlightToast />
     </AnimatedPage>
   )
 }

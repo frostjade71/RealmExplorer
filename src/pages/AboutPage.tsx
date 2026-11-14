@@ -16,6 +16,11 @@ import goalEmerald from '../assets/OTM/185424-esmeralda.png'
 import goalBook from '../assets/OTM/9e8def35f04e0f96840b5d16e8a247f5f59b81be.webp'
 import directoryHero from '../assets/hero/directoryhero.jpg'
 
+import directoryCardBg from '../assets/about/directory.webp'
+import otmCardBg from '../assets/about/otmabout.webp'
+import blogCardBg from '../assets/about/blogabout.webp'
+import projectsCardBg from '../assets/about/projectsabout.webp'
+
 
 import factionsIcon from '../assets/category/7587-netherite-sword.png'
 import kitpvpIcon from '../assets/category/95615-mace.png'
@@ -102,34 +107,51 @@ export function AboutPage() {
                 title: 'Server Directory',
                 desc: 'Browse and vote for the best Minecraft Servers and Realms in a centralized, verified list.',
                 image: '/badges/mc-earth-main.webp',
+                bgImage: directoryCardBg,
                 link: '/servers',
                 linkText: 'Browse Directory'
+              },
+              {
+                title: 'Project Directory',
+                desc: 'A showcase page for creators and builders to share custom Add-ons, resource packs, and maps.',
+                image: '/badges/6174-craftingtable.png',
+                bgImage: projectsCardBg,
+                link: '/projects',
+                linkText: 'Explore Projects'
               },
               {
                 title: 'OTM Competitions',
                 desc: 'Vote in our monthly community contests to crown the best Builder, Developer, Server, and Realm.',
                 image: otmMedal,
+                bgImage: otmCardBg,
                 link: '/leaderboards',
                 linkText: 'Check Standings'
               },
               {
-                title: 'Weekly Blog & Updates',
+                title: 'Weekly Blog and Updates',
                 desc: 'Stay informed with official announcements, community spotlights, and developer changelogs.',
                 image: blogBanner,
+                bgImage: blogCardBg,
                 link: '/blog',
                 linkText: 'Read Blog'
               },
-              {
-                title: 'Project Explorer',
-                desc: 'A dedicated showcase page for creators and builders to share custom Add-ons, resource packs, and maps.',
-                image: '/badges/6174-craftingtable.png',
-                link: '/projects',
-                linkText: 'Explore Projects'
-              },
             ].map((feature, i) => (
               <FramerIn key={i} delay={i * 0.1} className="flex">
-                <div className="relative bg-zinc-900 border border-white/5 p-4 md:p-6 rounded-2xl flex flex-col justify-between transition-all duration-300 group hover:-translate-y-1 w-full shadow-md hover:shadow-2xl">
-                  <div>
+                <div className="relative bg-zinc-900 border border-white/5 p-4 md:p-6 rounded-2xl flex flex-col justify-between transition-all duration-300 group hover:-translate-y-1 w-full shadow-md hover:shadow-2xl overflow-hidden">
+                  {feature.bgImage && (
+                    <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                      <img
+                        src={feature.bgImage}
+                        alt=""
+                        className="w-full h-full object-cover opacity-25 group-hover:opacity-40 group-hover:scale-105 transition-all duration-500"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#050805] via-[#050805]/80 to-[#050805]/40" />
+                    </div>
+                  )}
+
+                  <div className="relative z-10">
                     <div className="w-10 h-10 flex items-center justify-center mb-4 overflow-hidden">
                       {feature.image ? (
                         <img src={feature.image} alt="" className="w-full h-full object-contain" loading="lazy" decoding="async" />
@@ -142,9 +164,9 @@ export function AboutPage() {
                     <h3 className="text-white font-pixel text-[10px] md:text-xs uppercase tracking-wider mb-2 leading-normal">
                       {feature.title}
                     </h3>
-                    <p className="text-zinc-400 font-headline text-xs leading-relaxed mb-6">{feature.desc}</p>
+                    <p className="text-zinc-400 font-headline text-xs leading-relaxed mb-6 group-hover:text-zinc-300 transition-colors">{feature.desc}</p>
                   </div>
-                  <Link to={feature.link} className="text-[#85fc7e] hover:text-white font-headline text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors mt-auto">
+                  <Link to={feature.link} className="relative z-10 text-[#85fc7e] hover:text-white font-headline text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors mt-auto">
                     {feature.linkText}
                     <span className="material-symbols-outlined text-xs">arrow_forward</span>
                   </Link>
@@ -157,9 +179,20 @@ export function AboutPage() {
         {/* What We Offer */}
         <section>
           <div className="max-w-4xl mx-auto">
-            <FramerIn className="bg-[#050805] border border-white/5 p-5 md:p-8 rounded-3xl relative overflow-hidden shadow-lg">
+            <FramerIn className="bg-[#050805] border border-white/5 p-5 md:p-8 rounded-3xl relative overflow-hidden shadow-lg group">
+              <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                <img
+                  src="/meta-preview/RE-Banned_EAA0FDC.webp"
+                  alt=""
+                  className="w-full h-full object-cover opacity-25 group-hover:opacity-35 group-hover:scale-105 transition-all duration-500"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050805] via-[#050805]/85 to-[#050805]/40" />
+              </div>
+
               {/* Decorative radial blur gradient */}
-              <div className="absolute -top-12 -right-12 w-48 h-48 bg-realm-green/5 blur-3xl pointer-events-none rounded-full" />
+              <div className="absolute -top-12 -right-12 w-48 h-48 bg-realm-green/5 blur-3xl pointer-events-none rounded-full z-0" />
 
               <div className="relative z-10 flex flex-col gap-4 md:gap-6">
                 <div className="flex flex-col items-center justify-center gap-1.5 md:gap-2 mb-1 md:mb-3">
@@ -186,10 +219,10 @@ export function AboutPage() {
                     <Link
                       key={i}
                       to={item.id ? `/servers?category=${item.id}` : '/servers'}
-                      className="bg-[#050805] border border-white/5 px-4 py-3 rounded-xl flex items-center gap-3 group transition-all duration-300 font-headline shadow-sm hover:border-zinc-700 hover:shadow-md"
+                      className="bg-[#050805]/80 backdrop-blur-sm border border-white/5 px-4 py-3 rounded-xl flex items-center gap-3 group/item transition-all duration-300 font-headline shadow-sm hover:border-zinc-700 hover:shadow-md"
                     >
                       <div className="w-8 h-8 flex items-center justify-center shrink-0 overflow-hidden">
-                        <img src={item.icon} alt={item.name} className="w-6 h-6 md:w-7 md:h-7 object-contain group-hover:scale-110 transition-transform duration-300" loading="lazy" decoding="async" />
+                        <img src={item.icon} alt={item.name} className="w-6 h-6 md:w-7 md:h-7 object-contain group-hover/item:scale-110 transition-transform duration-300" loading="lazy" decoding="async" />
                       </div>
                       <span className="text-white text-[11px] md:text-xs font-bold tracking-wide">{item.name}</span>
                     </Link>
@@ -217,12 +250,12 @@ export function AboutPage() {
               { text: 'A place to safely view Realms / Servers inside a Minecraft Realm with custom menu\'s and a nice interface', image: goalBook },
               { text: 'A place to find new friends and experience great things', image: goalPickaxe },
             ].map((goal, i) => (
-              <div key={i} className="flex gap-4 items-start group">
+              <div key={i} className="flex gap-4 items-center group">
                 <div className="shrink-0 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center overflow-hidden">
                   <img src={goal.image} alt="" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" loading="lazy" decoding="async" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-zinc-400 font-headline text-xs md:text-sm leading-relaxed group-hover:text-white transition-colors pt-1 md:pt-0">
+                <div className="flex-1 min-w-0">
+                  <p className="text-zinc-400 font-headline text-xs md:text-sm leading-relaxed group-hover:text-white transition-colors">
                     {goal.text}
                   </p>
                 </div>
@@ -271,17 +304,25 @@ export function AboutPage() {
                         developer: { label: 'Developer', iconColor: 'text-blue-400', textColor: 'text-blue-400', defaultLink: '/dotm' },
                       }[winner.category as 'realm'|'server'|'builder'|'developer'] || { label: winner.category, iconColor: 'text-white', textColor: 'text-white', defaultLink: '/' }
 
-                      const link = winner.category === 'realm' || winner.category === 'server'
-                        ? `/server/${winner.winner_slug || winner.servers?.slug}`
-                        : `/profile/${winner.profiles?.discord_username || winner.winner_slug}`
+                      const isPerson = winner.category === 'builder' || winner.category === 'developer' || (!winner.server_id && !!winner.user_id)
+
+                      const link = isPerson
+                        ? `/profile/${winner.profiles?.discord_username || winner.winner_slug || ''}`
+                        : `/server/${winner.winner_slug || winner.servers?.slug || ''}`
+
+                      const bannerUrl = (isPerson ? winner.profiles?.discord_banner : winner.servers?.banner_url) || winner.winner_banner_url
+
+                      const imageUrl = (isPerson ? winner.profiles?.discord_avatar : winner.servers?.icon_url) || winner.winner_image_url
+
+                      const displayName = (isPerson ? winner.profiles?.discord_username : winner.servers?.name) || winner.winner_name || 'Unknown'
 
                       return (
                         <Link to={link} key={winner.id} className="group flex flex-col w-[calc(50%-8px)] sm:w-[calc(33.33%-11px)] lg:w-[calc(25%-24px)] max-w-[280px]">
                           <div className={`relative w-full aspect-square bg-[#050805] border border-white/5 rounded-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col items-center justify-center p-4 md:p-6 shadow-md hover:shadow-2xl`}>
                             {/* Winner Banner background */}
-                            {winner.winner_banner_url && (
+                            {bannerUrl && (
                               <div className="absolute inset-0 z-0 opacity-30 transition-opacity duration-300">
-                                <img src={winner.winner_banner_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                                <img src={bannerUrl} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#050805] via-[#050805]/60 to-transparent pointer-events-none" />
                               </div>
                             )}
@@ -291,8 +332,21 @@ export function AboutPage() {
                             
                             {/* Image / Avatar / Icon */}
                             <div className="relative z-10 w-12 h-12 md:w-20 md:h-20 mb-2 md:mb-4 rounded-xl bg-zinc-900/50 border border-white/5 flex items-center justify-center transition-all duration-300 overflow-hidden p-2 shadow-inner">
-                              {winner.winner_image_url ? (
-                                <img src={winner.winner_image_url} alt="" className="w-full h-full object-cover rounded-md" loading="lazy" decoding="async" />
+                              {imageUrl ? (
+                                <img 
+                                  src={imageUrl} 
+                                  alt={displayName} 
+                                  className="w-full h-full object-cover rounded-md" 
+                                  loading="lazy" 
+                                  decoding="async" 
+                                  onError={(e) => {
+                                    const target = e.currentTarget
+                                    const fallback = isPerson ? 'https://cdn.discordapp.com/embed/avatars/0.png' : '/logoRE.png'
+                                    if (target.src !== fallback) {
+                                      target.src = fallback
+                                    }
+                                  }}
+                                />
                               ) : (
                                 <Crown className={`w-6 h-6 md:w-10 md:h-10 ${award.iconColor} transition-colors group-hover:scale-110 duration-300`} />
                               )}
@@ -300,7 +354,7 @@ export function AboutPage() {
 
                             {/* Winner Name */}
                             <h3 className="relative z-10 text-white font-pixel text-[9px] md:text-xs mb-1 md:mb-2 text-center w-full px-2 truncate uppercase tracking-widest drop-shadow-md">
-                              {winner.winner_name}
+                              {displayName}
                             </h3>
 
                             {/* OTM Category */}

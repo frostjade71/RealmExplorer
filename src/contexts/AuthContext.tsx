@@ -26,7 +26,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [shuffleCooldown, setShuffleCooldown] = useState(0)
+  const [shuffleCooldown, setShuffleCooldown] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0
+    const until = localStorage.getItem('shuffle_cooldown_until')
+    if (!until) return 0
+    const remaining = Math.ceil((parseInt(until, 10) - Date.now()) / 1000)
+    if (remaining <= 0) {
+      try {
+        localStorage.removeItem('shuffle_cooldown_until')
+      } catch {}
+      return 0
+    }
+    return remaining
+  })
 
   // Effect 1: Listen for auth state changes — ONLY set session synchronously.
   // NEVER call supabase.from() inside this callback. It runs within Supabase's
@@ -174,19 +186,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // Shuffle Cooldown Logic
+  // Shuffle Cooldown Logic (persists across page reloads via expiration timestamp)
   useEffect(() => {
-    if (shuffleCooldown > 0) {
-      const timer = setInterval(() => {
-        setShuffleCooldown(prev => Math.max(0, prev - 1))
-      }, 1000)
-      return () => clearInterval(timer)
+    if (shuffleCooldown <= 0) return
+
+    const updateCooldown = () => {
+      const until = localStorage.getItem('shuffle_cooldown_until')
+      if (!until) {
+        setShuffleCooldown(0)
+        return
+      }
+      const remaining = Math.max(0, Math.ceil((parseInt(until, 10) - Date.now()) / 1000))
+      if (remaining <= 0) {
+        try { localStorage.removeItem('shuffle_cooldown_until') } catch {}
+        setShuffleCooldown(0)
+      } else {
+        setShuffleCooldown(prev => prev !== remaining ? remaining : prev)
+      }
     }
-  }, [shuffleCooldown])
+
+    const timer = setInterval(updateCooldown, 500)
+    return () => clearInterval(timer)
+  }, [shuffleCooldown > 0])
 
   const startShuffleCooldown = () => {
     const hasPremium = profile?.role === 'explorer+' || profile?.role === 'admin'
-    setShuffleCooldown(hasPremium ? 2 : 6)
+    const durationSeconds = hasPremium ? 2 : 6
+    const expiresAt = Date.now() + durationSeconds * 1000
+    try {
+      localStorage.setItem('shuffle_cooldown_until', expiresAt.toString())
+    } catch {}
+    setShuffleCooldown(durationSeconds)
   }
 
   return (
