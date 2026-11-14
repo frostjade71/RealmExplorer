@@ -12,6 +12,8 @@ import {
 } from '../lib/discord'
 import { useAuth } from '../contexts/AuthContext'
 
+export type ProgressCallback = (step: { message: string; progress: number }) => void
+
 export function useVoteMutation() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -161,9 +163,25 @@ export function useDeleteProjectMutation() {
 export function useUpdateServerStatusMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, status, adminId, adminName }: { id: string, status: ServerStatus, adminId?: string | null, adminName?: string | null }) => {
+    mutationFn: async ({ 
+      id, 
+      status, 
+      adminId, 
+      adminName,
+      onProgress 
+    }: { 
+      id: string, 
+      status: ServerStatus, 
+      adminId?: string | null, 
+      adminName?: string | null,
+      onProgress?: ProgressCallback 
+    }) => {
+      onProgress?.({ message: 'Approving the server...', progress: 15 })
+
       // 0. Get current server state before update
       const { data: server } = await supabase.from('servers').select('owner_id, name, status, slug, icon_url').eq('id', id).single()
+
+      onProgress?.({ message: 'Changing status in database...', progress: 35 })
 
       // 1. Update status
       const { error: statusError } = await supabase.from('servers').update({ status }).eq('id', id)
@@ -171,6 +189,8 @@ export function useUpdateServerStatusMutation() {
 
       // 2. Notification if approved
       if (status === 'approved' && server?.owner_id) {
+        onProgress?.({ message: 'Creating in-app notification...', progress: 50 })
+
         let title = 'Listing Approved'
         let message = `Your server "${server.name}" has been approved!`
 
@@ -207,25 +227,29 @@ export function useUpdateServerStatusMutation() {
 
         // 2a. Discord Notification
         if (server.name && server.slug) {
+          onProgress?.({ message: 'Sending new listing to discord....', progress: 70 })
+
           if (server.status === 'pending') {
             // New submission: Notify Public AND Logs
-            await sendApprovalNotification({
-              serverName: server.name,
-              adminName: adminName || 'A Staff Member',
-              slug: server.slug,
-              iconUrl: server.icon_url,
-              type: 'new_listing',
-              target: 'public'
-            })
-            await sendApprovalNotification({
-              serverName: server.name,
-              adminName: adminName || 'A Staff Member',
-              slug: server.slug,
-              iconUrl: server.icon_url,
-              type: 'new_listing',
-              target: 'logs',
-              previousStatus: server.status
-            })
+            await Promise.allSettled([
+              sendApprovalNotification({
+                serverName: server.name,
+                adminName: adminName || 'A Staff Member',
+                slug: server.slug,
+                iconUrl: server.icon_url,
+                type: 'new_listing',
+                target: 'public'
+              }),
+              sendApprovalNotification({
+                serverName: server.name,
+                adminName: adminName || 'A Staff Member',
+                slug: server.slug,
+                iconUrl: server.icon_url,
+                type: 'new_listing',
+                target: 'logs',
+                previousStatus: server.status
+              })
+            ])
           } else {
             // Asset update: Notify Logs only
             await sendApprovalNotification({
@@ -241,6 +265,8 @@ export function useUpdateServerStatusMutation() {
         }
       }
 
+      onProgress?.({ message: 'Recording audit logs...', progress: 85 })
+
       // 3. Log action
       await logAction(
         status === 'approved' ? 'SERVER_APPROVED' : 'SERVER_STATUS_CHANGED', 
@@ -252,6 +278,7 @@ export function useUpdateServerStatusMutation() {
 
       // 3a. Log to Discord if status changed but NOT approved or rejected
       if ((status === 'approved' || status === 'rejected') && server?.name && status !== server.status) {
+        onProgress?.({ message: 'Logging submission status to Discord...', progress: 95 })
         await sendSubmissionLogNotification({
           targetName: server.name,
           isProject: false,
@@ -267,6 +294,7 @@ export function useUpdateServerStatusMutation() {
         })
       }
 
+      onProgress?.({ message: 'Server approved successfully!', progress: 100 })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminServers'] })
@@ -1577,10 +1605,26 @@ export function useUploadProjectFileMutation() {
 export function useUpdateProjectStatusMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, status, adminId, adminName }: { id: string, status: string, adminId?: string | null, adminName?: string | null }) => {
+    mutationFn: async ({ 
+      id, 
+      status, 
+      adminId, 
+      adminName,
+      onProgress 
+    }: { 
+      id: string, 
+      status: string, 
+      adminId?: string | null, 
+      adminName?: string | null,
+      onProgress?: ProgressCallback 
+    }) => {
+      onProgress?.({ message: 'Approving the project...', progress: 15 })
+
       const { data: projectData } = await supabase.from('projects' as any).select('owner_id, name, status, slug, icon_url, has_been_approved').eq('id', id).single()
       const project = projectData as unknown as { owner_id: string; name: string; status: string; slug: string; icon_url: string | null; has_been_approved: boolean } | null;
       
+      onProgress?.({ message: 'Changing status in database...', progress: 35 })
+
       const { data, error } = await supabase
         .from('projects' as any)
         .update({ 
@@ -1595,6 +1639,7 @@ export function useUpdateProjectStatusMutation() {
       if (error) throw error
 
       if (status === 'approved' && project?.owner_id) {
+        onProgress?.({ message: 'Creating in-app notification...', progress: 50 })
         await supabase.from('notifications').insert({
           user_id: project.owner_id,
           type: 'approval',
@@ -1605,6 +1650,7 @@ export function useUpdateProjectStatusMutation() {
       }
 
       if (adminId) {
+        onProgress?.({ message: 'Recording audit logs...', progress: 70 })
         await logAction(
           status === 'approved' ? 'PROJECT_APPROVED' : 'PROJECT_STATUS_CHANGED', 
           { projectName: project?.name, newStatus: status },
@@ -1614,26 +1660,30 @@ export function useUpdateProjectStatusMutation() {
         )
 
         if (status === 'approved' && project?.name && status !== project.status) {
+          onProgress?.({ message: 'Sending new listing to discord....', progress: 85 })
+
           if (!project.has_been_approved) {
-            await sendApprovalNotification({
-              serverName: project.name,
-              adminName: adminName || 'A Staff Member',
-              slug: project.slug,
-              iconUrl: project.icon_url,
-              type: 'new_listing',
-              target: 'public',
-              isProject: true
-            })
-            await sendApprovalNotification({
-              serverName: project.name,
-              adminName: adminName || 'A Staff Member',
-              slug: project.slug,
-              iconUrl: project.icon_url,
-              type: 'new_listing',
-              target: 'logs',
-              previousStatus: project.status,
-              isProject: true
-            })
+            await Promise.allSettled([
+              sendApprovalNotification({
+                serverName: project.name,
+                adminName: adminName || 'A Staff Member',
+                slug: project.slug,
+                iconUrl: project.icon_url,
+                type: 'new_listing',
+                target: 'public',
+                isProject: true
+              }),
+              sendApprovalNotification({
+                serverName: project.name,
+                adminName: adminName || 'A Staff Member',
+                slug: project.slug,
+                iconUrl: project.icon_url,
+                type: 'new_listing',
+                target: 'logs',
+                previousStatus: project.status,
+                isProject: true
+              })
+            ])
           } else {
             await sendApprovalNotification({
               serverName: project.name,
@@ -1649,6 +1699,7 @@ export function useUpdateProjectStatusMutation() {
         }
 
         if ((status === 'approved' || status === 'rejected') && project?.name && status !== project.status) {
+          onProgress?.({ message: 'Logging submission status to Discord...', progress: 95 })
           await sendSubmissionLogNotification({
             targetName: project.name,
             isProject: true,
@@ -1665,6 +1716,7 @@ export function useUpdateProjectStatusMutation() {
         }
       }
 
+      onProgress?.({ message: 'Project approved successfully!', progress: 100 })
       return data
     },
     onSuccess: (data: any) => {

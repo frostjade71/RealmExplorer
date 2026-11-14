@@ -9,6 +9,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { ContactOwnerModal } from '../components/ContactOwnerModal'
 import { ConfirmationModal } from '../components/ConfirmationModal'
+import { AdminActionProgressModal } from '../components/AdminActionProgressModal'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -27,6 +28,26 @@ export function AdminProjectsPage() {
   const [modalConfig, setModalConfig] = useState<{ isOpen: boolean, type: 'contact' | 'rejection', project: any | null }>({ isOpen: false, type: 'contact', project: null })
   const [projectToDelete, setProjectToDelete] = useState<any | null>(null)
   const ITEMS_PER_PAGE = 20
+
+  const [actionProgress, setActionProgress] = useState<{
+    isOpen: boolean
+    title: string
+    subtitle: string
+    progress: number
+    message: string
+    targetId: string | null
+    isCompleted: boolean
+    error: string | null
+  }>({
+    isOpen: false,
+    title: '',
+    subtitle: '',
+    progress: 0,
+    message: '',
+    targetId: null,
+    isCompleted: false,
+    error: null
+  })
 
   const filteredProjects = useMemo(() => {
     return projects.filter(project => {
@@ -58,20 +79,72 @@ export function AdminProjectsPage() {
     }
   }, [searchParams])
 
-  const handleUpdateStatus = (id: string, newStatus: ProjectStatus) => {
-    updateMutation.mutate(
-      { id, status: newStatus, adminId: profile?.id, adminName: profile?.discord_username },
-      {
-        onSuccess: () => {
-          toast.success(`Project ${newStatus}`, {
-            description: `The project status has been updated to ${newStatus}.`
-          })
-        },
-        onError: (err: any) => {
-          toast.error('Status Update Failed', { description: err.message })
-        }
+  const handleUpdateStatus = async (id: string, newStatus: ProjectStatus, projectName?: string) => {
+    if (newStatus === 'approved') {
+      setActionProgress({
+        isOpen: true,
+        title: 'Approving Project',
+        subtitle: projectName ? `Project: ${projectName}` : 'Updating status & notifying...',
+        progress: 10,
+        message: 'Approving the project...',
+        targetId: id,
+        isCompleted: false,
+        error: null
+      })
+
+      try {
+        await updateMutation.mutateAsync({
+          id,
+          status: newStatus,
+          adminId: profile?.id,
+          adminName: profile?.discord_username,
+          onProgress: (step) => {
+            setActionProgress(prev => ({
+              ...prev,
+              progress: step.progress,
+              message: step.message
+            }))
+          }
+        })
+
+        setActionProgress(prev => ({
+          ...prev,
+          progress: 100,
+          message: 'Project approved successfully!',
+          isCompleted: true
+        }))
+
+        toast.success('Project Approved', {
+          description: `${projectName || 'The project'} has been approved.`
+        })
+
+        setTimeout(() => {
+          setActionProgress(prev => ({ ...prev, isOpen: false, targetId: null }))
+        }, 2000)
+      } catch (err: any) {
+        console.error('Failed to approve project:', err)
+        setActionProgress(prev => ({
+          ...prev,
+          error: err.message || 'Failed to approve project',
+          message: 'Approval failed'
+        }))
+        toast.error('Status Update Failed', { description: err.message })
       }
-    )
+    } else {
+      updateMutation.mutate(
+        { id, status: newStatus, adminId: profile?.id, adminName: profile?.discord_username },
+        {
+          onSuccess: () => {
+            toast.success(`Project ${newStatus}`, {
+              description: `The project status has been updated to ${newStatus}.`
+            })
+          },
+          onError: (err: any) => {
+            toast.error('Status Update Failed', { description: err.message })
+          }
+        }
+      )
+    }
   }
 
   const handleModalSubmit = async (subject: string, message: string) => {
@@ -292,7 +365,8 @@ export function AdminProjectsPage() {
                             e.stopPropagation()
                             setModalConfig({ isOpen: true, type: 'contact', project })
                           }}
-                          className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-blue-500/20 group/btn"
+                          disabled={updateMutation.isPending || actionProgress.isOpen}
+                          className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-blue-500/20 group/btn disabled:opacity-40 disabled:cursor-not-allowed"
                           title="Contact Owner"
                         >
                           <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">mail</span>
@@ -301,12 +375,21 @@ export function AdminProjectsPage() {
                           <button 
                             onClick={(e) => {
                               e.stopPropagation()
-                              handleUpdateStatus(project.id, 'approved')
+                              handleUpdateStatus(project.id, 'approved', project.name)
                             }}
-                            className="w-10 h-10 rounded-lg bg-realm-green/10 text-realm-green hover:bg-realm-green hover:text-zinc-950 flex items-center justify-center transition-all duration-300 border border-realm-green/20 group/btn"
+                            disabled={updateMutation.isPending || actionProgress.isOpen}
+                            className={`w-10 h-10 rounded-lg bg-realm-green/10 text-realm-green hover:bg-realm-green hover:text-zinc-950 flex items-center justify-center transition-all duration-300 border border-realm-green/20 group/btn ${
+                              actionProgress.targetId === project.id 
+                                ? 'opacity-80 cursor-wait' 
+                                : (updateMutation.isPending || actionProgress.isOpen ? 'opacity-40 cursor-not-allowed' : '')
+                            }`}
                             title="Approve"
                           >
-                            <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">check</span>
+                            {actionProgress.targetId === project.id ? (
+                              <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                            ) : (
+                              <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">check</span>
+                            )}
                           </button>
                         )}
                         {project.status !== 'rejected' && (
@@ -315,7 +398,8 @@ export function AdminProjectsPage() {
                               e.stopPropagation()
                               setModalConfig({ isOpen: true, type: 'rejection', project })
                             }}
-                            className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-red-500/20 group/btn"
+                            disabled={updateMutation.isPending || actionProgress.isOpen}
+                            className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-red-500/20 group/btn disabled:opacity-40 disabled:cursor-not-allowed"
                             title="Reject"
                           >
                             <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">close</span>
@@ -326,7 +410,8 @@ export function AdminProjectsPage() {
                             e.stopPropagation()
                             setProjectToDelete(project)
                           }}
-                          className="w-10 h-10 rounded-lg bg-zinc-800/50 text-zinc-400 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-zinc-700/50 hover:border-red-500 group/btn"
+                          disabled={updateMutation.isPending || actionProgress.isOpen}
+                          className="w-10 h-10 rounded-lg bg-zinc-800/50 text-zinc-400 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 border border-zinc-700/50 hover:border-red-500 group/btn disabled:opacity-40 disabled:cursor-not-allowed"
                           title="Delete Project"
                         >
                           <span className="material-symbols-outlined text-[20px] group-hover/btn:scale-110 transition-transform">delete</span>
@@ -384,6 +469,17 @@ export function AdminProjectsPage() {
         confirmLabel="Delete Permanently"
         isLoading={deleteMutation.isPending}
         isDangerous={true}
+      />
+
+      <AdminActionProgressModal
+        isOpen={actionProgress.isOpen}
+        title={actionProgress.title}
+        subtitle={actionProgress.subtitle}
+        progress={actionProgress.progress}
+        message={actionProgress.message}
+        isCompleted={actionProgress.isCompleted}
+        error={actionProgress.error}
+        onClose={() => setActionProgress(prev => ({ ...prev, isOpen: false, targetId: null }))}
       />
     </AnimatedPage>
   )
