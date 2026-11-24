@@ -5,6 +5,7 @@ import {
   useSubmitServerMutation,
   useUpdateServerMutation,
 } from "../hooks/mutations";
+import { sendStaffReviewNotification } from "../lib/discord";
 import { useServer, useUserServers } from "../hooks/queries";
 import { supabase } from "../lib/supabase";
 import type { ServerCategory, SocialLink } from "../types";
@@ -467,6 +468,25 @@ export function SubmitPage() {
               }
 
               cleanupOldImages(formData.icon_url, formData.banner_url);
+
+              const isReviewStatus = status && (
+                status === 'Review Icon' ||
+                status === 'Review Cover' ||
+                status === 'Review Icon & Cover' ||
+                status === 'Review Gallery' ||
+                status === 'Review Icon & Gallery' ||
+                status === 'Review Cover & Gallery' ||
+                status === 'Review All Assets'
+              );
+
+              if (isReviewStatus && formData.name) {
+                await sendStaffReviewNotification({
+                  serverName: formData.name,
+                  status: status,
+                  iconUrl: finalIconUrl
+                });
+              }
+
               toast.success("Listing Updated", {
                 description:
                   iconChanged || bannerChanged
@@ -535,6 +555,15 @@ export function SubmitPage() {
             toast.success("Registration Submitted", {
               description: "Your server is now pending review by our staff.",
             });
+
+            if (submissionData?.name) {
+              await sendStaffReviewNotification({
+                serverName: submissionData.name,
+                status: 'pending',
+                iconUrl: submissionData.icon_url
+              });
+            }
+
             navigate("/dashboard");
           },
           onError: (err: any) => {

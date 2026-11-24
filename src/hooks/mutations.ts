@@ -4,7 +4,6 @@ import type { ServerStatus, UserRole, OTMCategory, OTMConfig } from '../types'
 import { logAction } from '../lib/audit'
 import { 
   sendApprovalNotification, 
-  sendStaffReviewNotification, 
   sendLogNotification, 
   sendErrorNotification,
   sendSubmissionLogNotification,
@@ -437,18 +436,10 @@ export function useSubmitServerMutation() {
       if (error) throw error
       return data
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userServers'] })
       queryClient.invalidateQueries({ queryKey: ['adminServers'] })
 
-      // Discord Staff Notification
-      if (variables?.name) {
-        sendStaffReviewNotification({
-          serverName: variables.name,
-          status: variables.status || 'pending',
-          iconUrl: variables.icon_url
-        })
-      }
     },
     onError: (error, variables) => {
       sendErrorNotification({
@@ -466,30 +457,12 @@ export function useUpdateServerMutation() {
       const { error } = await supabase.from('servers').update({ ...formData, last_edited_at: new Date().toISOString() }).eq('id', id)
       if (error) throw error
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['server'] })
       queryClient.invalidateQueries({ queryKey: ['userServers'] })
       queryClient.invalidateQueries({ queryKey: ['servers'] })
       queryClient.invalidateQueries({ queryKey: ['adminServers'] })
 
-      // Discord Staff Notification for asset reviews
-      const isReviewStatus = variables?.status && (
-        variables.status === 'Review Icon' || 
-        variables.status === 'Review Cover' || 
-        variables.status === 'Review Icon & Cover' ||
-        variables.status === 'Review Gallery' ||
-        variables.status === 'Review Icon & Gallery' ||
-        variables.status === 'Review Cover & Gallery' ||
-        variables.status === 'Review All Assets'
-      );
-
-      if (isReviewStatus && variables?.name) {
-        sendStaffReviewNotification({
-          serverName: variables.name,
-          status: variables.status,
-          iconUrl: variables.icon_url
-        })
-      }
     }
   })
 }
