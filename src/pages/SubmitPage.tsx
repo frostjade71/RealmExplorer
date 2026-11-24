@@ -127,6 +127,7 @@ export function SubmitPage() {
   const [bannerBlob, setBannerBlob] = useState<Blob | null>(null);
   const [galleryBlobs, setGalleryBlobs] = useState<Record<string, Blob | null>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitProgress, setSubmitProgress] = useState(0);
 
   useEffect(() => {
     if (id) {
@@ -318,6 +319,7 @@ export function SubmitPage() {
 
     const checkAndSubmit = async () => {
       setIsSubmitting(true);
+      setSubmitProgress(5);
       try {
         // Check if slug is unique
         let query = supabase.from("servers").select("id").eq("slug", slug);
@@ -331,6 +333,7 @@ export function SubmitPage() {
         if (checkError) {
           setError("Error checking name availability. Please try again.");
           setIsSubmitting(false);
+          setSubmitProgress(0);
           return;
         }
 
@@ -339,8 +342,11 @@ export function SubmitPage() {
             "A server with this name already exists. Please choose a unique name.",
           );
           setIsSubmitting(false);
+          setSubmitProgress(0);
           return;
         }
+
+        setSubmitProgress(15);
 
         let finalIconUrl = formData.icon_url;
         let finalBannerUrl = formData.banner_url;
@@ -354,6 +360,8 @@ export function SubmitPage() {
           finalIconUrl = publicUrl;
         }
 
+        setSubmitProgress(30);
+
         if (bannerBlob) {
           const filePath = `${user.id}/${Math.random().toString(36).substring(2)}-${Date.now()}.webp`;
           const { error: uploadError } = await supabase.storage.from('server-assets').upload(filePath, bannerBlob, { contentType: 'image/webp', upsert: true, cacheControl: 'public, max-age=31536000, immutable' });
@@ -361,6 +369,8 @@ export function SubmitPage() {
           const { data: { publicUrl } } = supabase.storage.from('server-assets').getPublicUrl(filePath);
           finalBannerUrl = publicUrl;
         }
+
+        setSubmitProgress(45);
 
         for (const item of formData.gallery) {
           const blob = galleryBlobs[item.localId];
@@ -374,6 +384,8 @@ export function SubmitPage() {
             finalGallery.push(item.url);
           }
         }
+
+        setSubmitProgress(60);
 
         if (isEditing) {
         const currentStatus = serverData?.server?.status || "approved";
@@ -439,6 +451,7 @@ export function SubmitPage() {
           },
           {
             onSuccess: async () => {
+              setSubmitProgress(75);
               // Sync staff list
               try {
                 await supabase.from('server_staff' as any).delete().eq('server_id', id);
@@ -469,6 +482,8 @@ export function SubmitPage() {
 
               cleanupOldImages(formData.icon_url, formData.banner_url);
 
+              setSubmitProgress(88);
+
               const isReviewStatus = status && (
                 status === 'Review Icon' ||
                 status === 'Review Cover' ||
@@ -493,10 +508,13 @@ export function SubmitPage() {
                     ? "Your changes are saved. Visual assets are pending review."
                     : "Your server details have been updated successfully.",
               });
-              navigate("/dashboard");
+              setSubmitProgress(100);
+              setTimeout(() => navigate("/dashboard"), 600);
             },
             onError: (err: any) => {
               setError(err.message);
+              setIsSubmitting(false);
+              setSubmitProgress(0);
               toast.error("Failed to update listing", {
                 description: err.message,
               });
@@ -525,6 +543,7 @@ export function SubmitPage() {
 
         submitMutation.mutate(submissionData, {
           onSuccess: async (data: any) => {
+            setSubmitProgress(72);
             // Sync staff list
             try {
               if (data?.id && staffList.length > 0) {
@@ -556,6 +575,7 @@ export function SubmitPage() {
               description: "Your server is now pending review by our staff.",
             });
 
+            setSubmitProgress(88);
             if (submissionData?.name) {
               await sendStaffReviewNotification({
                 serverName: submissionData.name,
@@ -564,10 +584,13 @@ export function SubmitPage() {
               });
             }
 
-            navigate("/dashboard");
+            setSubmitProgress(100);
+            setTimeout(() => navigate("/dashboard"), 600);
           },
           onError: (err: any) => {
             setError(err.message);
+            setIsSubmitting(false);
+            setSubmitProgress(0);
             toast.error("Submission failed", { description: err.message });
           },
         });
@@ -1427,28 +1450,33 @@ export function SubmitPage() {
           </div>
 
           <div className="pt-6 border-t border-zinc-800 flex justify-end gap-3 flex-wrap md:flex-nowrap">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               type="button"
               onClick={() => navigate("/dashboard")}
-              className="px-6 py-3 rounded-lg font-headline font-bold text-zinc-500 hover:text-white transition-colors whitespace-nowrap"
+              disabled={isSubmitting}
+              className="bg-[#2b2b2b] hover:bg-[#383838] active:bg-[#202020] border-2 border-t-white/30 border-l-white/30 border-b-black/90 border-r-black/90 text-white px-6 py-3 rounded-none font-pixel uppercase tracking-wider text-[10px] shadow-[2px_2px_0_rgba(0,0,0,0.6)] active:translate-y-0.5 active:shadow-none transition-all drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
             >
               Cancel
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            </button>
+            <button
               type="submit"
-              disabled={submitMutation.isPending}
-              className={`bg-[#4EC44E] text-[#002202] px-8 py-3 rounded-lg font-headline font-bold transition-all shadow-lg whitespace-nowrap ${submitMutation.isPending || updateMutation.isPending ? "opacity-50 cursor-not-allowed" : "hover:bg-[#85fc7e] hover:shadow-green-500/20"}`}
+              disabled={isSubmitting}
+              className="relative overflow-hidden bg-[#206324] hover:bg-[#28792d] active:bg-[#1a521e] border-2 border-t-[#6be377]/50 border-l-[#6be377]/50 border-b-black/90 border-r-black/90 text-white px-8 py-3 rounded-none font-pixel uppercase tracking-wider text-[10px] shadow-[2px_2px_0_rgba(0,0,0,0.6)] active:translate-y-0.5 active:shadow-none transition-all drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] disabled:cursor-not-allowed whitespace-nowrap min-w-[180px]"
             >
-              {submitMutation.isPending || updateMutation.isPending
-                ? "Saving..."
-                : isEditing
-                  ? "Save Changes"
-                  : "Submit for Review"}
-            </motion.button>
+              {isSubmitting && (
+                <span
+                  className="absolute inset-0 bg-[#1a521e] transition-all duration-300 ease-out"
+                  style={{ width: `${submitProgress}%` }}
+                />
+              )}
+              <span className="relative z-10">
+                {isSubmitting
+                  ? `${submitProgress}%`
+                  : isEditing
+                    ? "Save Changes"
+                    : "Submit for Review"}
+              </span>
+            </button>
           </div>
         </form>
       </FramerIn>
