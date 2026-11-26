@@ -9,8 +9,9 @@ import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motio
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { ArcFlowCarousel, fallbackServers } from '../components/ArcFlowCarousel'
-import type { Server } from '../types'
+import type { Server, ServerCategory } from '../types'
 import { slugify } from '../lib/urlUtils'
+import { categoryPath } from '../lib/landingPages'
 
 const CategoryRequestModal = lazy(() => import('../components/CategoryRequestModal').then(m => ({ default: m.CategoryRequestModal })))
 const AffiliateModal = lazy(() => import('../components/AffiliateModal').then(m => ({ default: m.AffiliateModal })))
@@ -69,7 +70,7 @@ function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toSt
 
 import { MetaTags } from '../components/MetaTags'
 
-const categories = [
+const categories: { id: ServerCategory; name: string; icon: string; bg: string; desc: string }[] = [
   { id: 'smp', name: 'SMP', icon: smpIcon, bg: smpBg, desc: 'Survival Multiplayer experiences focused on community.' },
   { id: 'factions', name: 'Factions', icon: factionsIcon, bg: factionsBg, desc: 'Build empires, forge alliances, and dominate the server.' },
   { id: 'kitpvp', name: 'KitPvP', icon: kitpvpIcon, bg: kitpvpBg, desc: 'Fast-paced combat with specialized loadouts.' },
@@ -309,10 +310,7 @@ export function HomePage() {
 
   return (
     <AnimatedPage>
-      <MetaTags 
-        title="Find & Promote Minecraft Servers"
-        description="Discover the best Minecraft Servers and Realms. Vote for your favorites, list your community, and find your next adventure on the most modern discovery platform."
-      />
+      <MetaTags />
       <header 
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
@@ -496,7 +494,7 @@ export function HomePage() {
             {categories.map(c => (
               <Link 
                 key={c.id} 
-                to={`/servers?category=${c.id}`}
+                to={categoryPath(c.id)}
                 className="relative bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden hover:shadow-2xl transition-all group min-h-[180px] md:min-h-[220px] flex flex-col justify-end p-5 md:p-6"
               >
                 {/* Background Image with Overlay */}

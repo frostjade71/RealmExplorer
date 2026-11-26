@@ -1,181 +1,316 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { filterLanding, landingPages, type LandingPage } from '../src/lib/landingPages'
+import { DEFAULT_IMAGE, SITE_NAME, SITE_URL, listingTitle, plainText } from '../src/lib/seo'
+import type { ServerCategory, ServerType } from '../src/types'
 
 export const config = {
   runtime: 'edge',
 }
 
+interface PageMeta {
+  title: string
+  description: string
+  path: string
+  image: string
+  card: 'summary' | 'summary_large_image'
+  ogType: 'website' | 'article'
+  jsonLd: object[]
+  body: string
+}
+
+const DOCS_IMAGE = `${SITE_URL}/meta-preview/RE-docs.webp`
+
+const staticPages: Record<string, PageMeta> = {
+  servers: {
+    title: `Browse All Minecraft Realms & Servers | ${SITE_NAME}`,
+    description: 'Explore our directory of the best Minecraft servers and realms. Find your next adventure on Realm Explorer.',
+    path: '/servers',
+    image: DEFAULT_IMAGE,
+    card: 'summary_large_image',
+    ogType: 'website',
+    jsonLd: [],
+    body: landingLinks(),
+  },
+  docs: {
+    title: `Documentation | ${SITE_NAME}`,
+    description: 'Learn how to use Realm Explorer, list your servers, and explore the community.',
+    path: '/docs',
+    image: DOCS_IMAGE,
+    card: 'summary_large_image',
+    ogType: 'website',
+    jsonLd: [],
+    body: '',
+  },
+  'api-docs': {
+    title: `Public API (Beta) | ${SITE_NAME}`,
+    description: 'Integrate Realm Explorer\'s server directory into your website. Free, open, no API key required. Supports filtering, sorting, and pagination.',
+    path: '/api-docs',
+    image: DOCS_IMAGE,
+    card: 'summary_large_image',
+    ogType: 'website',
+    jsonLd: [],
+    body: '',
+  },
+}
+
 export default async function handler(req: Request) {
-  const url = new URL(req.url)
-  const type = url.searchParams.get('type')
-  const slug = url.searchParams.get('slug')
-
-  if (type === 'docs') {
-    const ua = req.headers.get('user-agent') || ''
-    const isBot = /bot|discord|twitter|facebook|slack|telegram|whatsapp|skype/i.test(ua)
-    if (!isBot) return fetch(new URL('/index.html', req.url))
-    return ogResponse({
-      title: 'Documentation — Realm Explorer',
-      description: 'Learn how to use Realm Explorer, list your servers, and explore the community.',
-      image: 'https://realmexplorer.xyz/meta-preview/RE-docs.webp',
-      url: 'https://realmexplorer.xyz/docs'
-    })
-  }
-
-  if (type === 'api-docs') {
-    const ua = req.headers.get('user-agent') || ''
-    const isBot = /bot|discord|twitter|facebook|slack|telegram|whatsapp|skype/i.test(ua)
-    if (!isBot) return fetch(new URL('/index.html', req.url))
-    return ogResponse({
-      title: 'Public API (Beta) — Realm Explorer',
-      description: 'Integrate Realm Explorer\'s server directory into your website. Free, open, no API key required. Supports filtering, sorting, and pagination.',
-      image: 'https://realmexplorer.xyz/meta-preview/RE-docs.webp',
-      url: 'https://realmexplorer.xyz/api-docs'
-    })
-  }
-  
-  if (!slug || (type !== 'server' && type !== 'projects' && type !== 'blog')) {
-     return fetch(new URL('/index.html', req.url)) // fallback to SPA
-  }
-
-  const ua = req.headers.get('user-agent') || ''
-  const isBot = /bot|discord|twitter|facebook|slack|telegram|whatsapp|skype/i.test(ua)
-
-  if (!isBot) {
-    return fetch(new URL('/index.html', req.url))
-  }
+  const index = await fetch(new URL('/index.html', req.url))
+  if (!index.ok) return index
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
-  const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
-  
-  if (!supabaseUrl || !supabaseKey) {
-     return new Response('Missing Supabase credentials in Vercel environment variables', { status: 500 })
-  }
+  const supabaseKey =
+    process.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY
+  if (!supabaseUrl || !supabaseKey) return index
 
-  const supabase = createClient(supabaseUrl, supabaseKey)
-  
-  let title = 'Realm Explorer'
-  let description = 'Discover the best Minecraft Servers and Realms. Vote for your favorites and find your next adventure.'
-  let image = 'https://realmexplorer.xyz/meta-preview/RE-Banned_EAA0FDC.webp'
-  let ogType = 'website'
-  let twitterCard = 'summary'
-  
-  const truncate = (text: string | null, length: number = 100) => {
-    if (!text) return ''
-    const cleanText = text.replace(/[#*`_~\[\]]/g, '')
-    if (cleanText.length <= length) return cleanText
-    return cleanText.substring(0, length).trim() + '...'
-  }
-
+  let meta: PageMeta | null | undefined
   try {
-    if (type === 'server') {
-       const { data, error } = await supabase.from('public_servers').select('name, description, icon_url').eq('slug', slug).single()
-       if (error) throw error
-       if (data) {
-          title = `${data.name} | Realm Explorer`
-          description = truncate(data.description) || description
-          image = data.icon_url || image
-       }
-    } else if (type === 'projects') {
-       const { data, error } = await supabase.from('public_projects').select('name, short_description, description, icon_url').eq('slug', slug).single()
-       if (error) throw error
-       if (data) {
-          title = `${data.name} | Realm Explorer`
-          description = truncate(data.short_description) || truncate(data.description) || description
-          image = data.icon_url || image
-       }
-    } else if (type === 'blog') {
-       const { data, error } = await supabase.from('blog_posts').select('title, content, image_url, category').eq('slug', slug).eq('status', 'published').single()
-       if (error) throw error
-       if (data) {
-          title = `${data.title} | Realm Explorer Blog`
-          description = truncate(data.content, 160) || description
-          image = data.image_url || image
-          ogType = 'article'
-          twitterCard = 'summary_large_image'
-       }
-    }
-  } catch (error: any) {
-    console.error('Error fetching data for OG tags:', error)
+    meta = await resolveMeta(createClient(supabaseUrl, supabaseKey), new URL(req.url).searchParams)
+  } catch (error) {
+    console.error('Error building page meta:', error)
+    return index
   }
-  
-  const escapeHtml = (unsafe: string) => {
-    return unsafe
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;")
+  if (meta === undefined) return index
+
+  const html = await index.text()
+  if (meta === null) {
+    return new Response(html.replace('</head>', '  <meta name="robots" content="noindex" />\n  </head>'), {
+      status: 404,
+      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=0, must-revalidate' },
+    })
   }
 
-  const safeTitle = escapeHtml(title)
-  const safeDescription = escapeHtml(description)
-  const safeImage = escapeHtml(image)
-  const safeUrl = escapeHtml(url.href)
-
-  const html = `
-    <!doctype html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <title>${safeTitle}</title>
-        <meta name="title" content="${safeTitle}" />
-        <meta name="description" content="${safeDescription}" />
-        
-        <meta property="og:type" content="${ogType}" />
-        <meta property="og:url" content="${safeUrl}" />
-        <meta property="og:title" content="${safeTitle}" />
-        <meta property="og:description" content="${safeDescription}" />
-        <meta property="og:image" content="${safeImage}" />
-        
-        <meta property="twitter:card" content="${twitterCard}" />
-        <meta property="twitter:url" content="${safeUrl}" />
-        <meta property="twitter:title" content="${safeTitle}" />
-        <meta property="twitter:description" content="${safeDescription}" />
-        <meta property="twitter:image" content="${safeImage}" />
-      </head>
-      <body>
-        <h1>${safeTitle}</h1>
-        <p>${safeDescription}</p>
-        <img src="${safeImage}" alt="Logo" />
-        <p>This is a fast Edge-rendered Open Graph response for crawlers. If you are a human reading this, please disable bot-imitation in your browser to view the real site.</p>
-      </body>
-    </html>
-  `
-  
-  return new Response(html, {
-    headers: { 
-      'Content-Type': 'text/html', 
-      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400' 
-    }
+  return new Response(injectMeta(html, meta), {
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'public, max-age=0, must-revalidate',
+      'Vercel-CDN-Cache-Control': 'max-age=300, stale-while-revalidate=3600',
+    },
   })
 }
 
-function ogResponse({ title, description, image, url }: { title: string; description: string; image: string; url: string }) {
-  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
-  const html = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>${esc(title)}</title>
-    <meta name="title" content="${esc(title)}" />
-    <meta name="description" content="${esc(description)}" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="${esc(url)}" />
-    <meta property="og:title" content="${esc(title)}" />
-    <meta property="og:description" content="${esc(description)}" />
-    <meta property="og:image" content="${esc(image)}" />
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="${esc(url)}" />
-    <meta property="twitter:title" content="${esc(title)}" />
-    <meta property="twitter:description" content="${esc(description)}" />
-    <meta property="twitter:image" content="${esc(image)}" />
-  </head>
-  <body>
-    <h1>${esc(title)}</h1>
-    <p>${esc(description)}</p>
-  </body>
-</html>`
-  return new Response(html, {
-    headers: { 'Content-Type': 'text/html', 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400' }
-  })
+async function resolveMeta(supabase: SupabaseClient, params: URLSearchParams): Promise<PageMeta | null | undefined> {
+  const route = params.get('route')
+  const slug = params.get('slug') ?? ''
+
+  if (route === 'servers') {
+    const page = filterLanding(params.get('type') as ServerType | null, params.get('category') as ServerCategory | null)
+    return page ? landingMeta(supabase, page) : staticPages.servers
+  }
+  if (route === 'static') return staticPages[slug]
+  if (route === 'landing') {
+    const page = landingPages.find(p => p.slug === slug)
+    return page && landingMeta(supabase, page)
+  }
+  if (!slug) return undefined
+  if (route === 'server') return serverMeta(supabase, slug)
+  if (route === 'projects') return projectMeta(supabase, slug)
+  if (route === 'blog') return blogMeta(supabase, slug)
+  return undefined
+}
+
+async function serverMeta(supabase: SupabaseClient, slug: string): Promise<PageMeta | null> {
+  const { data, error } = await supabase
+    .from('public_servers')
+    .select('name, description, type, icon_url')
+    .eq('slug', slug)
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+
+  const parent = landingPages.find(p => p.slug === (data.type === 'realm' ? 'minecraft-bedrock-realms' : 'minecraft-server-list'))!
+  const path = `/server/${slug}`
+  return {
+    title: `${listingTitle(data.name, data.type)} | ${SITE_NAME}`,
+    description:
+      plainText(data.description, 160) ||
+      `Join ${data.name} on Realm Explorer. Discover the best Minecraft servers and realms.`,
+    path,
+    image: data.icon_url || DEFAULT_IMAGE,
+    card: 'summary',
+    ogType: 'website',
+    jsonLd: [breadcrumbs([[parent.heading, `/${parent.slug}`], [data.name, path]])],
+    body: `<h1>${esc(data.name)}</h1>
+      <p>${esc(plainText(data.description, 5000))}</p>
+      <p><a href="/${parent.slug}">${esc(parent.heading)}</a></p>`,
+  }
+}
+
+async function projectMeta(supabase: SupabaseClient, slug: string): Promise<PageMeta | null> {
+  const { data, error } = await supabase
+    .from('public_projects')
+    .select('name, short_description, description, icon_url')
+    .eq('slug', slug)
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+
+  const path = `/projects/${slug}`
+  return {
+    title: `${data.name} | Minecraft Project | ${SITE_NAME}`,
+    description:
+      plainText(data.short_description, 160) ||
+      plainText(data.description, 160) ||
+      `${data.name} on Realm Explorer.`,
+    path,
+    image: data.icon_url || DEFAULT_IMAGE,
+    card: 'summary',
+    ogType: 'website',
+    jsonLd: [breadcrumbs([['Projects', '/projects'], [data.name, path]])],
+    body: `<h1>${esc(data.name)}</h1>
+      <p>${esc(plainText(data.description || data.short_description, 5000))}</p>
+      <p><a href="/projects">Minecraft Projects</a></p>`,
+  }
+}
+
+async function blogMeta(supabase: SupabaseClient, slug: string): Promise<PageMeta | null> {
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('title, content, image_url, created_at, updated_at')
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+
+  const path = `/blog/${slug}`
+  const image = data.image_url || DEFAULT_IMAGE
+  return {
+    title: `${data.title} | ${SITE_NAME} Blog`,
+    description: plainText(data.content, 160) || `${data.title} on the Realm Explorer blog.`,
+    path,
+    image,
+    card: 'summary_large_image',
+    ogType: 'article',
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: data.title,
+        image,
+        datePublished: data.created_at,
+        dateModified: data.updated_at || data.created_at,
+        mainEntityOfPage: `${SITE_URL}${path}`,
+        publisher: { '@type': 'Organization', name: SITE_NAME, url: `${SITE_URL}/` },
+      },
+      breadcrumbs([['Blog', '/blog'], [data.title, path]]),
+    ],
+    body: `<h1>${esc(data.title)}</h1>
+      <p>${esc(plainText(data.content, 5000))}</p>
+      <p><a href="/blog">Realm Explorer Blog</a></p>`,
+  }
+}
+
+async function landingMeta(supabase: SupabaseClient, page: LandingPage): Promise<PageMeta> {
+  let query = supabase
+    .from('public_servers')
+    .select('id, name, slug')
+    .eq('status', 'approved')
+    .order('votes', { ascending: false })
+    .limit(200)
+  if (page.type) query = query.eq('type', page.type)
+  if (page.category) query = query.eq('category', page.category)
+
+  const { data, error } = await query
+  if (error) throw error
+  let listings = data ?? []
+
+  if (page.platform) {
+    const { data: platforms } = await supabase.rpc('public_server_platforms')
+    if (platforms) {
+      const ids = new Set(
+        (platforms as { id: string; has_java: boolean; has_bedrock: boolean }[])
+          .filter(p => (page.platform === 'bedrock' ? p.has_bedrock : p.has_java))
+          .map(p => p.id),
+      )
+      listings = listings.filter(l => ids.has(l.id))
+    }
+  }
+  listings = listings.slice(0, 50)
+
+  const path = `/${page.slug}`
+  return {
+    title: `${page.title} | ${SITE_NAME}`,
+    description: page.description,
+    path,
+    image: DEFAULT_IMAGE,
+    card: 'summary_large_image',
+    ogType: 'website',
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: page.heading,
+        itemListElement: listings.map((l, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: l.name,
+          url: `${SITE_URL}/server/${l.slug}`,
+        })),
+      },
+      breadcrumbs([[page.heading, path]]),
+    ],
+    body: `<h1>${esc(page.heading)}</h1>
+      <p>${esc(page.intro)}</p>
+      <ul>${listings.map(l => `<li><a href="/server/${esc(l.slug)}">${esc(l.name)}</a></li>`).join('')}</ul>
+      ${page.sections.map(s => `<h2>${esc(s.heading)}</h2><p>${esc(s.text)}</p>`).join('')}
+      ${landingLinks()}`,
+  }
+}
+
+function landingLinks() {
+  return `<ul>${landingPages.map(p => `<li><a href="/${p.slug}">${esc(p.heading)}</a></li>`).join('')}</ul>`
+}
+
+function breadcrumbs(trail: [name: string, path: string][]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [['Home', '/'], ...trail].map(([name, path], i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name,
+      item: `${SITE_URL}${path}`,
+    })),
+  }
+}
+
+function injectMeta(html: string, meta: PageMeta) {
+  const url = `${SITE_URL}${meta.path}`
+  const title = esc(meta.title)
+  const description = esc(meta.description)
+  const image = esc(meta.image)
+  const head = [
+    `<title>${title}</title>`,
+    `<meta name="description" content="${description}" data-static-seo />`,
+    `<link rel="canonical" href="${url}" data-static-seo />`,
+    `<meta property="og:type" content="${meta.ogType}" data-static-seo />`,
+    `<meta property="og:url" content="${url}" data-static-seo />`,
+    `<meta property="og:title" content="${title}" data-static-seo />`,
+    `<meta property="og:description" content="${description}" data-static-seo />`,
+    `<meta property="og:image" content="${image}" data-static-seo />`,
+    `<meta name="twitter:card" content="${meta.card}" data-static-seo />`,
+    `<meta name="twitter:title" content="${title}" data-static-seo />`,
+    `<meta name="twitter:description" content="${description}" data-static-seo />`,
+    `<meta name="twitter:image" content="${image}" data-static-seo />`,
+    ...meta.jsonLd.map(
+      data => `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`,
+    ),
+  ].join('\n    ')
+
+  return html
+    .replace(/<title>[\s\S]*?<\/title>/, '')
+    .replace(/\s*<(meta|link)\b[^>]*\bdata-static-seo\b[^>]*>/g, '')
+    .replace('</head>', () => `  ${head}\n  </head>`)
+    .replace('<div id="root"></div>', () => `<div id="root"></div>\n    <noscript>${meta.body}</noscript>`)
+}
+
+function esc(text: string) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
 }

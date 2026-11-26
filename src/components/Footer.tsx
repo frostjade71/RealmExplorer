@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Github } from 'lucide-react'
 import { SiDiscord, SiInstagram } from 'react-icons/si'
 import logo from '../assets/rerealm.webp'
+import { landingPages } from '../lib/landingPages'
 
 export function Footer() {
   return (
@@ -47,7 +48,16 @@ export function Footer() {
           </p>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-y-8 md:gap-y-0 gap-x-4 md:gap-x-8 lg:gap-x-12 w-full md:w-fit">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-8 md:gap-y-0 gap-x-4 md:gap-x-8 lg:gap-x-12 w-full md:w-fit">
+          <div className="flex flex-col items-center md:items-start gap-3 md:gap-4 text-center md:text-left">
+            <p className="text-white font-pixel text-[9px] md:text-[10px] uppercase tracking-widest opacity-80">Browse</p>
+            <div className="flex flex-col gap-2">
+              {landingPages.slice(0, 5).map(page => (
+                <Link key={page.slug} to={`/${page.slug}`} className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">{page.label}</Link>
+              ))}
+            </div>
+          </div>
+
           {/* About */}
           <div className="flex flex-col items-center md:items-start gap-3 md:gap-4 text-center md:text-left">
             <p className="text-white font-pixel text-[9px] md:text-[10px] uppercase tracking-widest opacity-80">About</p>
@@ -100,7 +110,7 @@ export function Footer() {
           </div>
 
           {/* Legal */}
-          <div className="flex flex-col items-center md:items-start gap-3 md:gap-4 text-center md:text-left col-span-2 md:col-span-1 mt-2 md:mt-0">
+          <div className="flex flex-col items-center md:items-start gap-3 md:gap-4 text-center md:text-left">
             <p className="text-white font-pixel text-[9px] md:text-[10px] uppercase tracking-widest opacity-80">Legal</p>
             <div className="flex flex-col gap-2">
               <Link to="/terms" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Terms of Use</Link>

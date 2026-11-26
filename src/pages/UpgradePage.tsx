@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, Zap, ShieldCheck, Image as ImageIcon, PlusCircle, Share2, FileText, Sparkles, ArrowUp, X, Ticket, ChevronDown, Users, Tag, Palette, Award, Search } from 'lucide-react'
 import { AnimatedPage } from '../components/AnimatedPage'
+import { MetaTags } from '../components/MetaTags'
 import { FramerIn } from '../components/FramerIn'
 import { useAuth } from '../contexts/AuthContext'
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js'
@@ -189,6 +190,11 @@ export function UpgradePage() {
 
   return (
     <>
+    <MetaTags
+      title="Explorer+ Upgrade"
+      description="Upgrade to Explorer+ on Realm Explorer for more listings, a bigger gallery and extra visibility for your Minecraft realm or server."
+      url="/upgrade"
+    />
     <AnimatedPage>
       <header className="relative pt-32 pb-16 md:pb-20 px-8 overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}

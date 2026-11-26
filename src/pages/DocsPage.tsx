@@ -676,7 +676,7 @@ export function DocsPage() {
   return (
     <AnimatedPage>
       <MetaTags 
-        title="Documentation - Realm Explorer"
+        title="Documentation"
         description="Learn how to use Realm Explorer, list your servers, and explore the community."
         image="/meta-preview/RE-docs.webp"
         url="/docs"

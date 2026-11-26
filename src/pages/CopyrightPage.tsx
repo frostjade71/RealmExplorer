@@ -58,7 +58,7 @@ export function CopyrightPage() {
   return (
     <AnimatedPage>
       <MetaTags 
-        title="Copyright Policy - Realm Explorer"
+        title="Copyright Policy"
         description="Learn about Realm Explorer's copyright and DMCA policies, including how to report infringement and file counter-notifications."
         url="/copyright"
       />

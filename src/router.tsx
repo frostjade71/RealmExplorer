@@ -6,6 +6,7 @@ import { AdminLayout } from './components/AdminLayout'
 import { AuthCallbackPage } from './pages/AuthCallbackPage'
 
 import { Layout } from './components/Layout'
+import { landingPages } from './lib/landingPages'
 
 // Pages
 import {
@@ -66,6 +67,10 @@ export const router = createBrowserRouter([
         path: '/servers',
         element: <ServersPage />,
       },
+      ...landingPages.map(page => ({
+        path: `/${page.slug}`,
+        element: <ServersPage landing={page} />,
+      })),
       {
         path: '/projects',
         element: <ProjectsPage />,

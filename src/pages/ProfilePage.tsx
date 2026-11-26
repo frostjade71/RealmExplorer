@@ -265,7 +265,7 @@ export function ProfilePage() {
   if (profileLoading) {
     return (
       <>
-        <MetaTags title="Loading Profile..." />
+        <MetaTags title="Loading Profile..." noindex />
         <AnimatedPage className="min-h-[70vh] flex items-center justify-center">
           <LoadingSpinner />
         </AnimatedPage>
@@ -276,7 +276,7 @@ export function ProfilePage() {
   if (profileError || !profile) {
     return (
       <>
-        <MetaTags title="Explorer Not Found" />
+        <MetaTags title="Explorer Not Found" noindex />
         <AnimatedPage className="min-h-[70vh] flex flex-col items-center justify-center p-4">
           <FramerIn className="text-center space-y-4 flex flex-col items-center">
             <img src={errorImage} alt="Not Found" className="w-24 h-24 md:w-32 md:h-32 object-contain mb-2" />

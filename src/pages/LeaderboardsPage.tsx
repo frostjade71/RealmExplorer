@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Star, ThumbsUp, Medal } from 'lucide-react'
 import { useServers } from '../hooks/queries'
 import { AnimatedPage } from '../components/AnimatedPage'
+import { MetaTags } from '../components/MetaTags'
 import { FramerIn } from '../components/FramerIn'
 import { Link } from 'react-router-dom'
 
@@ -60,6 +61,11 @@ export function LeaderboardsPage() {
 
   return (
     <AnimatedPage>
+      <MetaTags
+        title="Top Minecraft Realms & Servers Leaderboards"
+        description="See the most voted and best rated Minecraft Bedrock realms and servers on Realm Explorer, updated as the community votes."
+        url="/leaderboards"
+      />
       {/* Hero Section */}
       <header className="relative pt-32 pb-16 px-8 overflow-hidden min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         <motion.video 

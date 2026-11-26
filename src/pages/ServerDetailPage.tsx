@@ -37,6 +37,7 @@ const goldIngot = '/upgrades/9515-mc-gold-ingot.png'
 const goldenBg = '/upgrades/golden-bg.webp'
 
 import { MetaTags } from '../components/MetaTags'
+import { listingTitle, plainText } from '../lib/seo'
 
 export function ServerDetailPage() {
   const isMobile = useIsMobile()
@@ -313,8 +314,8 @@ export function ServerDetailPage() {
   const isOwner = user?.id && server?.owner_id && user.id === server.owner_id
   const hasAccess = !server || isApproved || isOwner || isAdmin || isModerator
 
-  const metaDescription = server?.description 
-    ? server.description.substring(0, 160).replace(/[#*`]/g, '') + '...' 
+  const metaDescription = server?.description
+    ? plainText(server.description, 160)
     : server ? `Join ${server.name} on Realm Explorer. Explore ${server.category} Minecraft servers and realms.` : "View server details on Realm Explorer.";
 
   if (server && !hasAccess && !loading) {
@@ -346,12 +347,13 @@ export function ServerDetailPage() {
 
   return (
     <>
-    <MetaTags 
-      title={server?.name}
+    <MetaTags
+      title={server ? listingTitle(server.name, server.type) : undefined}
       description={metaDescription}
       image={server?.banner_url || server?.icon_url || undefined}
       url={`/server/${server?.slug || slug || ''}`}
       type="website"
+      noindex={!loading && !server}
     />
 
     <TopLoadingBar isVisible={toggleSaveMutation.isPending || isSavingLocal} colorClass="via-[#4EC44E]" />

@@ -1,5 +1,5 @@
-import { useSearchParams } from 'react-router-dom'
-import { useServers } from '../hooks/queries'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useServers, useServerPlatforms } from '../hooks/queries'
 import { useEffect, useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import type { Server, ServerCategory, ServerType } from '../types'
@@ -22,6 +22,7 @@ import errorImage from '../assets/error/teto-but-re.webp'
 
 
 import { MetaTags } from '../components/MetaTags'
+import { filterLanding, landingPages, type LandingPage } from '../lib/landingPages'
 
 const categories: { id: ServerCategory; label: string; icon: any }[] = [
   { id: 'smp', label: 'SMP', icon: Pickaxe },
@@ -41,12 +42,13 @@ const SERVER_TYPES = [
   { id: 'server' as const, label: 'Servers', icon: <img src={serverGif} alt="" width={16} height={16} className="w-3.5 h-3.5 md:w-4 md:h-4 object-contain rounded-sm z-10" /> }
 ]
 
-export function DirectoryPage() {
+export function DirectoryPage({ landing }: { landing?: LandingPage }) {
   const isMobile = useIsMobile()
+  const navigate = useNavigate()
   const { shuffleCooldown, startShuffleCooldown } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
-  const activeType = searchParams.get('type') as ServerType | null
-  const activeCategory = searchParams.get('category') as ServerCategory | null
+  const activeType = (searchParams.get('type') as ServerType | null) ?? landing?.type ?? null
+  const activeCategory = (searchParams.get('category') as ServerCategory | null) ?? landing?.category ?? null
   const initialSearch = searchParams.get('q') || ''
 
   // Fetch Sponsor Servers
@@ -120,13 +122,15 @@ export function DirectoryPage() {
     return () => clearTimeout(timer)
   }, [localSearch, initialSearch, searchParams, setSearchParams])
 
-  const { data: servers = [], isLoading: loading, isFetching } = useServers({
+  const { data: servers = [], isLoading: serversLoading, isFetching } = useServers({
     type: activeType || undefined,
     category: activeCategory,
     searchQuery: initialSearch,
     sortBy: searchParams.get('sort') === 'latest' ? 'latest' : 'votes', // Fetch by votes initially, but we will re-sort
     limit: 1000 // Fetch a large batch to shuffle correctly
   })
+  const { data: platforms, isLoading: platformsLoading } = useServerPlatforms(!!landing?.platform)
+  const loading = serversLoading || platformsLoading
 
   const isLatest = searchParams.get('sort') === 'latest'
 
@@ -134,6 +138,12 @@ export function DirectoryPage() {
     if (!servers.length) return []
     
     let filtered = servers;
+    if (landing?.platform && platforms) {
+      const ids = new Set(
+        platforms.filter(p => landing.platform === 'bedrock' ? p.has_bedrock : p.has_java).map(p => p.id)
+      )
+      filtered = filtered.filter(s => ids.has(s.id))
+    }
     if (isOnline && activeType === 'server') {
       filtered = filtered.filter(s => s.online_players !== undefined && s.online_players !== null && s.online_players !== -1);
     }
@@ -154,36 +164,36 @@ export function DirectoryPage() {
       })
       .sort((a, b) => b.score - a.score)
       .map(item => item.server)
-  }, [servers, shuffleSeed, isLatest, isOnline, activeType])
+  }, [servers, shuffleSeed, isLatest, isOnline, activeType, landing, platforms])
 
   const paginatedServers = useMemo(() => {
     return processedServers.slice(0, PAGE_SIZE * page)
   }, [processedServers, PAGE_SIZE, page])
 
-  const setType = (type: ServerType | null) => {
-    if (type) searchParams.set('type', type)
-    else searchParams.delete('type')
-    setSearchParams(searchParams)
+  const applyFilters = (type: ServerType | null, category: ServerCategory | null) => {
+    const params = new URLSearchParams(searchParams)
+    if (type) params.set('type', type)
+    else params.delete('type')
+    if (category) params.set('category', category)
+    else params.delete('category')
+
+    if (landing) navigate(`/servers?${params}`)
+    else setSearchParams(params)
   }
 
-  const setCategory = (cat: ServerCategory | null) => {
-    if (cat === activeCategory) {
-      searchParams.delete('category')
-    } else if (cat) {
-      searchParams.set('category', cat)
-    } else {
-      searchParams.delete('category')
-    }
-    setSearchParams(searchParams)
-  }
+  const setType = (type: ServerType | null) => applyFilters(type, activeCategory)
 
-  const pageTitle = activeCategory 
-    ? `Best ${activeCategory.toUpperCase()} ${activeType === 'realm' ? 'Realms' : 'Servers'}` 
-    : activeType === 'realm' 
-      ? 'Browse Minecraft Realms' 
-      : activeType === 'server' 
-        ? 'Browse Minecraft Servers' 
-        : 'Browse All Realms & Servers';
+  const setCategory = (cat: ServerCategory | null) => applyFilters(activeType, cat === activeCategory ? null : cat)
+
+  const canonicalLanding = landing ?? filterLanding(activeType, activeCategory)
+
+  const pageTitle = activeCategory
+    ? `Best ${activeCategory.toUpperCase()} ${activeType === 'realm' ? 'Realms' : 'Servers'}`
+    : activeType === 'realm'
+      ? 'Browse Minecraft Realms'
+      : activeType === 'server'
+        ? 'Browse Minecraft Servers'
+        : 'Browse All Minecraft Realms & Servers';
 
   const pageDescription = activeCategory 
     ? `Discover the top-rated ${activeCategory} Minecraft ${activeType || 'servers and realms'}. Vote for your favorites and join the community.` 
@@ -191,10 +201,10 @@ export function DirectoryPage() {
 
   return (
     <AnimatedPage>
-      <MetaTags 
-        title={pageTitle}
-        description={pageDescription}
-        url={`/servers${window.location.search}`}
+      <MetaTags
+        title={canonicalLanding?.title ?? pageTitle}
+        description={canonicalLanding?.description ?? pageDescription}
+        url={canonicalLanding ? `/${canonicalLanding.slug}` : '/servers'}
       />
       <header className="relative pt-32 pb-16 md:pb-20 px-8 overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}
@@ -219,10 +229,10 @@ export function DirectoryPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <h1 className="text-3xl md:text-5xl font-pixel text-white mb-4 md:mb-6 drop-shadow-2xl">
-              {activeType ? `${activeType.charAt(0).toUpperCase() + activeType.slice(1)} Explorer` : 'Realm Explorer'}
+              {landing ? landing.heading : activeType ? `${activeType.charAt(0).toUpperCase() + activeType.slice(1)} Explorer` : 'Realm Explorer'}
             </h1>
             <p className="text-white/80 font-headline text-sm md:text-lg max-w-2xl mx-auto mb-8 md:mb-10 drop-shadow-lg leading-relaxed px-4">
-              Discover the top-rated {activeType || 'realms and servers'} from our community.
+              {landing ? landing.intro : `Discover the top-rated ${activeType || 'realms and servers'} from our community.`}
             </p>
           </motion.div>
           
@@ -441,6 +451,35 @@ export function DirectoryPage() {
           </motion.button>
         </FramerIn>
       )}
+
+      {landing && (
+        <section className="mt-12 md:mt-16 max-w-3xl space-y-8">
+          {landing.sections.map(section => (
+            <div key={section.heading}>
+              <h2 className="text-base md:text-lg font-pixel text-white/90 tracking-wide mb-3">{section.heading}</h2>
+              <p className="text-zinc-400 font-headline text-sm md:text-base leading-relaxed">{section.text}</p>
+            </div>
+          ))}
+        </section>
+      )}
+
+      <nav aria-label="Browse by type" className="mt-12 md:mt-16">
+        <div className="flex items-center gap-3 mb-6">
+          <h2 className="text-base md:text-lg font-pixel text-white/90 tracking-wide">Browse</h2>
+          <div className="h-[1px] flex-grow bg-gradient-to-r from-white/20 to-transparent" />
+        </div>
+        <div className="flex flex-wrap gap-1.5 md:gap-2">
+          {landingPages.filter(page => page !== landing).map(page => (
+            <Link
+              key={page.slug}
+              to={`/${page.slug}`}
+              className="px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-headline font-bold transition-all border bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white"
+            >
+              {page.heading}
+            </Link>
+          ))}
+        </div>
+      </nav>
     </div>
 
       {!isLatest && createPortal(

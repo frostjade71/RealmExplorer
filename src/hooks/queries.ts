@@ -62,6 +62,19 @@ export function useServers(params?: {
   })
 }
 
+export function useServerPlatforms(enabled: boolean) {
+  return useQuery({
+    queryKey: ['serverPlatforms'],
+    enabled,
+    retry: false,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('public_server_platforms' as any)
+      if (error) throw error
+      return data as { id: string; has_java: boolean; has_bedrock: boolean }[]
+    }
+  })
+}
+
 export function useServersByIds(ids: string[] | undefined) {
   return useQuery({
     queryKey: ['serversByIds', ids],
