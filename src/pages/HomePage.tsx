@@ -536,7 +536,7 @@ export function HomePage() {
             <h2 className="font-pixel text-white text-xl md:text-2xl mb-2">Our Partners</h2>
             <div className="h-1 w-12 md:w-16 bg-primary-container mx-auto"></div>
           </FramerIn>
-          <FramerIn delay={0.2} className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
+          <FramerIn delay={0.2} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto w-full">
             <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full flex justify-center">
               <DiscordInviteCard 
                 inviteCode="nVqt3z78Mw"
@@ -551,6 +551,14 @@ export function HomePage() {
                 title="Realm Bot"
                 websiteUrl="https://realmbot.dev/"
                 className="w-full max-w-[350px] h-full justify-start hover:border-realm-green/50 transition-colors duration-300"
+              />
+            </div>
+            <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full flex justify-center -mt-8 md:mt-0">
+              <DiscordInviteCard 
+                inviteCode="es6snXqXW5"
+                title="CrabSMP"
+                websiteUrl="https://crabsmp.net/"
+                className="w-full max-w-[350px] h-full justify-start hover:border-orange-500/50 transition-colors duration-300"
               />
             </div>
           </FramerIn>
