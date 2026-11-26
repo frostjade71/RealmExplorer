@@ -246,6 +246,7 @@
     { "source": "/docs", "destination": "/api/og?type=docs" },
     { "source": "/api-docs", "destination": "/api/og?type=api-docs" },
     { "source": "/api/servers", "destination": "/api/servers" },
+    { "source": "/api/votifier", "destination": "/api/votifier" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

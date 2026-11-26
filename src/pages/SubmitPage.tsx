@@ -56,6 +56,7 @@ import { ImageUpload } from "../components/ImageUpload";
 import { slugify } from "../lib/urlUtils";
 import { toast } from "sonner";
 import { CustomSelect } from "../components/CustomSelect";
+import { generateBedrockVotifierKey, hashBedrockVotifierKey } from "../lib/bedrockVotifier";
 import { RichText } from "../components/RichText";
 
 // Category Icons
@@ -74,6 +75,7 @@ export function SubmitPage() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [showNuvotifierInfo, setShowNuvotifierInfo] = useState(false);
+  const [bedrockVotifier, setBedrockVotifier] = useState({ enabled: false, key: "", saved: false });
 
   const limits = {
     gallery: hasPremiumPerks ? 5 : 1,
@@ -227,11 +229,38 @@ export function SubmitPage() {
             }));
           }
         });
+        supabase.from('server_bedrock_votifier' as any).select('server_id').eq('server_id', id).maybeSingle().then(({data}) => {
+          if (data) setBedrockVotifier({ enabled: true, key: "", saved: true });
+        });
       }
     }
   }, [serverData, id]);
 
   const { data: userServers = [] } = useUserServers(user?.id);
+
+  const toggleBedrockVotifier = () => {
+    setBedrockVotifier(prev => ({
+      ...prev,
+      enabled: !prev.enabled,
+      key: !prev.enabled && !prev.saved && !prev.key ? generateBedrockVotifierKey() : prev.key,
+    }));
+  };
+
+  const syncBedrockVotifier = async (serverId: string) => {
+    const table = supabase.from('server_bedrock_votifier' as any);
+    if (!bedrockVotifier.enabled || formData.type !== "server") {
+      await table.delete().eq('server_id', serverId);
+      return;
+    }
+    if (!bedrockVotifier.key) return;
+    const { error } = await table.upsert({
+      server_id: serverId,
+      secret_hash: await hashBedrockVotifierKey(bedrockVotifier.key),
+    });
+    if (error) {
+      toast.error("Bedrock Votifier key was not saved", { description: error.message });
+    }
+  };
 
   useEffect(() => {
     if (!isEditing && userServers.length >= limits.listings) {
@@ -476,6 +505,7 @@ export function SubmitPage() {
                 } else if (!formData.enable_votifier) {
                   await supabase.from('server_votifier').delete().eq('server_id', id);
                 }
+                await syncBedrockVotifier(id);
               } catch (err) {
                 console.error("Failed to sync relations:", err);
               }
@@ -565,6 +595,9 @@ export function SubmitPage() {
                     token: formData.votifier_token,
                     public_key: formData.votifier_public_key || null
                   });
+                }
+                if (bedrockVotifier.enabled) {
+                  await syncBedrockVotifier(data.id);
                 }
               }
             } catch (err) {
@@ -1384,6 +1417,94 @@ export function SubmitPage() {
                         Only use this if your server uses an old V1 Votifier plugin. Leave blank if you are using a Token.
                       </p>
                     </div>
+                  </motion.div>
+                )}
+              </div>
+            )}
+
+            {formData.type === "server" && (
+              <div className="space-y-4 col-span-2 pt-6 border-t border-zinc-800">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-white uppercase tracking-widest font-headline flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[14px]">hub</span> Bedrock Votifier
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-headline">Enable Bedrock Votifier</span>
+                    <button
+                      type="button"
+                      onClick={toggleBedrockVotifier}
+                      className={`w-8 h-4 rounded-full transition-colors relative ${bedrockVotifier.enabled ? 'bg-realm-green' : 'bg-zinc-800'}`}
+                    >
+                      <motion.div
+                        animate={{ x: bedrockVotifier.enabled ? 16 : 2 }}
+                        className="w-3 h-3 bg-white rounded-full absolute top-0.5"
+                      />
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[10px] text-zinc-500 font-headline">
+                  For Bedrock Dedicated Servers, including NetherNet. Your server asks Realm Explorer for new votes, so no open port is needed.{" "}
+                  <a
+                    href="/docs?tab=bedrock-votifier"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-realm-green font-bold underline hover:text-realm-green/80 transition-colors"
+                  >
+                    Setup Guide
+                  </a>
+                </p>
+
+                {bedrockVotifier.enabled && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="space-y-3 bg-zinc-950 border border-zinc-800 p-5 rounded-lg"
+                  >
+                    {bedrockVotifier.key ? (
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-headline flex items-center gap-2">
+                          Secret Key
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            readOnly
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-realm-green transition-all text-sm font-mono"
+                            value={bedrockVotifier.key}
+                            onFocus={(e) => e.target.select()}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(bedrockVotifier.key);
+                              toast.success("Secret key copied");
+                            }}
+                            className="px-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-xs font-bold font-headline uppercase tracking-widest transition-colors"
+                          >
+                            Copy
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 font-headline mt-1">
+                          Copy this key now. It is only shown once, and it starts working after you submit this form.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-zinc-400 font-headline">
+                        A secret key is already saved for this server. Keys are only shown once, so generate a new one if you have lost it.
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setBedrockVotifier(prev => ({ ...prev, key: generateBedrockVotifierKey() }))}
+                      className="text-[10px] font-bold text-realm-green uppercase tracking-widest font-headline hover:underline"
+                    >
+                      Generate New Key
+                    </button>
+                    {bedrockVotifier.saved && bedrockVotifier.key && (
+                      <p className="text-[10px] text-zinc-500 font-headline">
+                        Your old key stops working when you submit this form.
+                      </p>
+                    )}
                   </motion.div>
                 )}
               </div>

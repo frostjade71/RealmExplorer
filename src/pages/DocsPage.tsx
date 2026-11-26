@@ -5,7 +5,54 @@ import { SiDiscord } from 'react-icons/si'
 import { AnimatedPage } from '../components/AnimatedPage'
 import { FramerIn } from '../components/FramerIn'
 import { MetaTags } from '../components/MetaTags'
+import { CodeBlock } from '../components/CodeBlock'
 import rerealmLogo from '../assets/rerealm.webp'
+
+const VOTIFIER_API = 'https://www.realmexplorer.xyz/api/votifier'
+
+const bedrockVotifierScript = `import { world, system } from "@minecraft/server";
+import { http, HttpRequest, HttpRequestMethod, HttpHeader } from "@minecraft/server-net";
+
+const API = "${VOTIFIER_API}";
+const KEY = "re_your_secret_key";
+
+function send(method, body) {
+  const request = new HttpRequest(API);
+  request.method = method;
+  request.headers = [
+    new HttpHeader("Authorization", "Bearer " + KEY),
+    new HttpHeader("Content-Type", "application/json"),
+  ];
+  if (body) request.body = JSON.stringify(body);
+  return http.request(request);
+}
+
+async function checkVotes() {
+  const response = await send(HttpRequestMethod.Get);
+  if (response.status !== 200) return;
+
+  const { votes } = JSON.parse(response.body);
+  const rewarded = [];
+
+  for (const vote of votes) {
+    const player = world.getAllPlayers().find(
+      (p) => p.name.toLowerCase() === vote.username.toLowerCase()
+    );
+    if (!player) continue;
+
+    player.runCommand("give @s diamond 3");
+    player.sendMessage("Thanks for voting on Realm Explorer!");
+    rewarded.push(vote.id);
+  }
+
+  if (rewarded.length > 0) {
+    await send(HttpRequestMethod.Post, { ids: rewarded });
+  }
+}
+
+system.runInterval(() => {
+  checkVotes().catch((error) => console.warn("Vote check failed: " + error));
+}, 20 * 60);`
 
 type DocSection = {
   id: string
@@ -173,6 +220,21 @@ const docsSections: DocSection[] = [
                     >
                       <Link2 size={16} className="text-realm-green" />
                       Read NuVotifier Setup Guide
+                    </button>
+                  </div>
+                </div>
+              </li>
+              <li id="bedrock-votifier-integration" className="flex items-start gap-3 scroll-mt-32">
+                <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">12</span>
+                <div>
+                  <strong className="text-zinc-200">Bedrock Votifier:</strong> For Bedrock Dedicated Servers, including NetherNet. Turn it on to get a secret key, then let your server collect new votes from Realm Explorer and reward players in-game. No open port is needed.
+                  <div className="mt-3">
+                    <button
+                      onClick={() => window.dispatchEvent(new CustomEvent('switch-doc-tab', { detail: 'bedrock-votifier' }))}
+                      className="group flex items-center gap-2 bg-zinc-800/50 hover:bg-realm-green/20 text-realm-green px-3 py-2 rounded-lg text-sm font-body font-bold transition-all border border-transparent hover:border-realm-green/30"
+                    >
+                      <Link2 size={16} className="text-realm-green" />
+                      Read Bedrock Votifier Setup Guide
                     </button>
                   </div>
                 </div>
@@ -420,7 +482,7 @@ const docsSections: DocSection[] = [
               <strong className="text-zinc-200">Install the Plugin:</strong> Install the NuVotifier plugin on your Minecraft server and configure its internal settings. Ensure the Votifier port is open and accessible from the outside.{' '}
               <a href="https://www.spigotmc.org/resources/nuvotifier.13449/" target="_blank" rel="noopener noreferrer" className="text-realm-green hover:underline">Download official NuVotifier here.</a>
               <div className="mt-2 text-sm text-zinc-500 italic">
-                Note: NuVotifier is a plugin built for Java servers and only works for Java Edition setups.
+                Note: NuVotifier is a plugin built for Java servers and only works for Java Edition setups. Bedrock servers use Bedrock Votifier instead.
               </div>
             </div>
           </li>
@@ -451,8 +513,16 @@ const docsSections: DocSection[] = [
         <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-5 mt-8 flex gap-4">
           <Sparkles className="text-white flex-shrink-0 mt-1" size={20} />
           <div>
-            <h4 className="text-white font-body font-bold tracking-tight mb-1 text-sm">Bedrock & Realms Support Coming Soon!</h4>
-            <p className="text-zinc-400 text-xs md:text-sm">Native Votifier integration for Bedrock and Realms is currently in development! You'll soon be able to seamlessly reward players on any platform.</p>
+            <h4 className="text-white font-body font-bold tracking-tight mb-1 text-sm">Running a Bedrock Server?</h4>
+            <p className="text-zinc-400 text-xs md:text-sm">
+              Bedrock Dedicated Servers, including NetherNet, are supported through Bedrock Votifier.{' '}
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('switch-doc-tab', { detail: 'bedrock-votifier' }))}
+                className="text-realm-green hover:underline font-bold"
+              >
+                Read the Bedrock Votifier Setup Guide
+              </button>
+            </p>
           </div>
         </div>
 
@@ -461,6 +531,94 @@ const docsSections: DocSection[] = [
           <div>
             <h4 className="text-white font-body font-bold tracking-tight mb-1 text-sm">Security</h4>
             <p className="text-zinc-400 text-xs md:text-sm">Your Votifier credentials (especially your token and public key) are securely encrypted and safely stored in our database. They are never exposed publicly.</p>
+          </div>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'bedrock-votifier',
+    title: 'Bedrock Votifier Setup',
+    icon: Link2,
+    isHidden: true,
+    content: (
+      <div className="space-y-6">
+        <div className="mb-6">
+          <h2 className="text-2xl md:text-3xl font-body font-bold text-white tracking-tight">Bedrock Votifier Setup Guide</h2>
+        </div>
+        <p className="text-zinc-400 text-sm md:text-base leading-relaxed">
+          Bedrock Votifier lets a Bedrock Dedicated Server reward players who vote on Realm Explorer. A script on a Bedrock server cannot accept incoming connections, on RakNet or on NetherNet, so the classic Votifier cannot reach it. Bedrock Votifier works the other way round: your server asks Realm Explorer for new votes, so there is no port to open.
+        </p>
+
+        <h3 className="text-xl font-body font-bold text-white mt-10 mb-5 tracking-tight">How to Set It Up</h3>
+        <ul className="space-y-5 text-zinc-400 text-base list-none ml-2">
+          <li className="flex items-start gap-3">
+            <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">1</span>
+            <div>
+              <strong className="text-zinc-200">Get Your Secret Key:</strong> Edit your server on Realm Explorer, turn on <strong>Enable Bedrock Votifier</strong>, copy the secret key and submit the form. The key is only shown once. If you lose it, generate a new one.
+            </div>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">2</span>
+            <div>
+              <strong className="text-zinc-200">Allow Web Requests:</strong> Add <code className="text-zinc-300 text-xs font-mono">"@minecraft/server-net"</code> to <code className="text-zinc-300 text-xs font-mono">allowed_modules</code> in your server's <code className="text-zinc-300 text-xs font-mono">config/default/permissions.json</code>, and add the module as a dependency in your behavior pack's <code className="text-zinc-300 text-xs font-mono">manifest.json</code>.
+            </div>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-realm-green/20 text-realm-green text-xs font-bold mt-0.5">3</span>
+            <div>
+              <strong className="text-zinc-200">Add the Script:</strong> Use the example below in your behavior pack. It checks for votes once a minute, rewards voters who are online, and tells Realm Explorer which votes were rewarded.
+            </div>
+          </li>
+        </ul>
+
+        <h3 className="text-xl font-body font-bold text-white mt-10 mb-4 tracking-tight">Example Script</h3>
+        <CodeBlock code={bedrockVotifierScript} language="javascript" />
+
+        <h3 className="text-xl font-body font-bold text-white mt-10 mb-4 tracking-tight">API Reference</h3>
+        <p className="text-zinc-400 text-sm md:text-base leading-relaxed">
+          Both requests need the header <code className="text-zinc-300 text-xs font-mono">Authorization: Bearer YOUR_SECRET_KEY</code>. Any server software that can make web requests can use this API.
+        </p>
+
+        <div className="space-y-3">
+          <div className="bg-zinc-950 border border-white/5 rounded-xl p-4 flex items-center gap-3 flex-wrap">
+            <span className="px-2.5 py-1 rounded-md bg-realm-green/20 text-realm-green text-xs font-bold font-mono">GET</span>
+            <code className="text-zinc-300 text-sm font-mono break-all">{VOTIFIER_API}</code>
+          </div>
+          <p className="text-zinc-400 text-sm leading-relaxed">Returns up to 100 votes that have not been claimed yet, oldest first.</p>
+          <CodeBlock code={`{
+  "success": true,
+  "votes": [
+    { "id": 1042, "username": "Steve", "voted_at": "2026-11-26T13:20:11.482+00:00" }
+  ]
+}`} />
+        </div>
+
+        <div className="space-y-3">
+          <div className="bg-zinc-950 border border-white/5 rounded-xl p-4 flex items-center gap-3 flex-wrap">
+            <span className="px-2.5 py-1 rounded-md bg-realm-green/20 text-realm-green text-xs font-bold font-mono">POST</span>
+            <code className="text-zinc-300 text-sm font-mono break-all">{VOTIFIER_API}</code>
+          </div>
+          <p className="text-zinc-400 text-sm leading-relaxed">Claims votes you have rewarded so they are not returned again. Send the vote ids as JSON.</p>
+          <CodeBlock code={`{ "ids": [1042] }`} />
+          <CodeBlock code={`{
+  "success": true,
+  "claimed": 1
+}`} />
+        </div>
+
+        <ul className="list-disc list-inside text-zinc-400 text-sm md:text-base space-y-2 mt-4 ml-2">
+          <li>A vote stays available for 7 days, so a player who votes while offline is rewarded the next time they join.</li>
+          <li>The username is the name the voter typed on the vote page. Ask your players to enter their exact gamertag.</li>
+          <li>Check for votes no more than once every 30 seconds.</li>
+          <li>Realms cannot make web requests, so Bedrock Votifier only works on Bedrock Dedicated Servers.</li>
+        </ul>
+
+        <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-5 mt-8 flex gap-4">
+          <ShieldAlert className="text-white flex-shrink-0 mt-1" size={20} />
+          <div>
+            <h4 className="text-white font-body font-bold tracking-tight mb-1 text-sm">Security</h4>
+            <p className="text-zinc-400 text-xs md:text-sm">Treat your secret key like a password. Anyone who has it can claim your server's votes. Realm Explorer only stores a fingerprint of the key, which is why it cannot be shown again.</p>
           </div>
         </div>
       </div>
@@ -590,7 +748,7 @@ export function DocsPage() {
             {activeSection.content}
           </div>
 
-          {activeSectionId === 'nuvotifier' ? (
+          {activeSection.isHidden ? (
             <div className="mt-12 pt-8 border-t border-white/10 flex items-center justify-end">
               <button
                 onClick={() => {
