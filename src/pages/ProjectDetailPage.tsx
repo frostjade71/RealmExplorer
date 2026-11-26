@@ -13,6 +13,8 @@ import { Download, Heart, Clock, Calendar, CheckCircle, XCircle, Share2, Edit3, 
 import { SiDiscord, SiInstagram, SiYoutube, SiTiktok, SiFacebook, SiTwitch, SiGithub, SiX, SiPatreon, SiKofi } from 'react-icons/si'
 
 import { AnimatedPage } from '../components/AnimatedPage'
+import { MetaTags } from '../components/MetaTags'
+import { plainText } from '../lib/seo'
 import { FramerIn } from '../components/FramerIn'
 import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion'
 import { useIsMobile } from '../hooks/useMediaQuery'
@@ -345,6 +347,12 @@ export function ProjectDetailPage() {
 
   return (
     <AnimatedPage className="min-h-screen pb-20">
+      <MetaTags
+        title={`${project.name} | Minecraft Project`}
+        description={plainText(project.short_description || project.description, 160) || undefined}
+        image={project.icon_url || undefined}
+        url={`/projects/${project.slug}`}
+      />
       {/* Top Loading Bars for Like/Save Mutations */}
       <TopLoadingBar isVisible={toggleLikeMutation.isPending || isLikingLocal} colorClass="via-red-500" />
       <TopLoadingBar isVisible={toggleSaveMutation.isPending || isSavingLocal} colorClass="via-blue-500" />

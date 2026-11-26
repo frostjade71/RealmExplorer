@@ -1,4 +1,5 @@
 import { AnimatedPage } from '../components/AnimatedPage'
+import { MetaTags } from '../components/MetaTags'
 import { FramerIn } from '../components/FramerIn'
 import { motion } from 'framer-motion'
 import { useTeamMembers, useUserProfile, useAdminUsers } from '../hooks/queries'
@@ -26,6 +27,11 @@ export function TeamPage() {
 
   return (
     <AnimatedPage>
+      <MetaTags
+        title="Meet the Team"
+        description="Meet the people who build and moderate Realm Explorer, the directory for Minecraft Bedrock realms and servers."
+        url="/team"
+      />
       {/* Hero Section */}
       <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         <motion.img 

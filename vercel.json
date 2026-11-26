@@ -63,22 +63,7 @@
   ],
   "redirects": [
     {
-      "source": "/minecraft-bedrock-servers",
-      "destination": "/servers",
-      "permanent": true
-    },
-    {
-      "source": "/minecraft-java-servers",
-      "destination": "/servers",
-      "permanent": true
-    },
-    {
       "source": "/minecraft-java-bedrock-servers",
-      "destination": "/servers",
-      "permanent": true
-    },
-    {
-      "source": "/minecraft-bedrock-realms",
       "destination": "/servers",
       "permanent": true
     },
@@ -89,7 +74,7 @@
     },
     {
       "source": "/minecraft-realms",
-      "destination": "/servers",
+      "destination": "/minecraft-bedrock-realms",
       "permanent": true
     },
     {
@@ -98,27 +83,7 @@
       "permanent": true
     },
     {
-      "source": "/minecraft-smp-servers",
-      "destination": "/servers",
-      "permanent": true
-    },
-    {
       "source": "/minecraft-lifesteal-servers",
-      "destination": "/servers",
-      "permanent": true
-    },
-    {
-      "source": "/minecraft-skyblock-servers",
-      "destination": "/servers",
-      "permanent": true
-    },
-    {
-      "source": "/minecraft-factions-servers",
-      "destination": "/servers",
-      "permanent": true
-    },
-    {
-      "source": "/minecraft-prison-servers",
       "destination": "/servers",
       "permanent": true
     },
@@ -134,16 +99,6 @@
     },
     {
       "source": "/minecraft-anarchy-servers",
-      "destination": "/servers",
-      "permanent": true
-    },
-    {
-      "source": "/minecraft-pvp-servers",
-      "destination": "/servers",
-      "permanent": true
-    },
-    {
-      "source": "/minecraft-minigame-servers",
       "destination": "/servers",
       "permanent": true
     },
@@ -204,12 +159,7 @@
     },
     {
       "source": "/minecraft-realm-list",
-      "destination": "/servers",
-      "permanent": true
-    },
-    {
-      "source": "/minecraft-server-list",
-      "destination": "/servers",
+      "destination": "/minecraft-bedrock-realms",
       "permanent": true
     },
     {
@@ -232,20 +182,24 @@
   "rewrites": [
     {
       "source": "/server/:slug",
-      "destination": "/api/og?type=server&slug=:slug"
+      "destination": "/api/og?route=server&slug=:slug"
     },
     {
       "source": "/projects/:slug",
-      "destination": "/api/og?type=projects&slug=:slug"
+      "destination": "/api/og?route=projects&slug=:slug"
     },
     {
       "source": "/blog/:slug",
-      "destination": "/api/og?type=blog&slug=:slug"
+      "destination": "/api/og?route=blog&slug=:slug"
     },
     { "source": "/appeal", "destination": "/appeal.html" },
-    { "source": "/docs", "destination": "/api/og?type=docs" },
-    { "source": "/api-docs", "destination": "/api/og?type=api-docs" },
+    { "source": "/servers", "destination": "/api/og?route=servers" },
+    { "source": "/docs", "destination": "/api/og?route=static&slug=docs" },
+    { "source": "/api-docs", "destination": "/api/og?route=static&slug=api-docs" },
+    { "source": "/:slug(minecraft-[a-z-]+)", "destination": "/api/og?route=landing&slug=:slug" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/api/servers", "destination": "/api/servers" },
+    { "source": "/api/votifier", "destination": "/api/votifier" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

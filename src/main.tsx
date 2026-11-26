@@ -21,6 +21,8 @@ if ('scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual'
 }
 
+document.head.querySelectorAll('[data-static-seo]').forEach(tag => tag.remove())
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

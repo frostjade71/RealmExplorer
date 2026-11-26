@@ -1,6 +1,7 @@
 import { BookOpen, ArrowRight, Rss } from 'lucide-react'
 import { Link, useSearchParams, useLocation } from 'react-router-dom'
 import { AnimatedPage } from '../components/AnimatedPage'
+import { MetaTags } from '../components/MetaTags'
 import { FramerIn } from '../components/FramerIn'
 import { useBlogPosts } from '../hooks/queries'
 import { format } from 'date-fns'
@@ -68,6 +69,11 @@ export function BlogPage() {
 
   return (
     <AnimatedPage>
+      <MetaTags
+        title="Blog and Changelog"
+        description="News, guides and changelogs from Realm Explorer, the directory for Minecraft Bedrock realms and servers."
+        url="/blog"
+      />
       {/* Hero Section */}
       <header className="pt-32 pb-20 px-8 relative overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Cinematic Background */}

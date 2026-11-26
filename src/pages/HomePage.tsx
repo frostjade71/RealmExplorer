@@ -9,8 +9,9 @@ import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motio
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react'
 import { useIsMobile } from '../hooks/useMediaQuery'
 import { ArcFlowCarousel, fallbackServers } from '../components/ArcFlowCarousel'
-import type { Server } from '../types'
+import type { Server, ServerCategory } from '../types'
 import { slugify } from '../lib/urlUtils'
+import { categoryPath } from '../lib/landingPages'
 
 const CategoryRequestModal = lazy(() => import('../components/CategoryRequestModal').then(m => ({ default: m.CategoryRequestModal })))
 const AffiliateModal = lazy(() => import('../components/AffiliateModal').then(m => ({ default: m.AffiliateModal })))
@@ -69,7 +70,7 @@ function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toSt
 
 import { MetaTags } from '../components/MetaTags'
 
-const categories = [
+const categories: { id: ServerCategory; name: string; icon: string; bg: string; desc: string }[] = [
   { id: 'smp', name: 'SMP', icon: smpIcon, bg: smpBg, desc: 'Survival Multiplayer experiences focused on community.' },
   { id: 'factions', name: 'Factions', icon: factionsIcon, bg: factionsBg, desc: 'Build empires, forge alliances, and dominate the server.' },
   { id: 'kitpvp', name: 'KitPvP', icon: kitpvpIcon, bg: kitpvpBg, desc: 'Fast-paced combat with specialized loadouts.' },
@@ -309,10 +310,7 @@ export function HomePage() {
 
   return (
     <AnimatedPage>
-      <MetaTags 
-        title="Find & Promote Minecraft Servers"
-        description="Discover the best Minecraft Servers and Realms. Vote for your favorites, list your community, and find your next adventure on the most modern discovery platform."
-      />
+      <MetaTags />
       <header 
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
@@ -496,7 +494,7 @@ export function HomePage() {
             {categories.map(c => (
               <Link 
                 key={c.id} 
-                to={`/servers?category=${c.id}`}
+                to={categoryPath(c.id)}
                 className="relative bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden hover:shadow-2xl transition-all group min-h-[180px] md:min-h-[220px] flex flex-col justify-end p-5 md:p-6"
               >
                 {/* Background Image with Overlay */}
@@ -536,7 +534,7 @@ export function HomePage() {
             <h2 className="font-pixel text-white text-xl md:text-2xl mb-2">Our Partners</h2>
             <div className="h-1 w-12 md:w-16 bg-primary-container mx-auto"></div>
           </FramerIn>
-          <FramerIn delay={0.2} className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
+          <FramerIn delay={0.2} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto w-full">
             <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full flex justify-center">
               <DiscordInviteCard 
                 inviteCode="nVqt3z78Mw"
@@ -551,6 +549,14 @@ export function HomePage() {
                 title="Realm Bot"
                 websiteUrl="https://realmbot.dev/"
                 className="w-full max-w-[350px] h-full justify-start hover:border-realm-green/50 transition-colors duration-300"
+              />
+            </div>
+            <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full flex justify-center -mt-8 md:mt-0">
+              <DiscordInviteCard 
+                inviteCode="es6snXqXW5"
+                title="CrabSMP"
+                websiteUrl="https://crabsmp.net/"
+                className="w-full max-w-[350px] h-full justify-start hover:border-orange-500/50 transition-colors duration-300"
               />
             </div>
           </FramerIn>

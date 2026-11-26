@@ -50,7 +50,7 @@ export function TermsPage() {
   return (
     <AnimatedPage>
       <MetaTags 
-        title="Terms of Service - Realm Explorer"
+        title="Terms of Service"
         description="Read the terms of service for using Realm Explorer, the ultimate hub for Minecraft Server and Realm discovery."
         url="/terms"
       />

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import errorImage from '../assets/error/teto-but-re.webp'
 import { HomePage } from './HomePage'
 import { OTMClosedModal } from '../components/OTMClosedModal'
+import { MetaTags } from '../components/MetaTags'
 
 export { HomePage }
 
@@ -58,6 +59,7 @@ export { AuthCallbackPage } from './AuthCallbackPage'
 export function NotFoundPage() { 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
+      <MetaTags title="Page Not Found" noindex />
       <div className="text-center space-y-4 animate-in fade-in zoom-in duration-500 flex flex-col items-center">
         <img src={errorImage} alt="Not Found" className="w-24 h-24 md:w-32 md:h-32 object-contain mb-2" />
         <div className="space-y-2 px-4">

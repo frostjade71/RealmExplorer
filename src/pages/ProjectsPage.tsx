@@ -138,7 +138,7 @@ export function ProjectsPage() {
       <MetaTags 
         title={pageTitle}
         description={pageDescription}
-        url={`/projects${window.location.search}`}
+        url="/projects"
       />
       <header className="relative pt-32 pb-16 md:pb-20 px-8 overflow-hidden min-h-[40vh] md:min-h-[50vh] flex flex-col items-center justify-center bg-zinc-950">
         {/* Hero Background — static img with CSS fade for fast LCP */}

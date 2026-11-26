@@ -52,7 +52,7 @@ export function PrivacyPage() {
   return (
     <AnimatedPage>
       <MetaTags 
-        title="Privacy Policy - Realm Explorer"
+        title="Privacy Policy"
         description="Learn how Realm Explorer handles your data and protects your privacy."
         url="/privacy"
       />
