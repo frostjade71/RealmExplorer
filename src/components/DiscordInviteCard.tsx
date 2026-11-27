@@ -91,16 +91,16 @@ export function DiscordInviteCard({
 
   return (
     <div className={`group bg-zinc-900 rounded-xl overflow-hidden shadow-2xl border border-zinc-800/50 flex flex-col text-left z-20 ${className || 'w-[350px] max-w-full'}`}>
-      <div className="h-[120px] w-full relative bg-zinc-800">
+      <div className="h-[120px] w-full relative bg-zinc-800 shrink-0">
         <img src={displayData.bannerUrl || bannerImg} alt="Banner" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
       </div>
-      <div className="px-4 pb-4 relative">
+      <div className="px-4 pb-4 relative flex-1 flex flex-col">
         <div className="absolute -top-10 left-4 p-1.5 bg-zinc-900 rounded-2xl">
           <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-950 flex items-center justify-center">
             <img src={displayData.iconUrl || logoImg} alt="Logo" className="w-full h-full object-cover" />
           </div>
         </div>
-        <div className="mt-10">
+        <div className="mt-10 flex-1 flex flex-col">
           <h3 className="text-white font-bold text-lg mb-1 font-sans">{title || displayData.title}</h3>
           <div className="flex items-center gap-3 text-[#b5bac1] text-sm font-sans mb-4">
             <div className="flex items-center gap-1.5">
@@ -127,7 +127,7 @@ export function DiscordInviteCard({
               </span>
             ))}
           </div>
-          <div className="flex gap-2 w-full">
+          <div className="flex gap-2 w-full mt-auto">
             {websiteUrl && (
               <a 
                 href={websiteUrl} 
