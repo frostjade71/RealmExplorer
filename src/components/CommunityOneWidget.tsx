@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { landingPages } from '../lib/landingPages'
 
 export function CommunityOneWidget() {
   const location = useLocation()
@@ -302,7 +303,8 @@ export function CommunityOneWidget() {
     '/server/',
     '/admin',
     '/profile',
-    '/submit'
+    '/submit',
+    ...landingPages.map((page) => `/${page.slug}`),
   ]
   const shouldHideWidget = hiddenPaths.some(path => location.pathname.startsWith(path))
 
