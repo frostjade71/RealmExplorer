@@ -1367,7 +1367,7 @@ export function SubmitPage() {
                         required={formData.enable_votifier}
                       />
                       <p className="text-[10px] text-zinc-500 font-headline mt-1">
-                        Usually the same as your Minecraft server IP.
+                        The address your Votifier plugin listens on. It can differ from your game address if you use a proxy.
                       </p>
                     </div>
                     <div className="space-y-2">
@@ -1414,7 +1414,7 @@ export function SubmitPage() {
                         required={formData.enable_votifier && !formData.votifier_token}
                       />
                       <p className="text-[10px] text-zinc-500 font-headline mt-1">
-                        Only use this if your server uses an old V1 Votifier plugin. Leave blank if you are using a Token.
+                        Use this if your server has no token set for Realm Explorer. Leave blank if you are using a Token.
                       </p>
                     </div>
                   </motion.div>

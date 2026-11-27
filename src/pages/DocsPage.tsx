@@ -482,7 +482,7 @@ const docsSections: DocSection[] = [
               <strong className="text-zinc-200">Install the Plugin:</strong> Install the NuVotifier plugin on your Minecraft server and configure its internal settings. Ensure the Votifier port is open and accessible from the outside.{' '}
               <a href="https://www.spigotmc.org/resources/nuvotifier.13449/" target="_blank" rel="noopener noreferrer" className="text-realm-green hover:underline">Download official NuVotifier here.</a>
               <div className="mt-2 text-sm text-zinc-500 italic">
-                Note: NuVotifier is a plugin built for Java servers and only works for Java Edition setups. Bedrock servers use Bedrock Votifier instead.
+                Note: NuVotifier itself is a Java plugin, but any server with a Votifier listener works the same way, including Bedrock servers that run a Votifier plugin. Bedrock servers without one can use Bedrock Votifier instead.
               </div>
             </div>
           </li>
@@ -499,8 +499,8 @@ const docsSections: DocSection[] = [
               <ul className="mt-2 space-y-2 list-disc list-inside text-sm text-zinc-500">
                 <li><strong className="text-zinc-300">Votifier IP:</strong> The public IP address where your server's Votifier is listening.</li>
                 <li><strong className="text-zinc-300">Votifier Port:</strong> The port your Votifier is bound to (usually 8192).</li>
-                <li><strong className="text-zinc-300">Votifier Token:</strong> If using NuVotifier protocol v2, enter your secure token.</li>
-                <li><strong className="text-zinc-300">Public Key:</strong> If using Votifier protocol v1, enter your public key block.</li>
+                <li><strong className="text-zinc-300">Votifier Token:</strong> If using NuVotifier protocol v2, enter the token your server has set for Realm Explorer.</li>
+                <li><strong className="text-zinc-300">Public Key:</strong> If your server has no token for Realm Explorer, enter its public key instead. Votes are then sent with Votifier protocol v1.</li>
               </ul>
             </div>
           </li>
@@ -547,7 +547,7 @@ const docsSections: DocSection[] = [
           <h2 className="text-2xl md:text-3xl font-body font-bold text-white tracking-tight">Bedrock Votifier Setup Guide</h2>
         </div>
         <p className="text-zinc-400 text-sm md:text-base leading-relaxed">
-          Bedrock Votifier lets a Bedrock Dedicated Server reward players who vote on Realm Explorer. A script on a Bedrock server cannot accept incoming connections, on RakNet or on NetherNet, so the classic Votifier cannot reach it. Bedrock Votifier works the other way round: your server asks Realm Explorer for new votes, so there is no port to open.
+          Bedrock Votifier lets a Bedrock Dedicated Server reward players who vote on Realm Explorer. A script on a Bedrock server cannot accept incoming connections, on RakNet or on NetherNet, so the classic Votifier cannot reach it. Bedrock Votifier works the other way round: your server asks Realm Explorer for new votes, so there is no port to open. If your Bedrock server already runs a Votifier plugin, use the NuVotifier settings instead.
         </p>
 
         <h3 className="text-xl font-body font-bold text-white mt-10 mb-5 tracking-tight">How to Set It Up</h3>

@@ -933,6 +933,27 @@ export interface LiveServerStatus {
   }
 }
 
+async function fetchNethernetStatus(slug: string): Promise<LiveServerStatus | null> {
+  try {
+    const res = await fetch(`/api/status?slug=${encodeURIComponent(slug)}`)
+    if (!res.ok) return null
+    const data = await res.json()
+    if (!data.online) return null
+
+    const name = typeof data.name === 'string'
+      ? data.name.replace(/\u00a7./g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim()
+      : ''
+    return {
+      online: true,
+      players: data.players,
+      version: data.version,
+      motd: name ? { html: [name] } : undefined,
+    }
+  } catch {
+    return null
+  }
+}
+
 export function useLiveServerStatus(server: Server | undefined | null, activeIpType: 'java' | 'bedrock' = 'java') {
   return useQuery({
     queryKey: ['liveServerStatus', server?.id, activeIpType],
@@ -981,6 +1002,10 @@ export function useLiveServerStatus(server: Server | undefined | null, activeIpT
                 ? data.motd.html 
                 : [],
           } : undefined,
+        }
+
+        if (!normalized.online && url.includes('/status/bedrock/')) {
+          return (await fetchNethernetStatus(server.slug)) ?? normalized
         }
 
         return normalized
