@@ -25,7 +25,7 @@ export const landingPages: LandingPage[] = [
     slug: 'minecraft-bedrock-realms',
     label: 'Bedrock Realms',
     title: 'Minecraft Bedrock Realms: Active Realm Codes',
-    heading: 'Minecraft Bedrock Realms',
+    heading: 'Bedrock Realms',
     description:
       'Browse active Minecraft Bedrock realms with realm codes you can join today. Find SMP, factions, skyblock and modded realms picked by the community.',
     intro: 'Find active Minecraft Bedrock realms and join with a realm code. Every realm is listed by its owner and voted on by the community.',
@@ -49,7 +49,7 @@ export const landingPages: LandingPage[] = [
     slug: 'minecraft-bedrock-servers',
     label: 'Bedrock Servers',
     title: 'Minecraft Bedrock Servers List: IPs and Ports',
-    heading: 'Minecraft Bedrock Servers',
+    heading: 'Bedrock Servers',
     description:
       'Find Minecraft Bedrock servers with IP addresses and ports for Xbox, PlayStation, Switch, mobile and PC. Browse SMP, factions, skyblock, prison and more.',
     intro: 'Minecraft Bedrock servers you can join from console, mobile and PC. Copy the server address and port from a listing and start playing.',
@@ -74,7 +74,7 @@ export const landingPages: LandingPage[] = [
     slug: 'minecraft-java-servers',
     label: 'Java Servers',
     title: 'Minecraft Java Servers List',
-    heading: 'Minecraft Java Servers',
+    heading: 'Java Servers',
     description:
       'Browse Minecraft Java Edition servers with IP addresses. Find SMP, factions, skyblock, prison and minigame servers and vote for your favorites.',
     intro: 'Minecraft Java Edition servers listed by their owners. Copy the server IP from a listing and add it in Multiplayer.',
@@ -92,7 +92,7 @@ export const landingPages: LandingPage[] = [
     slug: 'minecraft-server-list',
     label: 'Server List',
     title: 'Minecraft Server List: Bedrock and Java Servers',
-    heading: 'Minecraft Server List',
+    heading: 'Minecraft Servers',
     description:
       'A Minecraft server list for Bedrock and Java players. Browse servers by category, see which ones are online and vote for the servers you enjoy.',
     intro: 'Every Minecraft server on Realm Explorer in one list, for Bedrock and Java players. Filter by category to find the kind of server you want.',
@@ -109,7 +109,7 @@ export const landingPages: LandingPage[] = [
     slug: 'minecraft-smp-servers',
     label: 'SMP Servers',
     title: 'Minecraft SMP Servers and Realms',
-    heading: 'Minecraft SMP Servers & Realms',
+    heading: 'SMP Servers & Realms',
     description:
       'Find Minecraft SMP servers and realms to join. Browse survival multiplayer communities for Bedrock and Java and vote for your favorites.',
     intro: 'Survival multiplayer servers and realms where you build, trade and team up with other players.',
@@ -126,7 +126,7 @@ export const landingPages: LandingPage[] = [
     slug: 'minecraft-factions-servers',
     label: 'Factions Servers',
     title: 'Minecraft Factions Servers and Realms',
-    heading: 'Minecraft Factions Servers & Realms',
+    heading: 'Factions Servers & Realms',
     description:
       'Browse Minecraft factions servers and realms. Join a faction, claim land, build a base and raid your rivals on Bedrock and Java.',
     intro: 'Factions servers and realms where you claim land, build a base and fight rival factions.',
@@ -143,7 +143,7 @@ export const landingPages: LandingPage[] = [
     slug: 'minecraft-skyblock-servers',
     label: 'Skyblock Servers',
     title: 'Minecraft Skyblock Servers and Realms',
-    heading: 'Minecraft Skyblock Servers & Realms',
+    heading: 'Skyblock Servers & Realms',
     description:
       'Find Minecraft skyblock servers and realms. Start on a floating island, expand it and trade with other players on Bedrock and Java.',
     intro: 'Skyblock servers and realms where you start on a small floating island and build it into something bigger.',
@@ -160,7 +160,7 @@ export const landingPages: LandingPage[] = [
     slug: 'minecraft-prison-servers',
     label: 'Prison Servers',
     title: 'Minecraft Prison Servers and Realms',
-    heading: 'Minecraft Prison Servers & Realms',
+    heading: 'Prison Servers & Realms',
     description:
       'Browse Minecraft prison servers and realms. Mine, earn money and rank up until you are free, on Bedrock and Java.',
     intro: 'Prison servers and realms where you mine, earn money and rank up.',
@@ -177,7 +177,7 @@ export const landingPages: LandingPage[] = [
     slug: 'minecraft-pvp-servers',
     label: 'PvP Servers',
     title: 'Minecraft PvP Servers and Realms',
-    heading: 'Minecraft PvP Servers & Realms',
+    heading: 'PvP Servers & Realms',
     description:
       'Find Minecraft PvP and KitPvP servers and realms. Pick a kit, jump into fights and climb the leaderboards on Bedrock and Java.',
     intro: 'KitPvP servers and realms where you pick a kit and go straight into a fight.',
@@ -194,7 +194,7 @@ export const landingPages: LandingPage[] = [
     slug: 'minecraft-minigame-servers',
     label: 'Minigame Servers',
     title: 'Minecraft Minigame Servers and Realms',
-    heading: 'Minecraft Minigame Servers & Realms',
+    heading: 'Minigame Servers & Realms',
     description:
       'Browse Minecraft minigame servers and realms. Play quick competitive games with friends on Bedrock and Java.',
     intro: 'Minigame servers and realms with quick games you can play with friends.',

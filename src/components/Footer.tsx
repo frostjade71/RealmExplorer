@@ -1,10 +1,22 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Github } from 'lucide-react'
 import { SiDiscord, SiInstagram } from 'react-icons/si'
 import logo from '../assets/rerealm.webp'
 import { landingPages } from '../lib/landingPages'
+import { scrollToTop } from '../lib/scroll'
+
+const footerLinkClass =
+  'text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors'
 
 export function Footer() {
+  const { pathname } = useLocation()
+
+  const handleSameRouteClick = (targetPath: string) => {
+    if (pathname === targetPath) {
+      scrollToTop()
+    }
+  }
+
   return (
     <footer className="bg-[#111811] dark:bg-black w-full py-5 md:py-12 px-8 mt-auto border-t border-white/5">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-8 w-full max-w-7xl mx-auto">
@@ -53,7 +65,7 @@ export function Footer() {
             <p className="text-white font-pixel text-[9px] md:text-[10px] uppercase tracking-widest opacity-80">Browse</p>
             <div className="flex flex-col gap-2">
               {landingPages.slice(0, 5).map(page => (
-                <Link key={page.slug} to={`/${page.slug}`} className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">{page.label}</Link>
+                <Link key={page.slug} to={`/${page.slug}`} onClick={() => handleSameRouteClick(`/${page.slug}`)} className={footerLinkClass}>{page.label}</Link>
               ))}
             </div>
           </div>
@@ -62,7 +74,7 @@ export function Footer() {
           <div className="flex flex-col items-center md:items-start gap-3 md:gap-4 text-center md:text-left">
             <p className="text-white font-pixel text-[9px] md:text-[10px] uppercase tracking-widest opacity-80">About</p>
             <div className="flex flex-col gap-2">
-              <Link to="/about" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">About Us</Link>
+              <Link to="/about" onClick={() => handleSameRouteClick('/about')} className={footerLinkClass}>About Us</Link>
               <Link 
                 to="/blog?category=Changelog#feed" 
                 onClick={() => {
@@ -70,7 +82,7 @@ export function Footer() {
                     document.getElementById('feed')?.scrollIntoView({ behavior: 'smooth' })
                   }, 50)
                 }}
-                className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
+                className={footerLinkClass}
               >
                 Changelog
               </Link>
@@ -78,7 +90,7 @@ export function Footer() {
                 href="https://status.realmexplorer.xyz" 
                 target="_blank" 
                 rel="noreferrer" 
-                className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
+                className={footerLinkClass}
               >
                 Status
               </a>
@@ -89,12 +101,12 @@ export function Footer() {
           <div className="flex flex-col items-center md:items-start gap-3 md:gap-4 text-center md:text-left">
             <p className="text-white font-pixel text-[9px] md:text-[10px] uppercase tracking-widest opacity-80">Resources</p>
             <div className="flex flex-col gap-2">
-              <Link to="/docs" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Documentation</Link>
+              <Link to="/docs" onClick={() => handleSameRouteClick('/docs')} className={footerLinkClass}>Documentation</Link>
               <a 
                 href="http://discord.gg/gacuuQJEgp" 
                 target="_blank" 
                 rel="noreferrer" 
-                className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
+                className={footerLinkClass}
               >
                 Contact Support
               </a>
@@ -102,7 +114,7 @@ export function Footer() {
                 href="https://github.com/frostjade71/RealmExplorer/issues" 
                 target="_blank" 
                 rel="noreferrer" 
-                className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors"
+                className={footerLinkClass}
               >
                 Report Issues
               </a>
@@ -113,9 +125,9 @@ export function Footer() {
           <div className="flex flex-col items-center md:items-start gap-3 md:gap-4 text-center md:text-left">
             <p className="text-white font-pixel text-[9px] md:text-[10px] uppercase tracking-widest opacity-80">Legal</p>
             <div className="flex flex-col gap-2">
-              <Link to="/terms" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Terms of Use</Link>
-              <Link to="/privacy" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Privacy Policy</Link>
-              <Link to="/copyright" className="text-white/60 hover:text-green-400 underline decoration-1 underline-offset-4 text-[10px] md:text-xs font-headline transition-colors">Copyright Policy & DMCA</Link>
+              <Link to="/terms" onClick={() => handleSameRouteClick('/terms')} className={footerLinkClass}>Terms of Use</Link>
+              <Link to="/privacy" onClick={() => handleSameRouteClick('/privacy')} className={footerLinkClass}>Privacy Policy</Link>
+              <Link to="/copyright" onClick={() => handleSameRouteClick('/copyright')} className={footerLinkClass}>Copyright Policy & DMCA</Link>
             </div>
           </div>
         </div>

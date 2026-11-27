@@ -528,45 +528,52 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="pt-0 pb-8 md:pb-16 px-6 md:px-8 bg-[#0A0A0A]">
+      <section className="pt-0 pb-8 md:pb-16 px-4 md:px-8 bg-[#0A0A0A]">
         <div className="max-w-7xl mx-auto flex flex-col items-center">
           <FramerIn className="text-center mb-12 md:mb-16">
             <h2 className="font-pixel text-white text-xl md:text-2xl mb-2">Our Partners</h2>
             <div className="h-1 w-12 md:w-16 bg-primary-container mx-auto"></div>
           </FramerIn>
           <FramerIn delay={0.2} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:auto-rows-fr gap-6 max-w-6xl mx-auto w-full">
-            <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full h-full flex justify-center">
-              <DiscordInviteCard 
-                inviteCode="nVqt3z78Mw"
-                title="CommunityOne"
-                websiteUrl="https://communityone.io/"
-                className="w-full max-w-[350px] h-full justify-start hover:border-purple-500/50 transition-colors duration-300"
-              />
-            </div>
-            <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full h-full flex justify-center -mt-8 md:mt-0">
-              <DiscordInviteCard 
-                inviteCode="realmbot"
-                title="Realm Bot"
-                websiteUrl="https://realmbot.dev/"
-                className="w-full max-w-[350px] h-full justify-start hover:border-realm-green/50 transition-colors duration-300"
-              />
-            </div>
-            <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full h-full flex justify-center -mt-8 md:mt-0">
-              <DiscordInviteCard 
-                inviteCode="es6snXqXW5"
-                title="CrabSMP"
-                websiteUrl="https://crabsmp.net/"
-                className="w-full max-w-[350px] h-full justify-start hover:border-red-500/50 transition-colors duration-300"
-              />
-            </div>
-            <div className="scale-[0.85] md:scale-100 origin-top md:origin-center w-full h-full flex justify-center -mt-8 md:mt-0 lg:col-start-2">
-              <DiscordInviteCard 
-                inviteCode="vyUSQXcQrt"
-                title="Minecart SMP"
-                websiteUrl="https://minecartsmp.net/"
-                className="w-full max-w-[350px] h-full justify-start hover:border-slate-300/50 transition-colors duration-300"
-              />
-            </div>
+            {[
+              {
+                inviteCode: 'nVqt3z78Mw',
+                title: 'CommunityOne',
+                websiteUrl: 'https://communityone.io/',
+                hoverBorder: 'hover:border-purple-500/50',
+              },
+              {
+                inviteCode: 'realmbot',
+                title: 'Realm Bot',
+                websiteUrl: 'https://realmbot.dev/',
+                hoverBorder: 'hover:border-realm-green/50',
+              },
+              {
+                inviteCode: 'es6snXqXW5',
+                title: 'CrabSMP',
+                websiteUrl: 'https://crabsmp.net/',
+                hoverBorder: 'hover:border-red-500/50',
+              },
+              {
+                inviteCode: 'vyUSQXcQrt',
+                title: 'Minecart SMP',
+                websiteUrl: 'https://minecartsmp.net/',
+                hoverBorder: 'hover:border-slate-300/50',
+                wrapperClass: 'lg:col-start-2',
+              },
+            ].map((partner) => (
+              <div
+                key={partner.inviteCode}
+                className={`w-full md:h-full flex justify-center ${partner.wrapperClass ?? ''}`}
+              >
+                <DiscordInviteCard
+                  inviteCode={partner.inviteCode}
+                  title={partner.title}
+                  websiteUrl={partner.websiteUrl}
+                  className={`w-full max-w-[350px] md:h-full justify-start ${partner.hoverBorder} transition-colors duration-300`}
+                />
+              </div>
+            ))}
           </FramerIn>
         </div>
       </section>
@@ -670,14 +677,12 @@ export function HomePage() {
               </div>
             </div>
             
-            <div className="flex-shrink-0 z-30 origin-top md:origin-center w-full md:w-auto flex justify-center md:block mt-8 md:mt-0">
-              <div className="w-[125%] md:w-auto scale-[0.85] md:scale-100 origin-top flex justify-center md:block">
-                <DiscordInviteCard 
-                  inviteCode="G8CyUZjPRt"
-                  bannerImg={ctaBg}
-                  className="w-full md:w-[350px] max-w-none md:max-w-full"
-                />
-              </div>
+            <div className="flex-shrink-0 z-30 w-full md:w-auto flex justify-center md:block mt-8 md:mt-0">
+              <DiscordInviteCard 
+                inviteCode="G8CyUZjPRt"
+                bannerImg={ctaBg}
+                className="w-full max-w-[350px] md:w-[350px]"
+              />
             </div>
           </div>
           <div className="absolute top-0 left-0 w-full h-full opacity-10 pixel-grid pointer-events-none"></div>

@@ -17,10 +17,8 @@ export function Navbar() {
   const [mobileExpanded, setMobileExpanded] = useState<string[]>([])
   const location = useLocation()
 
-  // Reset scroll instantly on path change
   useEffect(() => {
-    window.scrollTo(0, 0)
-    setMobileMenuOpen(false) // Close mobile menu on navigation
+    setMobileMenuOpen(false)
   }, [location.pathname])
 
   const accountMenuRef = useRef<HTMLDivElement>(null)
