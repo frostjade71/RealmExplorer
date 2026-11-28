@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useServers, useGlobalStats, useOTMWinners, useSiteSetting, useServersByIds, useDirectoryStats } from '../hooks/queries'
+import { useServers, useOTMWinners, useSiteSetting, useServersByIds, useDirectoryStats } from '../hooks/queries'
 import { ServerCard } from '../components/ServerCard'
 
 import { AnimatedPage } from '../components/AnimatedPage'
@@ -47,27 +47,6 @@ import skygenBg from '../assets/homepage/skygen.webp'
 import prisonBg from '../assets/homepage/prisons.jpg'
 import minigamesBg from '../assets/homepage/minigamebg.webp'
 
-function StatItem({ value, label, suffix = '', formatter = (v: number) => v.toString(), align = 'center' }: { 
-  value: number | undefined, 
-  label: string, 
-  suffix?: string,
-  formatter?: (v: number) => string,
-  align?: 'center' | 'left'
-}) {
-  return (
-    <div className={`flex flex-col ${align === 'left' ? 'items-start text-left' : 'items-center text-center'} shrink-0`}>
-      <span className={`text-[#85fc7e] font-pixel text-base xs:text-xl md:text-2xl mb-1.5 md:mb-2 [text-shadow:0_2px_4px_rgba(0,0,0,0.85)] drop-shadow-md min-h-[24px] md:min-h-[32px] flex items-center ${align === 'left' ? 'justify-start' : 'justify-center'}`}>
-        {value === undefined ? (
-          <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-[#85fc7e]/30 border-t-[#85fc7e] rounded-full animate-spin"></div>
-        ) : (
-          formatter(value) + suffix
-        )}
-      </span>
-      <span className="text-white font-headline text-[8px] md:text-[10px] tracking-widest uppercase font-bold leading-tight [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">{label}</span>
-    </div>
-  )
-}
-
 import { MetaTags } from '../components/MetaTags'
 
 const categories: { id: ServerCategory; name: string; icon: string; bg: string; desc: string }[] = [
@@ -87,7 +66,6 @@ export function HomePage() {
   const { data: topVotedServers = [], isLoading: isTopVotedLoading } = useServers({ sortBy: 'votes', limit: 20 })
   const { data: otmWinners = [], isLoading: isOtmLoading } = useOTMWinners()
   const { data: allApprovedServers = [] } = useServers({ limit: 40 })
-  const { data: stats } = useGlobalStats()
   const { data: dirStats } = useDirectoryStats()
   const { data: introSetting, isLoading: isIntroLoading } = useSiteSetting('homepage_intro')
   const introData = introSetting?.value as {word: string, color: string}[] | undefined
@@ -443,26 +421,6 @@ export function HomePage() {
                 <span>List your Server</span>
                 <span className="material-symbols-outlined text-[14px] md:text-[15px] group-hover:scale-110 transition-transform text-white">add_circle</span>
               </button>
-            </div>
-          </FramerIn>
-          
-          <FramerIn delay={0.5} className="w-full">
-            <div className="grid grid-cols-3 gap-4 sm:gap-8 max-w-md mx-auto">
-              <StatItem 
-                value={stats?.servers} 
-                label="Listed Servers" 
-                align="center"
-              />
-              <StatItem 
-                value={stats?.users} 
-                label="Global Users" 
-                align="center"
-                formatter={(v) => v.toLocaleString()}
-              />
-              <div className="flex flex-col items-center text-center shrink-0">
-                <span className="text-[#85fc7e] font-pixel text-base xs:text-xl md:text-2xl mb-1.5 md:mb-2 [text-shadow:0_2px_4px_rgba(0,0,0,0.85)] drop-shadow-md min-h-[24px] md:min-h-[32px] flex items-center">99%</span>
-                <span className="text-white font-headline text-[8px] md:text-[10px] tracking-widest uppercase font-bold leading-tight [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">Uptime Verified</span>
-              </div>
             </div>
           </FramerIn>
         </div>

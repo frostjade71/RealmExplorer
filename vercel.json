@@ -180,6 +180,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/", "destination": "/api/og?route=home" },
     {
       "source": "/server/:slug",
       "destination": "/api/og?route=server&slug=:slug"
@@ -194,6 +195,16 @@
     },
     { "source": "/appeal", "destination": "/appeal.html" },
     { "source": "/servers", "destination": "/api/og?route=servers" },
+    { "source": "/projects", "destination": "/api/og?route=static&slug=projects" },
+    { "source": "/leaderboards", "destination": "/api/og?route=static&slug=leaderboards" },
+    { "source": "/blog", "destination": "/api/og?route=static&slug=blog" },
+    { "source": "/about", "destination": "/api/og?route=static&slug=about" },
+    { "source": "/team", "destination": "/api/og?route=static&slug=team" },
+    { "source": "/upgrade", "destination": "/api/og?route=static&slug=upgrade" },
+    { "source": "/terms", "destination": "/api/og?route=static&slug=terms" },
+    { "source": "/privacy", "destination": "/api/og?route=static&slug=privacy" },
+    { "source": "/copyright", "destination": "/api/og?route=static&slug=copyright" },
+    { "source": "/pj", "destination": "/api/og?route=static&slug=pj" },
     { "source": "/docs", "destination": "/api/og?route=static&slug=docs" },
     { "source": "/api-docs", "destination": "/api/og?route=static&slug=api-docs" },
     { "source": "/:slug(minecraft-[a-z-]+)", "destination": "/api/og?route=landing&slug=:slug" },
